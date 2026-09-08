@@ -92,6 +92,7 @@ export default function JoinForm({ levels, grades, maxKids, presetEmail = "", pr
         <Progress n={kids.length + 2} at={kids.length + 2} />
         <h1 className="wiz-h">{t("join.doneTitle")}</h1>
         <p className="wiz-p">{t("join.done", { email: state.email ?? "" })}</p>
+        <p className="msg info">{t("join.doneSpam")}</p>
         {state.note ? <p className="msg info">{state.note}</p> : null}
         <div className="wiz-acts col">
           {(state.kids ?? []).map((k) => (
