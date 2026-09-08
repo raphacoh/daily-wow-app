@@ -11,8 +11,10 @@ import {
   listTopicIdeas,
   recentFamilies,
   type AdminEdition,
+  gamificationReadout,
 } from "@/lib/admin";
-import { grantAssistantAction, holdAction, releaseAction, republishAction, saveConfigAction, testMailAction } from "./actions";
+import { aliasTopicAction, grantAssistantAction, holdAction, rebuildProgressAction, releaseAction, republishAction, saveConfigAction, saveSkillAction, testMailAction } from "./actions";
+import { ROOTS, ROOT_IDS } from "@/lib/roots";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,7 +67,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     );
   }
 
-  const [editions, stats, families, menus, ideas, found, config] = await Promise.all([
+  const [editions, stats, families, menus, ideas, found, config, game] = await Promise.all([
     listAdminEditions(40),
     adminStats(),
     recentFamilies(20),
@@ -73,6 +75,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     listTopicIdeas(20),
     q ? findParentByEmail(q) : Promise.resolve(null),
     Promise.all(CONFIG_FIELDS.map(async (f) => [f.key, await getConfig(f.key)] as const)).then((pairs) => Object.fromEntries(pairs)),
+    gamificationReadout(),
   ]);
 
   return (
@@ -300,6 +303,105 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             </table>
           </div>
         </details>
+      </section>
+
+      {/* ---------- gamification (spec §9) ---------- */}
+      <section className="panel">
+        <h3>שורשים וכנפיים</h3>
+        <p className="cap">
+          מה כל גיליון מצהיר (WOW_META, גרסת מנוע), מילות נושא שלא מופו לשורש, וכישורים בשימוש. שינוי כאן נכנס לתוקף אחרי חישוב מחדש.{" "}
+          <a href="/api/admin/gamification">JSON ›</a>
+        </p>
+        <form action={rebuildProgressAction} style={{ marginBottom: 12 }}>
+          <button className="btn small" type="submit">לחשב מחדש את ההתקדמות של כולם</button>
+        </form>
+        <div className="scroll">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>מנוע</th>
+                <th>WOW_META</th>
+                <th>אזהרות</th>
+              </tr>
+            </thead>
+            <tbody>
+              {game.editions.slice(0, 10).map((e) => (
+                <tr key={e.n}>
+                  <td className="num">{e.n}</td>
+                  <td className="num">{e.engine_version ?? "—"}</td>
+                  <td>{e.has_meta ? "✓" : "—"}</td>
+                  <td className="small">{e.warnings.length ? e.warnings.join(" · ") : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h4 style={{ margin: "14px 0 6px" }}>מילות נושא בלי שורש</h4>
+        {game.unmapped_topics.length ? (
+          game.unmapped_topics.map((u) => (
+            <form action={aliasTopicAction} key={u.topic} className="controls" style={{ marginBottom: 6 }}>
+              <input type="hidden" name="topic" value={u.topic} />
+              <span>
+                <b>{u.topic}</b> <span className="small">(#{u.editions.join(", #")})</span>
+              </span>
+              <select name="root" defaultValue="">
+                <option value="">— בלי שורש —</option>
+                {ROOT_IDS.map((id) => (
+                  <option key={id} value={id}>
+                    {ROOTS[id].name}
+                  </option>
+                ))}
+              </select>
+              <button className="btn small" type="submit">מיפוי</button>
+            </form>
+          ))
+        ) : (
+          <p className="small">כל מילות הנושא ממופות.</p>
+        )}
+        {game.aliases.length ? (
+          <p className="small">
+            מיפויים שלכם: {game.aliases.map((a) => `${a.topic} → ${ROOTS[a.root as keyof typeof ROOTS]?.name ?? a.root}`).join(" · ")}
+          </p>
+        ) : null}
+        <h4 style={{ margin: "14px 0 6px" }}>כישורים</h4>
+        <div className="scroll">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>slug</th>
+                <th>בגיליונות</th>
+                <th>שם בעברית</th>
+                <th>למזג אל</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {game.skills.map((sk) => (
+                <tr key={sk.slug}>
+                  <td dir="ltr" className="small">{sk.slug}</td>
+                  <td className="small num">{sk.editions.length ? sk.editions.join(", ") : "—"}</td>
+                  <td colSpan={3}>
+                    <form action={saveSkillAction} className="controls">
+                      <input type="hidden" name="slug" value={sk.slug} />
+                      <input name="name_he" defaultValue={sk.name_he ?? ""} placeholder="שם לילדים" />
+                      <input name="canonical" defaultValue={sk.canonical_slug ?? ""} placeholder="slug קנוני" dir="ltr" />
+                      <button className="btn small" type="submit">שמירה</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {game.item_stats.length ? (
+          <>
+            <h4 style={{ margin: "14px 0 6px" }}>שאלות לפי הצלחה בניסיון ראשון (7 הגיליונות האחרונים)</h4>
+            <p className="small">
+              {game.item_stats.map((r) => `#${r.edition_n} ${r.item_id}: ${r.first_try_correct}/${r.n}${r.rate != null ? ` (${r.rate}%)` : ""}`).join(" · ")}
+            </p>
+          </>
+        ) : null}
       </section>
 
       {/* ---------- menus + ideas ---------- */}

@@ -4,6 +4,7 @@
 import { db, type Queryable } from "./db";
 import { decryptToken, encryptToken, hashToken, looksLikeToken, newLinkToken } from "./tokens";
 import { badgesFor, computeStreak, levelFor, localDate, xpFor } from "./progress";
+import { rebuildProgress, type Progress } from "./gamification";
 
 export type Level = "support" | "standard" | "on_track" | "advanced";
 /** The three levels parents choose from. `on_track` still exists in the database (legacy) and behaves like `standard`. */
@@ -145,6 +146,8 @@ export interface CompletionResult {
   first_time: boolean;
   improved: boolean;
   password: string;
+  /** roots, medals, cards, badges, shields — replayed from facts after this completion (spec P0) */
+  progress: Progress | null;
 }
 
 /**
@@ -179,7 +182,8 @@ export async function recordCompletion(kid: KidRow & { parent: ParentRow }, inpu
     const improved = !!existing && (score > existing.score || (input.complete && !existing.complete) || (input.challenge && !existing.challenge));
     if (existing && !improved) {
       const stats = await statsFor(kid.id, q);
-      return { ok: true as const, stats, xp_awarded: existing.xp_awarded, late: existing.late, new_badges: [], first_time: false, improved: false, password: edition.password };
+      const progress = await rebuildProgress(kid, tz, now, q);
+      return { ok: true as const, stats, xp_awarded: existing.xp_awarded, late: existing.late, new_badges: [], first_time: false, improved: false, password: edition.password, progress };
     }
 
     // streak after this completion (on-time completions only)
@@ -231,7 +235,8 @@ export async function recordCompletion(kid: KidRow & { parent: ParentRow }, inpu
       [kid.id, streak, best, xpDelta, badges, lastDone],
     );
     const after = await statsFor(kid.id, q);
-    return { ok: true as const, stats: after, xp_awarded: xpAwarded, late: wasLate, new_badges: newBadges, first_time: !existing, improved, password: edition.password };
+    const progress = await rebuildProgress(kid, tz, now, q);
+    return { ok: true as const, stats: after, xp_awarded: xpAwarded, late: wasLate, new_badges: newBadges, first_time: !existing, improved, password: edition.password, progress };
   });
 }
 

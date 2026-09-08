@@ -1,15 +1,46 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
-    { "path": "/api/jobs/send-daily", "schedule": "5 8 * * *" },
-    { "path": "/api/jobs/send-daily", "schedule": "5 9 * * *" },
-    { "path": "/api/jobs/weekly", "schedule": "0 15 * * 0" },
-    { "path": "/api/jobs/weekly", "schedule": "0 16 * * 0" },
-    { "path": "/api/jobs/streak-risk", "schedule": "0 16 * * *" },
-    { "path": "/api/jobs/streak-risk", "schedule": "0 17 * * *" },
-    { "path": "/api/jobs/nightly", "schedule": "0 1 * * *" }
+    {
+      "path": "/api/jobs/send-daily",
+      "schedule": "5 8 * * *"
+    },
+    {
+      "path": "/api/jobs/send-daily",
+      "schedule": "5 9 * * *"
+    },
+    {
+      "path": "/api/jobs/weekly",
+      "schedule": "0 15 * * 0"
+    },
+    {
+      "path": "/api/jobs/weekly",
+      "schedule": "0 16 * * 0"
+    },
+    {
+      "path": "/api/jobs/streak-risk",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/jobs/streak-risk",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/jobs/close-day",
+      "schedule": "30 20 * * *"
+    },
+    {
+      "path": "/api/jobs/close-day",
+      "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/jobs/nightly",
+      "schedule": "0 1 * * *"
+    }
   ],
   "functions": {
-    "src/app/api/**": { "maxDuration": 60 }
+    "src/app/api/**": {
+      "maxDuration": 60
+    }
   }
 }

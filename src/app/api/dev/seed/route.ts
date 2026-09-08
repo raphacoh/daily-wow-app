@@ -13,10 +13,12 @@ export async function POST() {
   if (process.env.NODE_ENV === "production" || process.env.DEV_SEED !== "1") return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (!hasDb()) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const editions = await importLocalEditions();
-  // dev convenience: today's lesson is edition 1, so a completion counts for the streak
+  // dev convenience: the demo edition (the one the e2e test walks) is dated today, so a completion counts for the
+  // streak; every other edition is dated one day earlier per number, so the library has a past to complete
   const { db } = await import("@/lib/db");
   const { localDate } = await import("@/lib/progress");
-  await db().query("update editions set date = $1 where n = (select max(n) from editions)", [localDate(new Date(), process.env.EDITOR_TIMEZONE || "Asia/Jerusalem")]);
+  const { DEMO_EDITION_N } = await import("@/lib/editions");
+  await db().query("update editions set date = ($1::date - (abs(n - $2))::int) where status = 'released'", [localDate(new Date(), process.env.EDITOR_TIMEZONE || "Asia/Jerusalem"), DEMO_EDITION_N]);
   const families = await importFamilies({
     families: [
       {

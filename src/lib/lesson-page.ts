@@ -4,8 +4,12 @@
  */
 import { getEdition, wrapEdition, type RuntimeBootstrap } from "./editions";
 import { kidByToken, profileFor } from "./kids";
+import { progressFor, progressSummary, takeNotices } from "./gamification";
 import { hasDb } from "./db";
 import { APP, X_URL } from "./config";
+
+/** bump when public/wow-runtime.js changes (cache-busting) */
+export const WOW_RUNTIME_VERSION = "3";
 
 export interface LessonRenderOptions {
   token?: string;
@@ -29,6 +33,8 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
       rt.kidToken = opts.token;
       rt.profile = await profileFor(kid);
       rt.library = `/library?k=${encodeURIComponent(opts.token)}`;
+      const summary = progressSummary(await progressFor(kid.id), edition.n);
+      rt.progress = summary ? { ...summary, notices: await takeNotices(kid.id) } : null;
     }
   }
   const dir = edition.language === "en" || edition.language === "fr" ? "ltr" : "rtl";
@@ -37,7 +43,8 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
   const html = edition.html.replace(/const PW_ENC = '[^']*';/, `const PW_ENC = '${rt.kidToken ? "" : encodePw("הדגמה")}';`);
   const body = wrapEdition(html, rt, edition.language || "he", dir, {
     index: !!opts.index,
-    prepend: opts.banner && !rt.kidToken ? visitorStrip(opts.parent ?? null) : "",
+    // the gamification runtime is the app's, not the edition's: it evolves on deploy and works on old editions too
+    prepend: `<script src="/wow-runtime.js?v=${WOW_RUNTIME_VERSION}"></script>` + (opts.banner && !rt.kidToken ? visitorStrip(opts.parent ?? null) : ""),
   });
   return { status: 200, body };
 }

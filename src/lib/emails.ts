@@ -50,7 +50,10 @@ export interface KidWeek {
   name: string;
   feminine: boolean;
   days: WeekDay[];
+  /** badges earned this week (names) */
   badges: string[];
+  /** one line about the week's medals and cards, e.g. "2 זהב, 1 כסף · 3 קלפים חדשים" (gamification P0) */
+  collection?: string;
 }
 
 export type BillingKind = "payment_failed" | "ended" | "active";
@@ -593,6 +596,7 @@ export function weeklyMail({ to, parentName, weekLabel, kids, editorLine }: Week
   <tr><td style="padding:12px 14px;background:#FFFFFF;border:1px solid ${LINE};border-radius:12px;">
     <p style="margin:0 0 8px;font-family:${FONT};font-size:16px;font-weight:700;color:${INK};">${esc(k.name)} — ${ltr(doneCount)} מתוך ${ltr(k.days.length)}</p>
     ${weekGrid(k.days)}
+    ${k.collection ? small(esc(k.collection)) : ""}
     ${badges}
   </td></tr>
 </table>`;
@@ -617,7 +621,7 @@ export function weeklyMail({ to, parentName, weekLabel, kids, editorLine }: Week
         const doneCount = k.days.filter((d) => d.done).length;
         const row = k.days.map((d) => (d.done ? "✓" : "·")).join(" ");
         const badges = k.badges.length ? `תגים: ${k.badges.join(", ")}` : "עוד אין תגים השבוע — יש שבוע הבא.";
-        return `${k.name} — ${doneCount} מתוך ${k.days.length}\n${row}\n${badges}`;
+        return `${k.name} — ${doneCount} מתוך ${k.days.length}\n${row}\n${k.collection ? k.collection + "\n" : ""}${badges}`;
       })
       .join("\n\n"),
     editorLine ?? "",

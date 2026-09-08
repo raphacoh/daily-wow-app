@@ -4,6 +4,7 @@
  */
 import { db } from "./db";
 import { extractAssistantContext, listLocalEditions, loadLocalEdition } from "./editions";
+import { gamificationOf } from "./admin";
 import { registerFamily, type RegistrationInput } from "./family";
 import { rebuildStats } from "./kids";
 
@@ -14,13 +15,15 @@ export async function importLocalEditions(opts: { release?: boolean } = {}): Pro
     const e = await loadLocalEdition(m.n);
     if (!e) continue;
     const ctx = extractAssistantContext(e.html);
+    const game = gamificationOf(e.html);
     const status = opts.release === false ? "staged" : e.status;
     await db().query(
-      `insert into editions (n, code, date, language, title, topics, summary, teaser, password, max_score, status, reviewer_verdict, review_url, html, lesson_context, grading_context, released_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::edition_status,$12,$13,$14,$15,$16, case when $11::text = 'released' then coalesce($17::timestamptz, now()) else null end)
+      `insert into editions (n, code, date, language, title, topics, summary, teaser, password, max_score, status, reviewer_verdict, review_url, html, lesson_context, grading_context, released_at, wow_meta, engine_version)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::edition_status,$12,$13,$14,$15,$16, case when $11::text = 'released' then coalesce($17::timestamptz, now()) else null end, $18::jsonb, $19)
        on conflict (n) do update set title = excluded.title, topics = excluded.topics, summary = excluded.summary, teaser = excluded.teaser, html = excluded.html,
-         lesson_context = excluded.lesson_context, grading_context = excluded.grading_context, password = excluded.password`,
-      [e.n, e.code, e.date, e.language, e.title, e.topics, e.summary, e.teaser, e.password, e.max_score, status, e.reviewer_verdict ?? null, e.review_url ?? null, e.html, ctx.lesson_context, ctx.grading_context, e.released_at],
+         lesson_context = excluded.lesson_context, grading_context = excluded.grading_context, password = excluded.password,
+         wow_meta = excluded.wow_meta, engine_version = excluded.engine_version`,
+      [e.n, e.code, e.date, e.language, e.title, e.topics, e.summary, e.teaser, e.password, e.max_score, status, e.reviewer_verdict ?? null, e.review_url ?? null, e.html, ctx.lesson_context, ctx.grading_context, e.released_at, game.wow_meta == null ? null : JSON.stringify(game.wow_meta), game.engine_version],
     );
     imported.push(e.n);
   }

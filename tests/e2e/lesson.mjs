@@ -106,6 +106,9 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     streakLine: document.getElementById("streakLine").textContent,
     scrollW: document.documentElement.scrollWidth,
     vw: innerWidth,
+    wow: document.querySelector('[data-wow="progress"] .wow')?.innerText.replace(/\s+/g, " ").slice(0, 3000) || "",
+    strip: document.querySelector(".wow-strip")?.innerText.replace(/\s+/g, " ") || "",
+    wowLoaded: !!(window.WOW && window.WOW.v),
   }));
 }
 
@@ -137,13 +140,16 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     if (await page.evaluate(() => document.documentElement.outerHTML.includes("15DXmNeRINec16kg15zXpteU"))) errors.push("demo: the real PW_ENC is in the page source");
     if (demo.runtime !== "demo") errors.push("demo: runtime flag missing");
     if (demo.scrollW > demo.vw) errors.push("demo: horizontal overflow");
+    if (!demo.wowLoaded) errors.push("demo: wow-runtime not loaded");
+    if (!/קישור אישי/.test(demo.wow)) errors.push("demo: progress note missing: " + demo.wow);
     await page.close();
 
     // 2. a real kid via personal link (on_track → older track, push=ontrack)
     page = await newPage();
     await page.goto(BASE + links["אמה"], { waitUntil: "domcontentloaded" });
-    const url = page.url();
-    if (!/\/l\/1\?k=/.test(url)) errors.push("today redirect failed: " + url);
+    if (!/\/l\/\d+\?k=/.test(page.url())) errors.push("today redirect failed: " + page.url());
+    // the walk below is edition 1's (the demo edition, dated today by the seed)
+    const url = BASE + "/l/1?k=" + links["אמה"].split("k=")[1];
     const kid = await playLesson(page, { expectNoPicker: true, url });
     console.log("kid:", JSON.stringify(kid));
     if (kid.pw !== "הצל של בטא") errors.push("kid: vault should show the server password, got " + kid.pw);
@@ -152,6 +158,30 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     if (kid.track !== "older" || kid.push !== "ontrack") errors.push("kid: level mapping " + kid.track + "/" + kid.push);
     if (!/אמה/.test(kid.who)) errors.push("kid: name not shown");
     if (!/נשמרה/.test(kid.status)) errors.push("kid: completion not confirmed by server: " + kid.status);
+    // gamification P0: the results screen shows the medal, the card and the roots from the server's progress
+    if (!/המדליה של היום: (ארד|כסף|זהב|יהלום)/.test(kid.wow)) errors.push("kid: medal block missing: " + kid.wow);
+    if (!/הקלף של היום/.test(kid.wow) || !/השורשים שצמחו/.test(kid.wow)) errors.push("kid: card/roots block missing: " + kid.wow);
+    if (!/השורשים והכנפיים שלי/.test(kid.wow)) errors.push("kid: drawer button missing");
+    // P1: the engine emitted item events, the runtime flushed them, the server folded them into wings
+    await page.waitForFunction(() => /נוצות לכנפיים/.test(document.querySelector('[data-wow="progress"]')?.innerText || ""), null, { timeout: 8000 }).catch(() => errors.push("kid: feathers block missing (events not flushed?)"));
+    const wow2 = await page.evaluate(() => document.querySelector('[data-wow="progress"] .wow')?.innerText.replace(/\s+/g, " ") || "");
+    if (!/הבנה \+/.test(wow2) || !/חישוב \+/.test(wow2) || !/המסע של השבוע/.test(wow2)) errors.push("kid: wings/journey block: " + wow2.slice(0, 300));
+    const ev = await page.evaluate(() => window.WOW.events().map((e) => e.t + ":" + (e.p.id || "")));
+    for (const need of ["predict:predict", "item:qc:qc2", "item:mcq:shared:0", "item:order", "item:num:older", "item:explain", "finish:"]) if (!ev.includes(need)) errors.push("kid: engine did not emit " + need + " — got " + ev.join(","));
+    await page.click('[data-wow-open]');
+    await page.waitForSelector(".wow-drawer .grove .tree", { timeout: 8000 });
+    const drawer = await page.evaluate(() => ({ trees: document.querySelectorAll(".wow-drawer .tree").length, cards: document.querySelectorAll(".wow-drawer .album .card").length, badges: document.querySelectorAll(".wow-drawer .badge:not(.locked)").length, locked: document.querySelectorAll(".wow-drawer .badge.locked").length }));
+    console.log("drawer:", JSON.stringify(drawer));
+    if (drawer.trees !== 15 || drawer.cards < 1 || drawer.badges < 1 || drawer.locked < 5) errors.push("drawer: " + JSON.stringify(drawer));
+    await page.keyboard.press("Escape");
+    // a second visit shows the hero strip with today's medal
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(".wow-strip", { timeout: 8000 });
+    const strip = await page.evaluate(() => document.querySelector(".wow-strip").innerText.replace(/\s+/g, " "));
+    console.log("strip:", strip);
+    if (!/רצף 1/.test(strip) || !/היום כבר יש/.test(strip)) errors.push("strip: " + strip);
+    const prog = await fetch(BASE + "/api/kid/progress?k=" + encodeURIComponent(url.split("k=")[1])).then((x) => x.json());
+    if (!prog.ok || !prog.progress || !prog.progress.cards.length || !prog.defs.length) errors.push("progress api: " + JSON.stringify(prog).slice(0, 200));
     // the challenge heading variant for on_track
     const heading = await page.evaluate(() => document.querySelector(".panel.challenge h3")?.innerText.replace(/\s+/g, " ").trim());
     if (!/מומלץ בשבילך/.test(heading || "")) errors.push("on_track heading: " + heading);
@@ -159,7 +189,7 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
 
     // 3. advanced kid: twins swapped
     page = await newPage();
-    await page.goto(BASE + links["אדם"], { waitUntil: "domcontentloaded" });
+    await page.goto(BASE + "/l/1?k=" + links["אדם"].split("k=")[1], { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.getElementById("startBtn") && !document.getElementById("startBtn").disabled, null, { timeout: 8000 });
     const adv = await page.evaluate(() => { for (let s = 2; s <= 7; s++) goTo(s); return { level: document.body.dataset.level, adv: !!document.querySelector(".q[data-level=advanced]")?.offsetParent, std: !!document.querySelector(".q[data-track=older][data-level=standard]")?.offsetParent }; });
     console.log("advanced:", JSON.stringify(adv));
@@ -168,7 +198,7 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
 
     // 4. support kid: younger track
     page = await newPage();
-    await page.goto(BASE + links["נועה"], { waitUntil: "domcontentloaded" });
+    await page.goto(BASE + "/l/1?k=" + links["נועה"].split("k=")[1], { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.body.dataset.track, null, { timeout: 8000 });
     const sup = await page.evaluate(() => document.body.dataset.track);
     if (sup !== "younger") errors.push("support → younger mapping: " + sup);
@@ -183,6 +213,7 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     console.log("db:", JSON.stringify(r));
     const emma = r.kids.find((k) => k.name === "אמה");
     if (!emma || emma.completions !== 1 || emma.xp < 135 || emma.streak !== 1) errors.push("db: completion not recorded correctly " + JSON.stringify(emma));
+    if (!(emma.item_events >= 8)) errors.push("db: item events not stored: " + emma.item_events);
 
     await browser.close();
   } catch (e) {

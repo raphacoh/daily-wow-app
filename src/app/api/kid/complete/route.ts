@@ -3,6 +3,7 @@ import { kidByToken, recordCompletion } from "@/lib/kids";
 import { hasDb } from "@/lib/db";
 import { queueCompletionNotice } from "@/lib/notify";
 import { db } from "@/lib/db";
+import { medalNext } from "@/lib/gamification";
 
 /** the vault opens only when every part of the test is done — same rule server-side */
 async function isComplete(kidId: string, n: number): Promise<boolean> {
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     after(() => queueCompletionNotice(kid, edition_n, r).catch((e) => console.error("[complete] notice", e)));
   }
   return NextResponse.json(
-    { ok: true, stats: r.stats, xp_awarded: r.xp_awarded, late: r.late, new_badges: r.new_badges, first_time: r.first_time, improved: r.improved, password: (await isComplete(kid.id, edition_n)) ? r.password : null },
+    { ok: true, stats: r.stats, xp_awarded: r.xp_awarded, late: r.late, new_badges: r.new_badges, first_time: r.first_time, improved: r.improved, progress: r.progress, today: { n: edition_n, medal: r.progress?.medals[edition_n] ?? null, next: medalNext(r.progress?.medals[edition_n] ?? null, { score, max, challenge: !!b.challenge }, kid.feminine, kid.level) }, password: (await isComplete(kid.id, edition_n)) ? r.password : null },
     { headers: { "cache-control": "no-store" } },
   );
 }

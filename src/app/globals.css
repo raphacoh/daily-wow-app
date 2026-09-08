@@ -215,3 +215,9 @@ details.sheet summary{cursor:pointer;font-weight:700}
 .gbtn-or{text-align:center;margin:12px 0 0}
 .wiz-google{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
 .wiz-google .gbtn-or{display:none}
+/* gamification P0: medal rings on the 14-day row, roots chips */
+.days span.medal{box-shadow:inset 0 0 0 3px #c98b5a}
+.days span.medal.silver{box-shadow:inset 0 0 0 3px #c9ccd3}
+.days span.medal.gold{box-shadow:inset 0 0 0 3px #f2c14e}
+.days span.medal.diamond{box-shadow:inset 0 0 0 3px #9fd3ff}
+.badges.roots .dot{background:var(--ok)}

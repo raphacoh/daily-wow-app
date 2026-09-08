@@ -263,6 +263,8 @@ export interface RuntimeBootstrap {
   edition: { n: number; code: string; date: string; title: string };
   library: string;
   profile?: unknown;
+  /** gamification summary for the hero strip (kid mode only) */
+  progress?: unknown;
 }
 
 const SKELETON_STYLE = `:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}`;

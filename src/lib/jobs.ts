@@ -26,6 +26,7 @@ import { getEdition, listEditions } from "./editions";
 import { kidLink, liveStreak, statsFor, type KidRow, type ParentRow } from "./kids";
 import { localDate } from "./progress";
 import { dailyMail, sendBatch, sendMail, streakRiskMail, weeklyMail, type Mail, type WeekDay } from "./emails";
+import { MEDAL_NAMES, progressFor } from "./gamification";
 import { purgeOffPrompts } from "./arto";
 
 export interface JobResult {
@@ -412,7 +413,14 @@ export async function sendWeekly(now: Date = new Date(), opts: { force?: boolean
           days.push({ date: dayLabel(date), done: !!c?.complete, ...(c?.complete ? { score: Number(c.score) } : {}) });
         }
         const stats = await statsFor(String(k.id));
-        kids.push({ name: k.name, feminine: !!k.feminine, days, badges: stats.badges });
+        // the week's collection from the replayed progress (spec §10); falls back to the lifetime badge list
+        const p = await progressFor(String(k.id));
+        const weekNs = new Set(released.rows.map((r) => Number(r.n)));
+        const weekBadges = p ? p.badges.filter((b) => b.earned_at.slice(0, 10) >= start && b.earned_at.slice(0, 10) <= end).map((b) => b.name) : [];
+        const medals = p ? Object.entries(p.medals).filter(([n]) => weekNs.has(Number(n))).map(([, m]) => m) : [];
+        const medalLine = (["diamond", "gold", "silver", "bronze"] as const).map((m) => [medals.filter((x) => x === m).length, MEDAL_NAMES[m]] as const).filter(([c]) => c > 0).map(([c, name]) => `${c} ${name}`).join(", ");
+        const collection = p && medals.length ? `${medalLine} · ${medals.length} ${medals.length === 1 ? "קלף חדש" : "קלפים חדשים"} · ${p.cards.length} באלבום` : undefined;
+        kids.push({ name: k.name, feminine: !!k.feminine, days, badges: p ? weekBadges : stats.badges, collection });
       }
 
       const mail = weeklyMail({

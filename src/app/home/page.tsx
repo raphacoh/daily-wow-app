@@ -12,6 +12,8 @@ import { ShareRow } from "@/lib/share";
 import { dashboardFor, kidLink, type Dashboard, type DashboardKid } from "@/lib/family";
 import { GRADES, LEVELS_UI, type Level, normLevel } from "@/lib/kids";
 import { LEVELS, levelFor } from "@/lib/progress";
+import { ROOTS, ROOT_IDS } from "@/lib/roots";
+import type { Progress } from "@/lib/gamification";
 import { t } from "@/i18n";
 import { addAdult, deleteAccount, dropAdult, dropKid, newLink, saveAccount, saveKid, saveLevel, setPaused, suggestTopic } from "./actions";
 
@@ -186,6 +188,7 @@ function KidCard({ k, todayDate }: { k: DashboardKid; todayDate: string | null }
         <span className="pill sun">
           <Flame />
           {t("home.streak")} {num(k.liveStreak)}
+          {k.progress?.shields ? ` · ${t("home.shields")} ${num(k.progress.shields)}` : ""}
         </span>
         <span className="pill">
           {t("home.best")} {num(stats.best)}
@@ -204,7 +207,7 @@ function KidCard({ k, todayDate }: { k: DashboardKid; todayDate: string | null }
         {k.days.map((d) => (
           <span
             key={d.date}
-            className={[d.done && !d.late ? "hit" : "", d.late ? "late" : "", d.date === todayDate ? "today" : ""].filter(Boolean).join(" ")}
+            className={[d.done && !d.late ? "hit" : "", d.late ? "late" : "", d.date === todayDate ? "today" : "", d.n != null && k.progress?.medals[d.n] ? `medal ${k.progress.medals[d.n]}` : ""].filter(Boolean).join(" ")}
             title={d.score === null ? `${shortDate(d.date)} — ${t("home.notDone")}` : `${shortDate(d.date)} — ${d.score}${d.late ? ` (${t("home.late")})` : ""}`}
           >
             {num(dayOfMonth(d.date))}
@@ -213,8 +216,21 @@ function KidCard({ k, todayDate }: { k: DashboardKid; todayDate: string | null }
         {k.days.length === 0 ? <span>{t("home.none")}</span> : null}
       </div>
 
+      <Grove p={k.progress} />
+
       <p className="small">{t("home.badges")}</p>
-      {stats.badges.length ? (
+      {k.progress?.badges.length ? (
+        <p className="badges">
+          {k.progress.badges.map((b) => (
+            <span className="badge" key={b.id} title={b.earned_at.slice(0, 10)}>
+              <span className="dot" aria-hidden="true">
+                {b.glyph}
+              </span>
+              {b.name}
+            </span>
+          ))}
+        </p>
+      ) : stats.badges.length ? (
         <p className="badges">
           {stats.badges.map((b) => (
             <span className="badge" key={b}>
@@ -359,6 +375,39 @@ function KidSettings({ k }: { k: DashboardKid }) {
 }
 
 /* ---------- 3. history ---------- */
+
+/** Roots (what the kid learned) and the album count — the parent's view of the collection (spec §10). */
+function Grove({ p }: { p: Progress | null }) {
+  if (!p) return null;
+  const grown = ROOT_IDS.filter((id) => p.roots[id].xp > 0);
+  const mastered = Object.values(p.skills ?? {}).filter((x) => x.mastered).map((x) => x.name);
+  return (
+    <>
+      <p className="small">
+        {t("home.roots")} · {t("home.album", { cards: p.cards.length, gold: p.counts.gold + p.counts.diamond })}
+      </p>
+      <p className="badges roots">
+        {grown.length ? (
+          grown.map((id) => (
+            <span className="badge" key={id} title={`${p.roots[id].xp} XP`}>
+              <span className="dot" aria-hidden="true">
+                {ROOTS[id].glyph}
+              </span>
+              {ROOTS[id].name} · {p.roots[id].stage_name}
+            </span>
+          ))
+        ) : (
+          <span className="small">{t("home.noRoots")}</span>
+        )}
+      </p>
+      {mastered.length ? (
+        <p className="small">
+          {t("home.mastered")}: {mastered.join(" · ")}
+        </p>
+      ) : null}
+    </>
+  );
+}
 
 function History({ history, kids, todayN, doneToday }: { history: Dashboard["history"]; kids: DashboardKid[]; todayN: number | null; doneToday: boolean }) {
   return (

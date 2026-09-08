@@ -626,6 +626,7 @@ body[data-track=older] .msg.me{background:var(--shadow-soft)}
     <h3 id="badgesTitle">תגים שזכית בהם היום</h3>
     <div class="badges" id="badges"></div>
     <p class="small" id="badgeNone" style="margin:8px 0 0"></p>
+    <div data-wow="progress"></div>
   </div>
 
   <div class="panel">
@@ -721,6 +722,32 @@ const IN_CLAUDE = !!(window.claude && typeof window.claude.use==='function');   
 
 /* ---------- state ---------- */
 const S = { kid:null, track:null, started:false, challenge:false, step:0, guess:20000, world:'flat', qc:{}, mcq:{}, order:[], orderScore:null, num:null, explain:0, explainText:'', slices:0, sieveDone:false, explainGraded:false, olderStep1:false };
+/* ---------- the app: gamification hooks (keep byte-for-byte; the app serves window.WOW, elsewhere these are no-ops) ---------- */
+const ENGINE_VERSION = '2';
+/* WOW_META — what this edition grows (roots, weights), the collectible card, and a skill tag + difficulty (1–5) per test item. Rewrite it for every new topic; keep the structural item ids. */
+const WOW_META = {
+  v: 1,
+  roots: [ { id:'math', w:2 }, { id:'earth', w:2 }, { id:'history', w:1 }, { id:'space', w:1 } ],
+  hero: { name:'ארטוסתנס', fact:'מדד את היקף כדור הארץ עם מקל, צל ומספר אחד' },
+  items: {
+    'predict':       { skill:'estimation',           d:1 },
+    'qc:qc2':        { skill:'light-and-shadow',     d:1 },
+    'mcq:shared:0':  { skill:'light-and-shadow',     d:2 },
+    'mcq:shared:1':  { skill:'proportion',           d:2 },
+    'mcq:shared:2':  { skill:'sources-and-evidence', d:2 },
+    'mcq:younger:0': { skill:'scientific-method',    d:1 },
+    'mcq:older:0':   { skill:'light-and-shadow',     d:3 },
+    'order':         { skill:'method-steps',         d:2 },
+    'num:younger':   { skill:'proportion',           d:2 },
+    'num:older':     { skill:'proportion',           d:3 },
+    'num:adv':       { skill:'circle-geometry',      d:4 },
+    'challenge':     { skill:'percent-error',        d:5 },
+    'explain':       { skill:'explaining-mechanism', d:3 }
+  }
+};
+const WOW = (typeof window!=='undefined' && window.WOW && window.WOW.emit) ? window.WOW : { emit(){}, mount(){} };
+S.tries = {};
+function wowTry(id){ S.tries[id]=(S.tries[id]||0)+1; return S.tries[id]; }
 const KEY='wow-'+EDITION.code+(RT&&RT.kidToken?'-'+String(RT.kidToken).slice(0,8):'');
 const fmt = n => Math.round(n).toLocaleString('he-IL');
 const FLAME = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 1-3s0 3 2 3c2 0 1-4 2-10z"/></svg>';
@@ -908,6 +935,7 @@ function checkOlderMath(stepN){
 }
 function reveal(){ const p=document.getElementById('revealPanel'); p.style.display='block';
   const g=S.guess, diff=Math.abs(g-40075)/40075;
+  WOW.emit('predict', { id:'predict', value: g, target: 40075 });
   guessBack.innerHTML = 'הניחוש '+G('שלך','שלך')+' בהתחלה: <b class="num">'+fmt(g)+'</b> ק״מ. '+(diff<0.15?'<b>וואו, ממש קרוב!</b> יש לך חוש טוב לגדלים.':diff<0.5?'לא רע בכלל — באותו סדר גודל.':g<40075?'המציאות גדולה בהרבה מהניחוש — כדור הארץ ענק יותר ממה שנדמה.':'המציאות קטנה מהניחוש — כדור הארץ קטן ממה שחשבת!'); }
 
 /* ---------- chapter 4: walkers ---------- */
@@ -1010,6 +1038,7 @@ function renderQ(el, d, onDone, isQuick){
     const i=+b.dataset.i, ok=i===d.a;
     b.classList.add(ok?'right':'wrong'); if(!ok) el.querySelector('.opt[data-i="'+d.a+'"]').classList.add('right');
     const fb=el.querySelector('.fb'); fb.innerHTML=(ok?'<span class="pill-ok">נכון! </span>':'<span class="pill-bad">לא בדיוק. </span>')+d.fb; fb.classList.add('show');
+    WOW.emit('item', { id: isQuick ? 'qc:'+el.id : 'mcq:'+(el.dataset.wow||'?'), kind: isQuick ? 'quick' : 'mcq', correct: ok, attempt: 1 });
     onDone(ok);
   });
 }
@@ -1021,7 +1050,7 @@ const MCQ_N = 4;
 function buildTest(){
   if(testBuilt) return; testBuilt=true;
   const list=[...MCQ.shared, ...(MCQ[S.track]||MCQ.younger)]; const box=document.getElementById('mcqs'); box.innerHTML='';
-  list.forEach((d,i)=>{ const el=document.createElement('div'); el.className='q'; box.appendChild(el); renderQ(el, {...d, q:(i+1)+'. '+d.q}, ok=>{ S.mcq[i]=ok; }); });
+  list.forEach((d,i)=>{ const el=document.createElement('div'); el.className='q'; el.dataset.wow = i<MCQ.shared.length ? 'shared:'+i : S.track+':'+(i-MCQ.shared.length); box.appendChild(el); renderQ(el, {...d, q:(i+1)+'. '+d.q}, ok=>{ S.mcq[i]=ok; }); });
   buildOrder();
 }
 const ORDER=[
@@ -1042,6 +1071,7 @@ function resetOrder(){ S.order=[]; S.orderScore=null; orderFb.classList.remove('
 function checkOrder(){ const o=S.order; const pos=id=>o.indexOf(id);
   const ok = pos('a')===0 && pos('e')===4 && pos('b')<pos('c');
   S.orderScore = ok?2:(pos('a')===0&&pos('e')===4?1:0);
+  WOW.emit('item', { id:'order', kind:'order', correct: ok, partial: S.orderScore, attempt: wowTry('order') });
   document.querySelectorAll('#order .card').forEach(c=>{ const id=c.dataset.id, p=pos(id); const good = (id==='a'&&p===0)||(id==='e'&&p===4)||(id==='b'&&p<pos('c'))||(id==='c'&&p>pos('b')&&p<4)||(id==='d'&&p>0&&p<4); c.classList.add(good?'ok':'ko'); });
   orderFb.innerHTML = ok ? '<span class="pill-ok">סדר מושלם!</span> תצפית (אין צל בסיינה) ← מדידה (7.2°) ← חישוב (50) ← מרחק ← היקף. ככה עובד מדע: קודם שמים לב למשהו מוזר, ואז מודדים.' : '<span class="pill-bad">כמעט.</span> הסדר הנכון: קודם התצפית על הבאר (בלי זה אין שאלה!), אחר כך מדידת הזווית, אז החלוקה <span class="math">360 ÷ 7.2</span>, המרחק בין הערים, ובסוף הכפל שנותן 40,000 ק״מ. (את המרחק אפשר למדוד גם קודם — העיקר שהכפל בסוף.)';
   orderFb.classList.add('show'); }
@@ -1052,14 +1082,15 @@ function checkChallenge(){
     : kmOk ? '<span class="pill-ok">ההיקף נכון</span> — <span class="math">39,375</span> ק״מ. עכשיו האחוזים: <span class="math">(40,075 − 39,375) ÷ 40,075 × 100</span>.'
     : '<span class="pill-bad">עוד לא.</span> רמז: <span class="math">250,000 × 157.5</span> נותן מטרים; חלקו ב־1,000 כדי לקבל קילומטרים.';
   S.challenge = kmOk&&pctOk;
+  WOW.emit('item', { id:'challenge', kind:'challenge', correct: S.challenge, attempt: wowTry('challenge') });
 }
 function checkNum(t){
-  if(t==='adv'){ const c=+numAdv.value, r=+numAdvR.value, fb=document.getElementById('numFbAdv'); const cOk=c===90000, rOk=Math.abs(r-14331)<=400; S.num=cOk?2:(S.num===2?2:0);
+  if(t==='adv'){ const c=+numAdv.value, r=+numAdvR.value, fb=document.getElementById('numFbAdv'); const cOk=c===90000, rOk=Math.abs(r-14331)<=400; S.num=cOk?2:(S.num===2?2:0); WOW.emit('item', { id:'num:adv', kind:'num', correct: cOk&&rOk, partial: cOk?2:0, attempt: wowTry('num:adv') });
     fb.innerHTML = cOk ? '<span class="pill-ok">נכון!</span> <span class="math">360 ÷ 4.8 = 75</span>, ואז <span class="math">75 × 1,200 = 90,000</span> ק״מ — כוכב לכת גדול פי יותר מ־2 מכדור הארץ.'+(rOk?' והרדיוס: <span class="math">90,000 ÷ 6.28 ≈ 14,300</span> ק״מ. מדויק.':' הרדיוס: <span class="math">R = 90,000 ÷ (2 × 3.14) ≈ 14,300</span> ק״מ.') : '<span class="pill-bad">לא בדיוק.</span> קודם: כמה "משולשים" של <span class="math">4.8°</span> נכנסים ב־<span class="math">360°</span>? ואז כפול המרחק.';
     fb.classList.add('show'); return; }
   const v=+document.getElementById(t==='younger'?'numYounger':'numOlder').value, fb=document.getElementById(t==='younger'?'numFbYounger':'numFbOlder');
-  if(t==='younger'){ const ok=v===10; S.num=ok?2:(S.num===2?2:0); fb.innerHTML= ok?'<span class="pill-ok">נכון!</span> 10 משולשים. זווית גדולה = מעט משולשים = הערים רחוקות מאוד זו מזו על הכדור.':'<span class="pill-bad">לא בדיוק.</span> רמז: <span class="math">36 × 10 = 360</span>. אז <span class="math">360 ÷ 36 = 10</span>.'; }
-  else { const ok=v===40000; S.num=ok?2:(S.num===2?2:0); fb.innerHTML= ok?'<span class="pill-ok">מדויק!</span> <span class="math">360 ÷ 9 = 40</span> פרוסות, ואז <span class="math">40 × 1,000 = 40,000</span> ק״מ. כוכב לכת בדיוק בגודל של כדור הארץ — רק שהערים שם רחוקות יותר.':'<span class="pill-bad">לא בדיוק.</span> שלב א: <span class="math">360 ÷ 9 = ?</span> (כמה פרוסות). שלב ב: להכפיל ב־1,000 ק״מ.'; }
+  if(t==='younger'){ const ok=v===10; S.num=ok?2:(S.num===2?2:0); WOW.emit('item', { id:'num:younger', kind:'num', correct: ok, attempt: wowTry('num:younger') }); fb.innerHTML= ok?'<span class="pill-ok">נכון!</span> 10 משולשים. זווית גדולה = מעט משולשים = הערים רחוקות מאוד זו מזו על הכדור.':'<span class="pill-bad">לא בדיוק.</span> רמז: <span class="math">36 × 10 = 360</span>. אז <span class="math">360 ÷ 36 = 10</span>.'; }
+  else { const ok=v===40000; S.num=ok?2:(S.num===2?2:0); WOW.emit('item', { id:'num:older', kind:'num', correct: ok, attempt: wowTry('num:older') }); fb.innerHTML= ok?'<span class="pill-ok">מדויק!</span> <span class="math">360 ÷ 9 = 40</span> פרוסות, ואז <span class="math">40 × 1,000 = 40,000</span> ק״מ. כוכב לכת בדיוק בגודל של כדור הארץ — רק שהערים שם רחוקות יותר.':'<span class="pill-bad">לא בדיוק.</span> שלב א: <span class="math">360 ÷ 9 = ?</span> (כמה פרוסות). שלב ב: להכפיל ב־1,000 ק״מ.'; }
   fb.classList.add('show'); }
 
 /* ---------- dictation ---------- */
@@ -1166,6 +1197,7 @@ async function gradeExplain(){
       /* lint-ignore: math */
       const prompt = 'את/ה מורה חם/ה ומעודד/ת ל'+who+'. הילד/ה למד/ה היום איך ארטוסתנס מדד את היקף כדור הארץ. הרעיונות המרכזיים: (1) בסיינה ב־21 ביוני בצהריים אין צל, באלכסנדריה יש צל בזווית 7.2°; (2) זה קורה כי כדור הארץ עקום וקרני השמש מקבילות; (3) 360 ÷ 7.2 = 50, כלומר המרחק בין הערים הוא 1/50 מההיקף; (4) המרחק כ־800 ק״מ נמדד על ידי סופרי צעדים; (5) 50 × 800 = 40,000 ק״מ.\n\nההסבר של הילד/ה:\n"""'+txt+'"""\n\nהחזר/י JSON בלבד, בלי טקסט נוסף: {"stars": 1|2|3, "praise": "משפט אחד ספציפי על מה שהיה טוב בהסבר", "missing": ["רעיון חסר או לא מדויק, בקצרה"], "tip": "משפט אחד מעודד שמכוון להשלמה"}. missing: עד 2 פריטים, יכול להיות ריק. stars: 3 אם הרעיון המרכזי מובן (צל שונה בשתי ערים בגלל עקמומיות + חלוקה של 360 בזווית + כפל במרחק), 2 אם חלק מהרעיון, 1 אם רק התחלה. כתוב/כתבי בעברית פשוטה ובגובה העיניים, '+(F()?'בלשון נקבה':'בלשון זכר')+', בלי להעליב. חישובים כותבים משמאל לימין.';
       const r = await AI.grade(txt, prompt);
+      WOW.emit('item', { id:'explain', kind:'explain', stars: Math.max(1,Math.min(3,Number(r&&r.stars)||1)), graded:'ai', attempt: wowTry('explain') });
       const stars=Math.max(1,Math.min(3,+r.stars||1)); S.explain=stars;
       fb.innerHTML='<div class="stars">'+'★'.repeat(stars)+'<span class="off">'+'★'.repeat(3-stars)+'</span></div><p style="margin:8px 0"><b>'+fmtBot(r.praise||'')+'</b></p>'+(r.missing&&r.missing.length?'<p style="margin:0 0 8px">מה עוד אפשר להוסיף: '+r.missing.map(fmtBot).join(' · ')+'</p>':'')+'<p class="small" style="margin:0">'+fmtBot(r.tip||'')+'</p><details style="margin-top:10px"><summary>ההסבר של המורה</summary><p>'+MODEL+'</p></details>';
       explainBtn.textContent='נבדק'; return;
@@ -1174,7 +1206,7 @@ async function gradeExplain(){
   fb.innerHTML='<p style="margin:0 0 8px">'+G('קרא את ההסבר שלך, וסמן מה כתבת:','קראי את ההסבר שלך, וסמני מה כתבת:')+'</p>'+RUBRIC.map((r,i)=>'<label class="chk"><input type="checkbox" data-r="'+i+'" onchange="rubricChange()"><span>'+r+'</span></label>').join('')+'<div class="stars" id="rubStars"><span class="off">★★★</span></div><details style="margin-top:10px"><summary>ההסבר של המורה — להשוואה</summary><p>'+MODEL+'</p></details>';
   explainBtn.textContent='נבדק';
 }
-function rubricChange(){ const n=[...document.querySelectorAll('#explainFb input:checked')].length; S.explain = n>=4?3:n>=2?2:n>=1?1:0; rubStars.innerHTML='★'.repeat(S.explain)+'<span class="off">'+'★'.repeat(3-S.explain)+'</span>'; }
+function rubricChange(){ const n=[...document.querySelectorAll('#explainFb input:checked')].length; S.explain = n>=4?3:n>=2?2:n>=1?1:0; WOW.emit('item', { id:'explain', kind:'explain', stars: S.explain, graded:'rubric', attempt: wowTry('explain') }); rubStars.innerHTML='★'.repeat(S.explain)+'<span class="off">'+'★'.repeat(3-S.explain)+'</span>'; }
 
 /* ---------- finish ---------- */
 function finish(){
@@ -1243,6 +1275,7 @@ function finish(){
   const bb=document.getElementById('badges'); bb.innerHTML = earned.map(b=>'<span class="badge new"><span class="dot">'+b[0]+'</span>'+b[1]+'</span>').join('');
   badgeNone.textContent = earned.length? '' : 'עוד לא — תגים מחכים למי שמסיים בלי טעויות, מסביר כמו מורה, או שומר על רצף.';
   S.game={complete, xpToday, streakAfter, badges:earned.map(b=>b[1])};
+  WOW.emit('finish', { score: total, max, complete });
   reportCompletion();
 
   /* one-tap report to the parent */
@@ -1392,6 +1425,7 @@ document.addEventListener('focusin', e=>{ if(e.target.matches('input, textarea')
 document.addEventListener('focusout', e=>{ if(e.target.matches('input, textarea')) setTimeout(()=>{ if(!document.activeElement || !document.activeElement.matches('input, textarea')) fab.style.visibility=''; },150); });
 
 /* ---------- init ---------- */
+document.querySelectorAll('details.bonus, details.src').forEach(d=>d.addEventListener('toggle', ()=>{ if(d.open) WOW.emit('open', { id: d.classList.contains('src') ? 'sources' : 'bonus' }); }));
 if(RT){ bootFromRuntime().then(restore); } else { restore(); }
 paintProgress(); drawSticks(); gateCheck();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ drawShip(); drawSticks(); if(S.step>=3) drawPizza(); if(S.step>=5){ drawRays(); } });

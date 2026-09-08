@@ -7,7 +7,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { NotSignedIn, requireEditor } from "@/lib/auth";
-import { grantFreeAssistant, holdEdition, releaseEdition, republish, sendTestDaily, setConfig, StageError } from "@/lib/admin";
+import { grantFreeAssistant, holdEdition, releaseEdition, republish, saveSkill, sendTestDaily, setConfig, setRootAlias, StageError } from "@/lib/admin";
+import { rebuildAllProgress } from "@/lib/gamification";
 
 /** The settings the /admin form may write. Anything else needs a code change — on purpose. */
 const CONFIG_KEYS = ["assistant_daily_cap", "free_messages_per_day", "demo_pool_per_day", "model", "send_time", "resend_daily_limit"] as const;
@@ -104,4 +105,32 @@ export async function grantAssistantAction(fd: FormData): Promise<void> {
     back(e instanceof StageError ? e.message : "לא הצלחתי", false);
   }
   back(`ארטו פתוח לילד/ה הזה/הזאת עד ${until}.`);
+}
+
+/* ---------- gamification registries (spec §9) ---------- */
+
+export async function aliasTopicAction(fd: FormData): Promise<void> {
+  await editor();
+  try {
+    await setRootAlias(String(fd.get("topic") ?? ""), String(fd.get("root") ?? ""));
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "לא הצלחנו לשמור", false);
+  }
+  back("נשמר. השורשים יחושבו מחדש ב\"לחשב מחדש\".");
+}
+
+export async function saveSkillAction(fd: FormData): Promise<void> {
+  await editor();
+  try {
+    await saveSkill(String(fd.get("slug") ?? ""), String(fd.get("name_he") ?? ""), String(fd.get("canonical") ?? "").trim());
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "לא הצלחנו לשמור", false);
+  }
+  back("הכישור נשמר.");
+}
+
+export async function rebuildProgressAction(): Promise<void> {
+  await editor();
+  const kids = await rebuildAllProgress();
+  back(`חושב מחדש עבור ${kids} ילדים.`);
 }

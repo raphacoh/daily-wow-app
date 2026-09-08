@@ -1,6 +1,7 @@
 /**
  * Families: registration, the dashboard's data, settings. Server-side only.
  */
+import { progressFor, type Progress } from "./gamification";
 import { db, type Queryable } from "./db";
 import { createKid, GRADES, kidLink, liveStreak, statsFor, type KidRow, type KidStats, type Level, type ParentRow, LEVELS_UI } from "./kids";
 import { levelFor, localDate } from "./progress";
@@ -123,6 +124,8 @@ export interface DashboardKid {
   days: { date: string; done: boolean; late: boolean; score: number | null; n: number | null }[];
   contacts: { id: string; name: string; email: string; notify_daily: boolean; notify_completion: boolean }[];
   todayResult: { score: number; max: number; complete: boolean; late: boolean } | null;
+  /** roots, medals, cards, badges, shields (gamification P0); null until the first completion */
+  progress: Progress | null;
 }
 
 export interface Dashboard {
@@ -187,6 +190,7 @@ export async function dashboardFor(parent: ParentRow, appUrl: string, now = new 
       }),
       contacts: (contacts.rows as { id: string; kid_id: string; name: string; email: string; notify_daily: boolean; notify_completion: boolean }[]).filter((c) => c.kid_id === kid.id),
       todayResult: todayC ? { score: todayC.score, max: todayC.max, complete: todayC.complete, late: todayC.late } : null,
+      progress: await progressFor(kid.id),
     });
   }
   const history = editions.slice(0, 60).map((e) => ({

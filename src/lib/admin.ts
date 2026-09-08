@@ -21,6 +21,7 @@ import {
   type EditionMeta,
 } from "./editions";
 import { kidLink, type KidRow } from "./kids";
+import { extractEngineVersion, extractWowMeta } from "./wow-meta";
 import { dailyMail, sendMail, type KidDaily } from "./emails";
 import { sendDaily } from "./jobs";
 
@@ -85,7 +86,15 @@ export function stripTitlePrefix(title: string): string {
  * Upsert edition N as `staged`. A staged or held row may be restaged (the builder reruns, the editor asks
  * for changes); a released row never is — editions the kids already got must not change under them.
  */
-export async function stageEdition(input: StageInput): Promise<EditionFull> {
+/** Extract the gamification declarations from a fragment; warnings are advice for the builder, never a rejection. */
+export function gamificationOf(html: string): { wow_meta: unknown; engine_version: string | null; warnings: string[] } {
+  const { meta, warnings } = extractWowMeta(html);
+  const engine_version = extractEngineVersion(html);
+  if (!engine_version) warnings.push("ENGINE_VERSION חסר — המנוע הזה קדם לאירועי הפריטים (כנפיים ועיטורי נדירות לא ייצברו)");
+  return { wow_meta: meta, engine_version, warnings };
+}
+
+export async function stageEdition(input: StageInput): Promise<EditionFull & { warnings: string[] }> {
   const n = Number(input.n);
   if (!Number.isInteger(n) || n < 1) throw new StageError("מספר גיליון לא תקין");
   const html = String(input.html ?? "");
@@ -94,6 +103,7 @@ export async function stageEdition(input: StageInput): Promise<EditionFull> {
   if (!input.date || !/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new StageError("תאריך לא תקין (YYYY-MM-DD)");
 
   const ctx = extractAssistantContext(html);
+  const game = gamificationOf(html);
   const password = (input.password ?? "").trim() || decodePw(html);
   const title = (input.title ?? "").trim() || stripTitlePrefix(extractTitle(html));
 
@@ -103,14 +113,15 @@ export async function stageEdition(input: StageInput): Promise<EditionFull> {
     await q.query(
       `insert into editions
          (n, code, date, language, title, topics, summary, teaser, password, max_score, status,
-          reviewer_verdict, review_url, sources, html, lesson_context, grading_context, staged_at)
-       values ($1,$2,$3,$4,$5,$6::text[],$7,$8,$9,$10,'staged',$11,$12,$13,$14,$15,$16, now())
+          reviewer_verdict, review_url, sources, html, lesson_context, grading_context, wow_meta, engine_version, staged_at)
+       values ($1,$2,$3,$4,$5,$6::text[],$7,$8,$9,$10,'staged',$11,$12,$13,$14,$15,$16,$17::jsonb,$18, now())
        on conflict (n) do update set
          code = excluded.code, date = excluded.date, language = excluded.language, title = excluded.title,
          topics = excluded.topics, summary = excluded.summary, teaser = excluded.teaser, password = excluded.password,
          max_score = excluded.max_score, status = 'staged', reviewer_verdict = excluded.reviewer_verdict,
          review_url = excluded.review_url, sources = excluded.sources, html = excluded.html,
          lesson_context = excluded.lesson_context, grading_context = excluded.grading_context,
+         wow_meta = excluded.wow_meta, engine_version = excluded.engine_version,
          staged_at = now(), held_at = null`,
       [
         n,
@@ -129,13 +140,15 @@ export async function stageEdition(input: StageInput): Promise<EditionFull> {
         html,
         ctx.lesson_context,
         ctx.grading_context,
+        game.wow_meta == null ? null : JSON.stringify(game.wow_meta),
+        game.engine_version,
       ],
     );
   });
 
   const row = await getEdition(n, { includeStaged: true });
   if (!row) throw new StageError("הגיליון לא נשמר");
-  return row;
+  return { ...row, warnings: game.warnings };
 }
 
 /* ------------------------------------------------------------------ *
@@ -592,4 +605,69 @@ export async function sendTestDaily(n: number, parentEmail: string): Promise<{ o
   } catch (e) {
     return { ok: false, to, error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Gamification registries and readout (spec §9)
+ * ------------------------------------------------------------------ */
+
+export interface GamificationReadout {
+  editions: { n: number; title: string; status: string; engine_version: string | null; has_meta: boolean; warnings: string[] }[];
+  unmapped_topics: { topic: string; editions: number[] }[];
+  skills: { slug: string; editions: number[]; name_he: string | null; canonical_slug: string | null }[];
+  aliases: { topic: string; root: string }[];
+  item_stats: { edition_n: number; item_id: string; n: number; first_try_correct: number; rate: number | null }[];
+}
+
+export async function gamificationReadout(): Promise<GamificationReadout> {
+  const { rootForTopic } = await import("./roots");
+  const al = await db().query<{ topic: string; root: string }>("select topic, root from root_aliases order by topic");
+  const aliases = Object.fromEntries(al.rows.map((r) => [r.topic, r.root]));
+  const reg = await db().query<{ slug: string; name_he: string | null; canonical_slug: string | null }>("select slug, name_he, canonical_slug from skills");
+  const regBy = new Map(reg.rows.map((r) => [r.slug, r]));
+  const eds = await db().query<{ n: number; title: string; status: string; topics: string[] | null; html: string; engine_version: string | null; wow_meta: { items?: Record<string, { skill?: string | null }> } | null }>(
+    "select n, title, status, topics, html, engine_version, wow_meta from editions order by n desc limit 30",
+  );
+  const unmapped = new Map<string, number[]>();
+  const skills = new Map<string, number[]>();
+  const editions = eds.rows.map((e) => {
+    for (const t of e.topics ?? []) if (!rootForTopic(t, aliases)) unmapped.set(t, [...(unmapped.get(t) ?? []), e.n]);
+    for (const it of Object.values(e.wow_meta?.items ?? {})) if (it.skill) skills.set(it.skill, [...new Set([...(skills.get(it.skill) ?? []), e.n])]);
+    return { n: e.n, title: e.title, status: e.status, engine_version: e.engine_version, has_meta: !!e.wow_meta, warnings: gamificationOf(e.html).warnings };
+  });
+  for (const r of reg.rows) if (!skills.has(r.slug)) skills.set(r.slug, []);
+  const stats = await db().query<{ edition_n: number; item_id: string; n: number; first_try_correct: number }>(
+    "select edition_n, item_id, n, first_try_correct from item_stats where edition_n in (select n from editions where status = 'released' order by date desc limit 7) order by edition_n desc, item_id",
+  );
+  return {
+    editions,
+    unmapped_topics: [...unmapped].map(([topic, ns]) => ({ topic, editions: ns })),
+    skills: [...skills].map(([slug, ns]) => ({ slug, editions: ns, name_he: regBy.get(slug)?.name_he ?? null, canonical_slug: regBy.get(slug)?.canonical_slug ?? null })).sort((a, b) => a.slug.localeCompare(b.slug)),
+    aliases: al.rows,
+    item_stats: stats.rows.map((r) => ({ ...r, n: Number(r.n), first_try_correct: Number(r.first_try_correct), rate: Number(r.n) ? Math.round((100 * Number(r.first_try_correct)) / Number(r.n)) : null })),
+  };
+}
+
+/** Map a topic word to a root (or clear it with root = ""). Applies on the next progress rebuild. */
+export async function setRootAlias(topic: string, root: string): Promise<void> {
+  const { ROOT_IDS, normTopic } = await import("./roots");
+  const t = normTopic(topic);
+  if (!t) throw new StageError("מילת נושא ריקה");
+  if (!root) {
+    await db().query("delete from root_aliases where topic = $1", [t]);
+    return;
+  }
+  if (!(ROOT_IDS as readonly string[]).includes(root)) throw new StageError(`שורש לא מוכר: ${root}`);
+  await db().query("insert into root_aliases (topic, root) values ($1,$2) on conflict (topic) do update set root = excluded.root", [t, root]);
+}
+
+/** Give a skill slug a Hebrew name and/or merge it into a canonical slug. */
+export async function saveSkill(slug: string, nameHe: string, canonical: string): Promise<void> {
+  const ok = /^[a-z][a-z0-9-]{1,40}$/;
+  if (!ok.test(slug)) throw new StageError(`slug לא תקין: ${slug}`);
+  if (canonical && (!ok.test(canonical) || canonical === slug)) throw new StageError(`slug קנוני לא תקין: ${canonical}`);
+  await db().query(
+    "insert into skills (slug, name_he, canonical_slug) values ($1,$2,$3) on conflict (slug) do update set name_he = excluded.name_he, canonical_slug = excluded.canonical_slug",
+    [slug, nameHe.trim() || null, canonical || null],
+  );
 }

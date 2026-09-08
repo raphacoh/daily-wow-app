@@ -7,6 +7,7 @@ import { db, type Queryable } from "./db";
 import { getConfig, getNumber } from "./config";
 import { localDate, nextLocalMidnight } from "./progress";
 import { signSession, verifySession, type ArtoSession } from "./tokens";
+import { rebuildProgress } from "./gamification";
 import { kidById, kidByToken, type KidRow, type ParentRow } from "./kids";
 import { getEdition } from "./editions";
 
@@ -351,6 +352,14 @@ export async function grade(sessionToken: string, explanation: unknown, now = ne
     [kid?.id ?? null, s.edition_n, kid ? "grade" : "demo", model, r.input_tokens, r.output_tokens, costEstimateUsd(model, r.input_tokens, r.output_tokens)],
   );
   const stars = Math.max(1, Math.min(3, Number(j.stars) || 1));
+  if (kid) {
+    // the server's own record of the grade — the page only reports a mixed score (gamification spec §8.2)
+    await db().query(
+      "insert into grades (kid_id, edition_n, stars, at) values ($1,$2,$3,$4) on conflict (kid_id, edition_n) do update set stars = greatest(grades.stars, excluded.stars), at = excluded.at",
+      [kid.id, s.edition_n, stars, now],
+    );
+    await rebuildProgress(kid, kid.parent.timezone || "Asia/Jerusalem", now).catch((e) => console.error("[grade] progress", e));
+  }
   return {
     ok: true,
     stars,

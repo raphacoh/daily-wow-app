@@ -39,29 +39,51 @@ export function xpFor(score: number, complete: boolean, streakAfter: number, lat
   return base + done + bonus;
 }
 
+export const SHIELD_EVERY = 7;
+export const SHIELD_MAX = 2;
+
+export interface StreakDetail {
+  streak: number;
+  /** streak shields held right now (earned every SHIELD_EVERY on-time days, at most SHIELD_MAX) */
+  shields: number;
+  /** shields consumed over the whole history */
+  shieldsUsed: number;
+}
+
 /**
- * Streak = consecutive released edition dates completed on time, walking back from the newest
- * edition dated ≤ today. Today's edition, while still open, neither counts nor breaks the streak.
- * Days without a released edition (a HOLD) do not break it either — the streak is over editions.
+ * Streak = consecutive released edition dates completed on time, walking forward over the released editions
+ * dated ≤ today. Today's edition, while still open, neither counts nor breaks the streak. Days without a
+ * released edition (a HOLD) do not break it either — the streak is over editions.
+ *
+ * Streak shields (spec §5.6): every SHIELD_EVERY-th consecutive on-time day earns a shield (max SHIELD_MAX
+ * held); a missed edition consumes one instead of breaking the streak. Derived here, so it cannot drift.
  *
  * @param releasedDates  YYYY-MM-DD dates of released editions (any order, duplicates ok)
  * @param onTimeDates    YYYY-MM-DD dates of editions this kid completed on their own day
  * @param today          YYYY-MM-DD in the kid's timezone
  */
-export function computeStreak(releasedDates: Iterable<string>, onTimeDates: Iterable<string>, today: string): number {
+export function computeStreakDetail(releasedDates: Iterable<string>, onTimeDates: Iterable<string>, today: string): StreakDetail {
   const done = new Set(onTimeDates);
   const dates = Array.from(new Set(releasedDates))
-    .filter((d) => d <= today)
-    .sort()
-    .reverse();
-  let i = 0;
-  if (dates[0] === today && !done.has(today)) i = 1;
-  let streak = 0;
-  for (; i < dates.length; i++) {
-    if (done.has(dates[i])) streak++;
-    else break;
+    .filter((d) => d <= today && (d !== today || done.has(today)))
+    .sort();
+  let streak = 0, shields = 0, shieldsUsed = 0;
+  for (const d of dates) {
+    if (done.has(d)) {
+      streak++;
+      if (streak % SHIELD_EVERY === 0) shields = Math.min(SHIELD_MAX, shields + 1);
+    } else if (shields > 0) {
+      shields--;
+      shieldsUsed++;
+    } else {
+      streak = 0;
+    }
   }
-  return streak;
+  return { streak, shields, shieldsUsed };
+}
+
+export function computeStreak(releasedDates: Iterable<string>, onTimeDates: Iterable<string>, today: string): number {
+  return computeStreakDetail(releasedDates, onTimeDates, today).streak;
 }
 
 export interface BadgeInput {

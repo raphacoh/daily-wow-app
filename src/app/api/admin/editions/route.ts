@@ -53,10 +53,10 @@ export async function POST(req: Request) {
       sources: typeof b.sources === "string" ? b.sources : null,
       html: String(b.html ?? ""),
     } satisfies StageInput);
-    const { html: _html, password: _pw, ...safe } = edition;
+    const { html: _html, password: _pw, warnings, ...safe } = edition;
     void _html;
     void _pw;
-    return NextResponse.json({ edition: safe }, { status: 201, headers: NO_STORE });
+    return NextResponse.json({ edition: safe, warnings }, { status: 201, headers: NO_STORE });
   } catch (e) {
     if (e instanceof StageError) return NextResponse.json({ error: e.message, problems: e.problems }, { status: 400, headers: NO_STORE });
     throw e;

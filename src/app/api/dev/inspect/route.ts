@@ -9,7 +9,7 @@ export async function POST() {
   if (process.env.NODE_ENV === "production" || process.env.DEV_SEED !== "1") return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (!hasDb()) return NextResponse.json({ error: "no_db" }, { status: 503 });
   const kids = await db().query(
-    `select k.name, k.level, s.streak, s.best, s.xp, s.badges, (select count(*)::int from completions c where c.kid_id = k.id) as completions
+    `select k.name, k.level, s.streak, s.best, s.xp, s.badges, (select count(*)::int from completions c where c.kid_id = k.id) as completions, (select count(*)::int from item_events e where e.kid_id = k.id) as item_events
      from kids k left join kid_stats s on s.kid_id = k.id where k.deleted_at is null order by k.created_at`,
   );
   const sends = await db().query("select kind, count(*)::int as n from sends group by kind");
