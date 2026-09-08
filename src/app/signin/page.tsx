@@ -1,0 +1,31 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import SignInForm from "./SignInForm";
+import { currentParent } from "@/lib/auth";
+import { t } from "@/i18n";
+
+export const metadata: Metadata = { title: t("signin.title") };
+
+export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  let parent = null;
+  try {
+    parent = await currentParent();
+  } catch {
+    parent = null;
+  }
+  if (parent) redirect("/home");
+
+  const { error } = await searchParams;
+
+  return (
+    <main className="page">
+      <h1>{t("signin.title")}</h1>
+      <p className="lede">{t("signin.lede")}</p>
+      {error ? <p className="msg bad">{t("signin.callbackError")}</p> : null}
+      <section className="panel">
+        <SignInForm />
+      </section>
+      <p className="small">{t("signin.noAccount")} <a href="/join">{t("nav.join")}</a></p>
+    </main>
+  );
+}

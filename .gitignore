@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+tests/e2e/shots
+tests/e2e/_test.html
+kit/template/shots
+kit/template/_test.html
+.pglite
+.pglite*

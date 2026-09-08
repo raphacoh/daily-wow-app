@@ -1,0 +1,22 @@
+{
+  "n": 1,
+  "code": "WOW-001",
+  "date": "2026-09-07",
+  "language": "he",
+  "title": "המקל שמדד את כדור הארץ",
+  "topics": [
+    "גאוגרפיה",
+    "מתמטיקה",
+    "היסטוריה",
+    "אסטרונומיה"
+  ],
+  "summary": "How Eratosthenes measured the circumference of the Earth with a stick and a shadow.",
+  "max_score": 11,
+  "status": "released",
+  "released_at": "2026-09-07T08:00:00.000Z",
+  "password": "הצל של בטא",
+  "reviewer_verdict": "PASS (kit v1 review, 3 rounds)",
+  "review_url": null,
+  "editor_note": null,
+  "teaser": "לפני 2,200 שנה, בלי לוויינים ובלי מטוסים, אדם אחד מדד את כל כדור הארץ — עם מקל וצל. איך? היום מגלים, ומודדים בעצמנו."
+}

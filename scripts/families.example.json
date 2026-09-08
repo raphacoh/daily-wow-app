@@ -1,0 +1,31 @@
+{
+  "_comment": "Founding families for POST /api/admin/import (bearer EDITOR_API_KEY): { \"editions\": true, \"families\": <this object> }. Replace the placeholders. Names are what the kid likes to be called; history carries streaks/XP over from the legacy ledger.",
+  "families": [
+    {
+      "parentName": "רף",
+      "email": "raphco@gmail.com",
+      "consent": true,
+      "is_editor": true,
+      "timezone": "Asia/Jerusalem",
+      "free_assistant_until": "2027-12-31T00:00:00Z",
+      "kids": [
+        { "name": "אדם", "feminine": false, "age": 9, "grade": "ד", "level": "advanced", "email": "ADAM_EMAIL_OR_NULL" },
+        { "name": "אמה", "feminine": true, "age": 11, "grade": "ו", "level": "on_track", "email": "EMMA_EMAIL_OR_NULL" }
+      ],
+      "history": [
+        { "kid": "אדם", "edition_n": 1, "score": 11, "max": 11, "complete": true, "completed_at": "2026-09-07T09:00:00+03:00" },
+        { "kid": "אמה", "edition_n": 1, "score": 10, "max": 11, "complete": true, "completed_at": "2026-09-07T09:10:00+03:00" }
+      ]
+    },
+    {
+      "parentName": "מיק",
+      "email": "MIK_EMAIL",
+      "consent": true,
+      "free_assistant_until": "2027-12-31T00:00:00Z",
+      "kids": [
+        { "name": "מילן", "feminine": false, "age": 11, "grade": "ו", "level": "advanced", "email": null, "extra": { "name": "אבא של מילן", "email": "MILAN_FATHER_EMAIL" } },
+        { "name": "קיארה", "feminine": true, "age": 10, "grade": "ה", "level": "standard", "email": null, "extra": { "name": "אבא של קיארה", "email": "MILAN_FATHER_EMAIL" } }
+      ]
+    }
+  ]
+}
