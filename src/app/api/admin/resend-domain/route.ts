@@ -51,11 +51,16 @@ export async function POST(req: Request) {
 
   if (action === "create") {
     if (existing) return NextResponse.json({ error: "exists", domain: existing }, { status: 409 });
-    const r = await resend.domains.create({ name, region: "eu-west-1" });
+    const r = await resend.domains.create({ name, region: (b as { region?: "eu-west-1" | "us-east-1" | "ap-northeast-1" | "sa-east-1" }).region ?? "eu-west-1" });
     if (r.error) return NextResponse.json({ error: r.error.message }, { status: 502 });
     return NextResponse.json({ created: true, domain: r.data });
   }
   if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  if (action === "delete") {
+    const r = await resend.domains.remove(existing.id);
+    if (r.error) return NextResponse.json({ error: r.error.message }, { status: 502 });
+    return NextResponse.json({ deleted: existing.id });
+  }
   if (action === "verify") {
     const v = await resend.domains.verify(existing.id);
     if (v.error) return NextResponse.json({ error: v.error.message }, { status: 502 });
