@@ -37,6 +37,9 @@ export async function currentParent(): Promise<ParentRow | null> {
   if (!u?.email) return null;
   const r = await db().query<ParentRow>("select * from parents where id = $1 and deleted_at is null", [u.id]);
   if (r.rows[0]) return r.rows[0];
+  // a family that registered before signing in: adopt its row (the FKs cascade the key change)
+  const adopt = await db().query<ParentRow>("update parents set id = $1 where email = $2 and id <> $1 and deleted_at is null returning *", [u.id, u.email.toLowerCase()]);
+  if (adopt.rows[0]) return adopt.rows[0];
   const ins = await db().query<ParentRow>(
     `insert into parents (id, email, name) values ($1, $2, $3)
      on conflict (id) do update set email = excluded.email returning *`,
