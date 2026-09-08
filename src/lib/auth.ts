@@ -92,3 +92,19 @@ export function magicLinkRedirect(next: string): string {
   const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/home";
   return `${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/auth/cb/${Buffer.from(safe, "utf8").toString("base64url")}`;
 }
+
+export function googleSignInEnabled(): boolean {
+  return supabaseConfigured() && process.env.NEXT_PUBLIC_GOOGLE_SIGNIN === "1";
+}
+
+/** Start "continue with Google": returns the provider URL to redirect to (PKCE verifier lands in a cookie). */
+export async function googleSignInUrl(next: string): Promise<{ url?: string; error?: string }> {
+  if (!googleSignInEnabled()) return { error: "google_not_enabled" };
+  const sb = await supabaseServer();
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: magicLinkRedirect(next), skipBrowserRedirect: true, queryParams: { access_type: "online", prompt: "select_account" } },
+  });
+  if (error || !data.url) return { error: error?.message ?? "no_url" };
+  return { url: data.url };
+}

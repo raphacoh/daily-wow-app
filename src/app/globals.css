@@ -210,3 +210,8 @@ details.sheet summary{cursor:pointer;font-weight:700}
 .wiz-val{font-weight:500;margin-inline-start:6px}
 .share{margin:18px 0 0;color:var(--muted);font-size:.95rem}
 .share .lnk{font-size:1rem;color:var(--ink)}
+.gbtn-wrap{margin:8px 0 18px}
+.gbtn{width:100%;gap:10px;justify-content:center;background:var(--card)}
+.gbtn-or{text-align:center;margin:12px 0 0}
+.wiz-google{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.wiz-google .gbtn-or{display:none}

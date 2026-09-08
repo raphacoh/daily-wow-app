@@ -76,10 +76,21 @@ export interface RegisteredKid {
 export async function registerFamily(input: RegistrationInput, opts: { parentId?: string } = {}): Promise<{ parentId: string; kids: RegisteredKid[]; existed: boolean }> {
   const email = input.email.trim().toLowerCase();
   return db().tx(async (q) => {
-    const existing = await q.query<{ id: string }>("select id from parents where email = $1 and deleted_at is null", [email]);
-    if (existing.rows[0]) return { parentId: existing.rows[0].id, kids: [], existed: true };
-    const parentId = opts.parentId ?? crypto.randomUUID();
-    await q.query("insert into parents (id, email, name) values ($1, $2, $3)", [parentId, email, input.parentName.trim()]);
+    const existing = await q.query<{ id: string; kids: number }>(
+      "select p.id, (select count(*)::int from kids k where k.parent_id = p.id and k.deleted_at is null) as kids from parents p where p.email = $1 and p.deleted_at is null",
+      [email],
+    );
+    let parentId: string;
+    if (existing.rows[0]) {
+      // the parent already exists (e.g. signed in with Google first): if it is them and they have no kids yet, finish the registration
+      const mine = opts.parentId && opts.parentId === existing.rows[0].id;
+      if (!mine || existing.rows[0].kids > 0) return { parentId: existing.rows[0].id, kids: [], existed: true };
+      parentId = existing.rows[0].id;
+      await q.query("update parents set name = case when name = '' then $2 else name end where id = $1", [parentId, input.parentName.trim()]);
+    } else {
+      parentId = opts.parentId ?? crypto.randomUUID();
+      await q.query("insert into parents (id, email, name) values ($1, $2, $3)", [parentId, email, input.parentName.trim()]);
+    }
     const kids: RegisteredKid[] = [];
     for (const k of input.kids) {
       const kidEmail = k.email && k.email.trim().toLowerCase() !== email ? k.email : null; // a kid email equal to the parent's is skipped

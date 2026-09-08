@@ -21,6 +21,10 @@ export interface JoinFormProps {
   gradeByAge: Record<string, string>;
   ages: number[];
   maxKids: number;
+  /** a signed-in parent (e.g. via Google): the email screen is skipped */
+  presetEmail?: string;
+  presetName?: string;
+  google?: React.ReactNode;
 }
 
 interface KidState {
@@ -45,14 +49,14 @@ function blankKid(level: string): KidState {
   return { key: nextKey++, name: "", feminine: "", age: "10", grade: "ה", level, email: "", extraName: "", extraEmail: "" };
 }
 
-export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
+export default function JoinForm({ levels, grades, maxKids, presetEmail = "", presetName = "", google = null }: JoinFormProps) {
   const defaultLevel = levels.some((l) => l.value === "standard") ? "standard" : levels[0]?.value ?? "";
   const [state, formAction, pending] = useActionState<JoinState, FormData>(register, JOIN_INITIAL);
-  const [email, setEmail] = useState("");
-  const [parentName, setParentName] = useState("");
+  const [email, setEmail] = useState(presetEmail);
+  const [parentName, setParentName] = useState(presetName);
   const [consent, setConsent] = useState(false);
   const [kids, setKids] = useState<KidState[]>(() => [blankKid(defaultLevel)]);
-  const [step, setStep] = useState<Step>({ kind: "email" });
+  const [step, setStep] = useState<Step>(presetEmail ? { kind: "kid", i: 0 } : { kind: "email" });
   const [local, setLocal] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const firstField = useRef<HTMLInputElement>(null);
@@ -137,7 +141,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
   }
   function back() {
     setLocal({});
-    if (step.kind === "kid") setStep(step.i === 0 ? { kind: "email" } : { kind: "kid", i: step.i - 1 });
+    if (step.kind === "kid") setStep(step.i === 0 ? (presetEmail ? step : { kind: "email" }) : { kind: "kid", i: step.i - 1 });
     else if (step.kind === "final") setStep({ kind: "kid", i: kids.length - 1 });
   }
   function submitAll() {
@@ -170,6 +174,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
             <button type="button" className="btn" onClick={nextFromEmail}>{t("join.w.next")}</button>
           </div>
           <p className="small">{t("join.w.emailNote")}</p>
+          {google ? <div className="wiz-google">{google}</div> : null}
         </div>
       ) : null}
 

@@ -30,3 +30,6 @@ content_path = "./supabase/templates/magic_link.html"
 [auth.email.template.confirmation]
 subject = "ברוכים הבאים לשורשים וכנפיים — קישור כניסה"
 content_path = "./supabase/templates/confirmation.html"
+
+# "Continue with Google": the OAuth client is created in Google Cloud; the client id/secret are set in the dashboard
+# (Authentication → Providers → Google). Redirect URL to register at Google: https://gvwzpfoqeheciteetewv.supabase.co/auth/v1/callback
