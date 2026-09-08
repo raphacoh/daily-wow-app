@@ -26,13 +26,14 @@ export async function queueCompletionNotice(kid: KidRow & { parent: ParentRow },
 }
 
 /** The free assistant cap was reached today: tell the parent once per kid per day (never the kid). */
-export async function notifyCapHit(kid: KidRow & { parent: ParentRow }, day: string, cap: number): Promise<void> {
+export async function notifyCapHit(kid: KidRow & { parent: ParentRow }, day: string, cap: number, askedByKid = false): Promise<{ sent: boolean }> {
   const ins = await db().query(
     "insert into sends (kid_id, parent_id, kind, week_key, to_emails) values ($1, $2, 'cap', $3, $4) on conflict do nothing returning id",
     [kid.id, kid.parent.id, day, [kid.parent.email]],
   );
-  if (!ins.rows.length) return;
-  const mail = capNoticeMail({ to: [kid.parent.email], kidName: kid.name, feminine: kid.feminine, cap, billingUrl: `${APP.url}/billing?kid=${kid.id}` });
+  if (!ins.rows.length) return { sent: false };
+  const mail = capNoticeMail({ to: [kid.parent.email], kidName: kid.name, feminine: kid.feminine, cap, billingUrl: `${APP.url}/billing?kid=${kid.id}`, askedByKid });
   const sent = await sendMail(mail);
   if (sent.id) await db().query("update sends set resend_id = $2 where id = $1", [(ins.rows[0] as { id: string }).id, sent.id]);
+  return { sent: true };
 }

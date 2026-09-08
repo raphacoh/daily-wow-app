@@ -18,7 +18,9 @@ export async function sendLink(_prevState: SignInState, formData: FormData): Pro
   const email = (typeof raw === "string" ? raw : "").trim().toLowerCase();
   if (!isEmail(email)) return { status: "error", message: t("signin.badEmail"), email };
   try {
-    const error = await sendMagicLink(email, `${APP.url}/auth/callback?next=/home`);
+    const rawNext = formData.get("next");
+    const next = typeof rawNext === "string" && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
+    const error = await sendMagicLink(email, `${APP.url}/auth/callback?next=${encodeURIComponent(next)}`);
     if (error) return { status: "error", message: error, email };
   } catch (e) {
     console.error("[signin] magic link failed", e);

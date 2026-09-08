@@ -15,7 +15,8 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   }
   if (parent) redirect("/home");
 
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
+  const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
 
   return (
     <main className="page">
@@ -23,7 +24,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       <p className="lede">{t("signin.lede")}</p>
       {error ? <p className="msg bad">{t("signin.callbackError")}</p> : null}
       <section className="panel">
-        <SignInForm />
+        <SignInForm next={nextPath} />
       </section>
       <p className="small">{t("signin.noAccount")} <a href="/join">{t("nav.join")}</a></p>
     </main>

@@ -5,7 +5,7 @@ import { t } from "@/i18n";
 
 const SIGNIN_INITIAL: SignInState = { status: "idle" };
 
-export default function SignInForm() {
+export default function SignInForm({ next = "/home" }: { next?: string }) {
   const [state, formAction, pending] = useActionState<SignInState, FormData>(sendLink, SIGNIN_INITIAL);
   const [email, setEmail] = useState("");
   const uid = useId();
@@ -14,6 +14,7 @@ export default function SignInForm() {
 
   return (
     <form action={formAction} noValidate>
+      <input type="hidden" name="next" value={next} />
       {state.message ? <p className="msg bad">{state.message}</p> : null}
       <div className="field">
         <label htmlFor={`${uid}-email`}>{t("signin.email")}</label>

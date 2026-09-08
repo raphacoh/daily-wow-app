@@ -667,15 +667,20 @@ export interface CapNoticeArgs {
   feminine: boolean;
   cap: number;
   billingUrl: string;
+  /** the kid pressed "ask my parents" (vs. the automatic once-a-day notice) */
+  askedByKid?: boolean;
 }
 
-export function capNoticeMail({ to, kidName, feminine, cap, billingUrl }: CapNoticeArgs): Mail {
-  const title = `${kidName} רצה לשאול את ארטו עוד`;
+export function capNoticeMail({ to, kidName, feminine, cap, billingUrl, askedByKid }: CapNoticeArgs): Mail {
+  const wants = feminine ? "רוצה" : "רוצה";
+  const title = askedByKid ? `${kidName} ${wants} שתפעילו את ארטו` : `${kidName} רצה לשאול את ארטו עוד`;
   const verb = feminine ? "שאלה" : "שאל";
-  const sentence = `${kidName} ${verb} היום את ${cap} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${kidName}: 10 ₪ לחודש, בדיוק מה שהטוקנים עולים לי, עד 30 שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`;
-  const sentenceHtml = `${esc(kidName)} ${esc(verb)} היום את ${ltr(cap)} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${esc(kidName)}: ${ltr("10 ₪")} לחודש, בדיוק מה שהטוקנים עולים לי, עד ${ltr(30)} שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`;
-  const bodyHtml = [p(sentenceHtml), button(billingUrl, `להפעיל את ארטו ל${kidName}`)].join("\n");
-  const text = textBody(title, [sentence, `להפעיל: ${billingUrl}`]);
+  const opener = askedByKid ? `${kidName} לחץ/ה על "שלחו להורים בקשה" בתוך השיעור.` : "";
+  const sentence = `${opener} ${kidName} ${verb} היום את ${cap} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${kidName}: 10 ₪ לחודש, בדיוק מה שהטוקנים עולים לי, עד 30 שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
+  const sentenceHtml = `${esc(opener)} ${esc(kidName)} ${esc(verb)} היום את ${ltr(cap)} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${esc(kidName)}: ${ltr("10 ₪")} לחודש, בדיוק מה שהטוקנים עולים לי, עד ${ltr(30)} שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
+  const steps = `שלושה צעדים: לוחצים על הכפתור, מאשרים את הכניסה במייל שיגיע, ומשלמים. ארטו נדלק מיד.`;
+  const bodyHtml = [p(sentenceHtml), button(billingUrl, `להפעיל את ארטו ל${kidName}`), small(esc(steps))].join("\n");
+  const text = textBody(title, [sentence, `להפעיל: ${billingUrl}`, steps]);
   return { to: normaliseTo(to), subject: title, html: layout({ title, bodyHtml }), text, replyTo: APP.editorEmail };
 }
 

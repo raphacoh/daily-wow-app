@@ -18,7 +18,7 @@ interface Kid {
 export default async function BillingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const parent = hasDb() ? await currentParent() : null;
-  if (!parent) redirect("/signin");
+  if (!parent) redirect(`/signin?next=${encodeURIComponent("/billing" + (one(sp.kid) ? `?kid=${one(sp.kid)}` : ""))}`);
 
   const kidsRes = await db().query<Kid>("select id, name, feminine from kids where parent_id = $1 and deleted_at is null order by created_at", [parent.id]);
   const kids = kidsRes.rows;
