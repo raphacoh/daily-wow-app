@@ -1,9 +1,11 @@
 import { signInWithGoogle } from "@/app/signin/actions";
 
+const direct = () => !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+
 /** "Continue with Google" — a plain form posting to a server action; no client JS, no third-party script on the page. */
 export function GoogleButton({ next, label = "להמשיך עם Google" }: { next: string; label?: string }) {
   return (
-    <form action={signInWithGoogle} className="gbtn-wrap">
+    <form action={direct() ? "/auth/google" : signInWithGoogle} method={direct() ? "get" : undefined} className="gbtn-wrap">
       <input type="hidden" name="next" value={next} />
       <button type="submit" className="btn ghost gbtn">
         <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">

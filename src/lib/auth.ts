@@ -94,7 +94,7 @@ export function magicLinkRedirect(next: string): string {
 }
 
 export function googleSignInEnabled(): boolean {
-  return supabaseConfigured() && process.env.NEXT_PUBLIC_GOOGLE_SIGNIN === "1";
+  return supabaseConfigured() && (process.env.NEXT_PUBLIC_GOOGLE_SIGNIN === "1" || !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET));
 }
 
 /** Start "continue with Google": returns the provider URL to redirect to (PKCE verifier lands in a cookie). */
