@@ -172,8 +172,9 @@ details.sheet summary{cursor:pointer;font-weight:700}
 .wiz-prog{display:flex;gap:6px;margin:0 0 34px}
 .wiz-prog i{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .25s}
 .wiz-prog i.on{background:var(--ink)}
-.wiz-screen{animation:wiz-in .28s ease-out both}
-@keyframes wiz-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wiz-screen{animation:wiz-in .22s ease-out both}
+@keyframes wiz-in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.wiz-screen{animation:none}}
 .wiz-h{font-size:clamp(1.7rem,5.5vw,2.3rem);margin:0 0 8px}
 .wiz-p{color:var(--muted);margin:0 0 26px}
 .wiz-label{display:block;font-weight:500;margin:22px 0 8px}
@@ -201,7 +202,7 @@ details.sheet summary{cursor:pointer;font-weight:700}
 .lnk:hover{color:var(--ink)}
 .wiz-consent{display:flex;gap:10px;align-items:flex-start;margin:22px 0 0;font-size:.98rem}
 .wiz-consent input{width:20px;height:20px;margin-top:4px;accent-color:var(--ink)}
-@media (max-width:480px){.wiz{padding:28px 18px 100px}.wiz-acts .btn{flex:1}}
+@media (max-width:480px){.wiz{padding:24px 18px 120px}.wiz-acts{flex-direction:column}.wiz-acts .btn{width:100%}.wiz-in{font-size:1.15rem}}
 .slider{margin:4px 0 0}
 .slider input[type=range]{width:100%;accent-color:var(--ink);direction:rtl;cursor:pointer}
 .slider .ticks{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);padding:0 6px}

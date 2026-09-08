@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "שיעור אחד ביום, מהורים לילדים. פתוח, חינמי, קהילתי.",
   robots: { index: true, follow: true },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#FAF8F3" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#FAF8F3", interactiveWidget: "resizes-content" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let parent = null;

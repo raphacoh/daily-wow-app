@@ -57,8 +57,12 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const firstField = useRef<HTMLInputElement>(null);
 
-  // focus the first field of every screen
+  // each screen starts at the top; the first field is focused only where a keyboard is physical
+  // (on phones an auto-focus pops the keyboard and the layout jumps as soon as the parent taps a chip)
   useEffect(() => {
+    window.scrollTo({ top: 0 });
+    const touch = typeof window !== "undefined" && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (touch) return;
     const id = setTimeout(() => firstField.current?.focus(), 60);
     return () => clearTimeout(id);
   }, [step]);
@@ -159,7 +163,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
         <div className="wiz-screen">
           <h1 className="wiz-h">{t("join.w.emailH")}</h1>
           <p className="wiz-p">{t("join.w.emailP")}</p>
-          <input ref={firstField} className="wiz-in" type="email" inputMode="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={onEnter(nextFromEmail)} aria-label={t("join.parentEmail")} />
+          <input ref={firstField} className="wiz-in" type="email" inputMode="email" autoComplete="email" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="next" dir="ltr" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={onEnter(nextFromEmail)} aria-label={t("join.parentEmail")} />
           {err("email") ? <p className="wiz-err">{err("email")}</p> : null}
           <div className="wiz-acts">
             <button type="button" className="btn" onClick={nextFromEmail}>{t("join.w.next")}</button>
@@ -177,7 +181,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
             <p className="wiz-p">{t("join.w.kidP")}</p>
 
             <label className="wiz-label">{t("join.kidName")}</label>
-            <input ref={firstField} className="wiz-in" value={k.name} onChange={(e) => patch(i, { name: e.target.value })} onKeyDown={onEnter(() => finishKids(i))} autoComplete="off" />
+            <input ref={firstField} className="wiz-in" value={k.name} onChange={(e) => patch(i, { name: e.target.value })} onKeyDown={onEnter(() => (document.activeElement as HTMLElement | null)?.blur())} autoComplete="off" enterKeyHint="done" />
             {err(`kids.${i}.name`) ? <p className="wiz-err">{err(`kids.${i}.name`)}</p> : null}
 
             <label className="wiz-label">{t("join.gender")} <span className="wiz-hint">{t("join.genderHint")}</span></label>
@@ -233,7 +237,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
           <h1 className="wiz-h">{t("join.w.finalH")}</h1>
           <p className="wiz-p">{t("join.w.finalP", { kids: kids.map((k) => k.name.trim()).filter(Boolean).join(", "), email })}</p>
           <label className="wiz-label">{t("join.parentName")}</label>
-          <input ref={firstField} className="wiz-in" autoComplete="given-name" value={parentName} onChange={(e) => setParentName(e.target.value)} onKeyDown={onEnter(submitAll)} />
+          <input ref={firstField} className="wiz-in" autoComplete="given-name" enterKeyHint="done" value={parentName} onChange={(e) => setParentName(e.target.value)} onKeyDown={onEnter(() => (document.activeElement as HTMLElement | null)?.blur())} />
           {err("parentName") ? <p className="wiz-err">{err("parentName")}</p> : null}
           <label className="wiz-consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />

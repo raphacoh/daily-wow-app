@@ -71,17 +71,24 @@ export async function register(_prevState: JoinState, formData: FormData): Promi
       link: `${APP.url}/l/today?k=${encodeURIComponent(k.token)}`,
     }));
 
+    // The family exists from here on: a failed email must never turn into a "registration failed" screen.
+    let mailError: string | null = null;
     if (edition) {
       const kidEmails = input.kids.map((k) => k.email).filter((e): e is string => !!e);
-      await sendMail(
-        welcomeMail({
-          to: [email, ...kidEmails],
-          parentName: input.parentName,
-          kids: kids.map((k) => ({ name: k.name, feminine: k.feminine, link: k.link })),
-          editionTitle: edition.title,
-          editionN: edition.n,
-        }),
-      );
+      try {
+        await sendMail(
+          welcomeMail({
+            to: [email, ...kidEmails],
+            parentName: input.parentName,
+            kids: kids.map((k) => ({ name: k.name, feminine: k.feminine, link: k.link })),
+            editionTitle: edition.title,
+            editionN: edition.n,
+          }),
+        );
+      } catch (e) {
+        mailError = String((e as Error).message ?? e);
+        console.error("[join] welcome mail failed", mailError);
+      }
     }
 
     return {
@@ -89,7 +96,7 @@ export async function register(_prevState: JoinState, formData: FormData): Promi
       errors: {},
       email,
       kids: kids.map((k) => ({ name: k.name, link: k.link })),
-      note: linkError ? t("join.linkNote") : undefined,
+      note: linkError || mailError ? t("join.linkNote") : undefined,
     };
   } catch (e) {
     console.error("[join] registration failed", e);
