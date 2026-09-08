@@ -11,6 +11,7 @@ export interface LessonRenderOptions {
   token?: string;
   banner?: boolean;
   index?: boolean;
+  parent?: { name: string } | null;
 }
 
 export async function renderLesson(n: number, opts: LessonRenderOptions = {}): Promise<{ status: number; body: string }> {
@@ -32,7 +33,7 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
   const dir = edition.language === "en" || edition.language === "fr" ? "ltr" : "rtl";
   const body = wrapEdition(edition.html, rt, edition.language || "he", dir, {
     index: !!opts.index,
-    prepend: opts.banner && !rt.kidToken ? visitorStrip() : "",
+    prepend: opts.banner && !rt.kidToken ? visitorStrip(opts.parent ?? null) : "",
   });
   return { status: 200, body };
 }
@@ -41,13 +42,14 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
  * The strip a visitor sees above the demo lesson: one line, one button, "learn more", dismiss.
  * Self-contained (inline CSS/JS, monochrome, no dependency on the engine's palette). Remembered per device.
  */
-export function visitorStrip(): string {
+export function visitorStrip(parent: { name: string } | null = null): string {
   const links = [
     ["/manifesto", "מניפסט"],
     ["/faq", "שאלות"],
     ["/open", "פתוח"],
     ["/library", "כל הגיליונות"],
     [X_URL, "X"],
+    ...(parent ? [] : [["/signin", "כניסה"]]),
   ]
     .map(([href, label]) => `<a href="${href}"${href.startsWith("http") ? ' rel="me noopener"' : ""}>${label}</a>`)
     .join("");
@@ -69,15 +71,15 @@ export function visitorStrip(): string {
 /* keep the lesson's own floating pieces above the strip, and leave room at the end of the page */
 body.rw-on{padding-bottom:var(--rw-h)}
 body.rw-on .fab{bottom:calc(18px + var(--rw-h))}
-body.rw-on .chat{bottom:calc(14px + var(--rw-h));height:min(640px,calc(100vh - 28px - var(--rw-h)))}
 body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
+@media (min-width:641px){body.rw-on .chat{bottom:calc(14px + var(--rw-h));height:min(640px,calc(100vh - 28px - var(--rw-h)))}}
 </style>
 <div id="rw-strip" role="region" aria-label="שורשים וכנפיים" hidden>
   <div class="in">
-    <span class="t"><b>שורשים וכנפיים</b> · שיעור כזה מגיע למייל כל בוקר. חינם.</span>
+    <span class="t"><b>שורשים וכנפיים</b> · ${parent ? `שלום ${esc(parent.name || "")}. זה השיעור של היום.` : "שיעור כזה מגיע למייל כל בוקר. חינם."}</span>
     <button class="x" type="button" aria-label="סגירה">×</button>
     <div class="acts">
-      <a class="cta" href="/join">לקבל את השיעור למייל</a>
+      <a class="cta" href="${parent ? "/home" : "/join"}">${parent ? "הלוח שלי" : "לקבל את השיעור למייל"}</a>
       <button class="more" type="button" aria-expanded="false">עוד</button>
     </div>
     <nav class="links" aria-label="עוד">${links}</nav>
@@ -97,10 +99,14 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
   function apply(){ if(el.hidden) return; var away = hiddenForTyping || chatOpen; el.style.transform = away ? 'translateY(110%)' : ''; if(away){ body.classList.remove('rw-on'); } else { size(); } }
   document.addEventListener('focusin', function(e){ if(e.target.matches('input,textarea') && !e.target.closest('#chat')){ hiddenForTyping=true; apply(); } });
   document.addEventListener('focusout', function(){ setTimeout(function(){ if(hiddenForTyping && !(document.activeElement && document.activeElement.matches('input,textarea'))){ hiddenForTyping=false; apply(); } },150); });
-  var chatEl=document.getElementById('chat');
-  if(chatEl && window.MutationObserver){ new MutationObserver(function(){ var o=chatEl.classList.contains('open'); if(o!==chatOpen){ chatOpen=o; apply(); } }).observe(chatEl,{attributes:true,attributeFilter:['class']}); }
+  function watchChat(){ var chatEl=document.getElementById('chat'); if(!chatEl || !window.MutationObserver) return; new MutationObserver(function(){ var o=chatEl.classList.contains('open'); if(o!==chatOpen){ chatOpen=o; apply(); } }).observe(chatEl,{attributes:true,attributeFilter:['class']}); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', watchChat); else watchChat();
 })();</script>
 `;
+}
+
+function esc(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
 }
 
 export function notFoundPage(msg: string): string {
