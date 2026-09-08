@@ -76,10 +76,16 @@ function pgDb(url: string): Db {
   // Lazy require keeps `pg` out of the client bundle and lets tests run without it.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Pool } = require("pg") as typeof import("pg");
+  // Supabase's pooler presents a certificate from Supabase's own CA. `pg` treats `sslmode=require` as
+  // verify-full, so a pasted "…?sslmode=require" string fails with "self-signed certificate in chain".
+  // Strip the flag and decide SSL ourselves: encrypted, without CA verification, for Supabase hosts.
+  const u = new URL(url);
+  const wantsSsl = /supabase\.co|pooler\.supabase/.test(u.hostname) || u.searchParams.has("sslmode");
+  u.searchParams.delete("sslmode");
   const pool: PgPool = new Pool({
-    connectionString: url,
+    connectionString: u.toString(),
     max: 4,
-    ssl: /supabase\.co|pooler\.supabase|sslmode=require/.test(url) ? { rejectUnauthorized: false } : undefined,
+    ssl: wantsSsl ? { rejectUnauthorized: false } : undefined,
   });
   const q = (client: { query: PgPool["query"] }): Queryable => ({
     async query(text, params) {
