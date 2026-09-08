@@ -2,10 +2,21 @@ project_id = "gvwzpfoqeheciteetewv"
 
 [auth]
 site_url = "https://roots-and-wings-nine.vercel.app"
-additional_redirect_urls = ["https://roots-and-wings-nine.vercel.app/auth/callback", "http://localhost:3000/auth/callback"]
+additional_redirect_urls = ["https://roots-and-wings-nine.vercel.app/**", "http://localhost:3000/**"]
 enable_signup = true
 
 [auth.email]
 enable_signup = true
 enable_confirmations = false
 otp_expiry = 900
+
+# Custom email templates need custom SMTP on the free tier (Supabase → Auth → SMTP settings, use Resend).
+# Uncomment once SMTP is set and run `supabase config push`.
+# Links go straight to our callback with a token hash, so they work from any browser or mail app (no PKCE cookie needed).
+# [auth.email.template.magic_link]
+# subject = "הקישור לכניסה — שורשים וכנפיים"
+# content_path = "./supabase/templates/magic_link.html"
+
+# [auth.email.template.confirmation]
+# subject = "ברוכים הבאים לשורשים וכנפיים — קישור כניסה"
+# content_path = "./supabase/templates/confirmation.html"
