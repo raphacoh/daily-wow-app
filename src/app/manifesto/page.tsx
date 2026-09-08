@@ -3,6 +3,7 @@ import { t } from "@/i18n";
 import { APP, X_HANDLE, X_URL } from "@/lib/config";
 import { nums } from "@/lib/format";
 import { XIcon } from "@/lib/icons";
+import { ShareRow } from "@/lib/share";
 
 export const metadata: Metadata = { title: "מניפסט", description: t("meta.manifesto"), openGraph: { title: "מניפסט", description: t("meta.manifesto") } };
 export const dynamic = "force-static";
@@ -55,6 +56,7 @@ export default function Manifesto() {
         </a>
       </p>
       <p><a href="/join">לעקוב ›</a></p>
+      <ShareRow url={`${APP.url}/manifesto`} text="למה אני בונה שיעור אחד ביום לילדים שלי, ומזמין הורים אחרים להצטרף:" />
     </main>
   );
 }

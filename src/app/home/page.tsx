@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { NotSignedIn, requireParent } from "@/lib/auth";
 import { hasDb } from "@/lib/db";
 import { APP } from "@/lib/config";
+import { ShareRow } from "@/lib/share";
 import { dashboardFor, kidLink, type Dashboard, type DashboardKid } from "@/lib/family";
 import { GRADES, LEVELS_UI, type Level, normLevel } from "@/lib/kids";
 import { LEVELS, levelFor } from "@/lib/progress";

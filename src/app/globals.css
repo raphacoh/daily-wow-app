@@ -208,3 +208,5 @@ details.sheet summary{cursor:pointer;font-weight:700}
 .slider .ticks{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);padding:0 6px}
 .slider .ticks i{font-style:normal;text-align:center}
 .wiz-val{font-weight:500;margin-inline-start:6px}
+.share{margin:18px 0 0;color:var(--muted);font-size:.95rem}
+.share .lnk{font-size:1rem;color:var(--ink)}

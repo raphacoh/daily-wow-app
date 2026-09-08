@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { t } from "@/i18n";
 import { nums } from "@/lib/format";
+import { ShareRow } from "@/lib/share";
+import { APP } from "@/lib/config";
 
 export const metadata: Metadata = { title: "שאלות", description: t("meta.faq"), openGraph: { title: "שאלות", description: t("meta.faq") } };
 export const dynamic = "force-static";
@@ -21,6 +23,7 @@ export default function Faq() {
         <p>{nums(t("landing.cost"))} <a href="/open-books">{t("landing.costLink")}</a></p>
       </section>
       <p className="sig">לא מצאתם תשובה? <a href="mailto:raphco@gmail.com">כתבו לי</a>.</p>
+      <ShareRow url={`${APP.url}/`} text="שורשים וכנפיים: שיעור אחד ביום לילדים, מהורים, חינם. נסו את השיעור של היום:" />
     </main>
   );
 }
