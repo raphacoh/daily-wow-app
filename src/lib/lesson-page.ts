@@ -101,6 +101,10 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
   document.addEventListener('focusout', function(){ setTimeout(function(){ if(hiddenForTyping && !(document.activeElement && document.activeElement.matches('input,textarea'))){ hiddenForTyping=false; apply(); } },150); });
   function watchChat(){ var chatEl=document.getElementById('chat'); if(!chatEl || !window.MutationObserver) return; new MutationObserver(function(){ var o=chatEl.classList.contains('open'); if(o!==chatOpen){ chatOpen=o; apply(); } }).observe(chatEl,{attributes:true,attributeFilter:['class']}); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', watchChat); else watchChat();
+  /* first-party funnel beacons (no cookies, no third party): demo started, demo completed */
+  var beaconed={}; function beacon(name){ if(beaconed[name]) return; beaconed[name]=1; var payload=JSON.stringify({name:name, n:(window.RUNTIME&&window.RUNTIME.edition&&window.RUNTIME.edition.n)||null}); try{ if(navigator.sendBeacon) navigator.sendBeacon('/api/e', new Blob([payload],{type:'application/json'})); else fetch('/api/e',{method:'POST',headers:{'content-type':'application/json'},body:payload,keepalive:true}); }catch(e){} }
+  function watchLesson(){ var sb=document.getElementById('startBtn'); if(sb) sb.addEventListener('click', function(){ beacon('demo_start'); }); var v=document.getElementById('vault'); if(v && window.MutationObserver){ new MutationObserver(function(){ if(v.classList.contains('open')) beacon('demo_complete'); }).observe(v,{attributes:true,attributeFilter:['class']}); } }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', watchLesson); else watchLesson();
 })();</script>
 `;
 }

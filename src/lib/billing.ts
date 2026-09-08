@@ -12,6 +12,7 @@
  * soft "payments aren't switched on yet") without any keys at all.
  */
 import DodoPayments from "dodopayments";
+import { track } from "./analytics";
 import { db, type Queryable } from "./db";
 import { APP, getNumber } from "./config";
 import { billingMail, sendMail } from "./emails";
@@ -351,6 +352,10 @@ async function upsertSub(a: {
  * and any future audit can see it. Never throws: a mail problem must not fail a webhook.
  */
 async function notify(kidId: string, kind: "active" | "ended" | "payment_failed", periodEnd: Date | null): Promise<void> {
+  if (kind === "active") {
+    const k = await db().query<{ parent_id: string }>("select parent_id from kids where id = $1", [kidId]);
+    await track("subscribe", { kid_id: kidId, parent_id: k.rows[0]?.parent_id ?? null });
+  }
   try {
     const kid = await kidById(kidId);
     if (!kid?.parent.email) return;

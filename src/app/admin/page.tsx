@@ -59,6 +59,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     return (
       <main className="page wide">
         <h1>עורך</h1>
+      <p className="small"><a href="/admin/analytics">מדדים: משפך, סך הכל, לפי יום ›</a></p>
         <div className="msg bad">אין מסד נתונים מוגדר בשרת הזה.</div>
       </main>
     );

@@ -7,6 +7,7 @@ import { levelFor, localDate } from "./progress";
 import { getNumber } from "./config";
 import { listEditions, type EditionMeta } from "./editions";
 import { isEntitled } from "./arto";
+import { track } from "./analytics";
 
 export interface KidInput {
   name: string;
@@ -89,6 +90,9 @@ export async function registerFamily(input: RegistrationInput, opts: { parentId?
       kids.push({ id, name: k.name.trim(), feminine: k.feminine, token });
     }
     return { parentId, kids, existed: false };
+  }).then(async (r) => {
+    if (!r.existed) await track("signup", { parent_id: r.parentId, props: { kids: r.kids.length } });
+    return r;
   });
 }
 
