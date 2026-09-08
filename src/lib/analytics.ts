@@ -104,3 +104,34 @@ export async function daily(days: number, now = new Date()): Promise<{ day: stri
   for (const r of co.rows) get(r.day).lessons = r.n;
   return Array.from(rows.values()).sort((a, b) => (a.day < b.day ? 1 : -1));
 }
+
+export interface SignupRow {
+  email: string;
+  name: string;
+  created_at: string;
+  kids: { name: string; level: string; grade: string; completions: number }[];
+  paying: boolean;
+  last_completion: string | null;
+}
+
+/** Who signed up, newest first, with their kids and activity (editor-only). */
+export async function signups(limit = 100): Promise<SignupRow[]> {
+  const r = await db().query<{ email: string; name: string; created_at: Date; kids: unknown; paying: boolean; last_completion: Date | null }>(
+    `select p.email, p.name, p.created_at,
+       coalesce((select json_agg(json_build_object('name', k.name, 'level', k.level, 'grade', k.grade,
+                  'completions', (select count(*)::int from completions c where c.kid_id = k.id and c.complete)) order by k.created_at)
+                 from kids k where k.parent_id = p.id and k.deleted_at is null), '[]'::json) as kids,
+       exists(select 1 from subscriptions s join kids k on k.id = s.kid_id where k.parent_id = p.id and s.status in ('active','past_due')) as paying,
+       (select max(c.completed_at) from completions c join kids k on k.id = c.kid_id where k.parent_id = p.id and c.complete) as last_completion
+     from parents p where p.deleted_at is null order by p.created_at desc limit $1`,
+    [limit],
+  );
+  return r.rows.map((x) => ({
+    email: x.email,
+    name: x.name,
+    created_at: new Date(x.created_at).toISOString(),
+    kids: (typeof x.kids === "string" ? JSON.parse(x.kids) : x.kids) as SignupRow["kids"],
+    paying: !!x.paying,
+    last_completion: x.last_completion ? new Date(x.last_completion).toISOString() : null,
+  }));
+}

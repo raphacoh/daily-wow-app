@@ -46,3 +46,16 @@ describe("first-party analytics", () => {
     expect((ev.rows[0] as { n: number }).n).toBe(1);
   });
 });
+
+describe("signups list", () => {
+  it("lists families newest first with kids, completions and paying flag", async () => {
+    const { signups } = await import("@/lib/analytics");
+    const rows = await signups(10);
+    expect(rows.length).toBe(2);
+    expect(rows[0].email).toBe("b@example.com");
+    expect(rows[0].paying).toBe(true);
+    expect(rows[0].kids[0]).toMatchObject({ name: "גל", level: "standard", grade: "ד", completions: 1 });
+    expect(rows[1]).toMatchObject({ email: "a@example.com", name: "א", paying: false });
+    expect(rows[1].kids[0].name).toBe("דן");
+  });
+});

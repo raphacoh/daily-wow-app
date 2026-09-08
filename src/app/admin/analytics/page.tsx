@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireEditor } from "@/lib/auth";
-import { daily, funnel, totals } from "@/lib/analytics";
+import { daily, funnel, signups, totals } from "@/lib/analytics";
 import { hasDb } from "@/lib/db";
 
 export const metadata: Metadata = { title: "מדדים", robots: { index: false } };
@@ -18,7 +18,8 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
   if (!hasDb()) return <main className="page"><p className="msg info">אין מסד נתונים.</p></main>;
   const { days: d } = await searchParams;
   const days = Math.max(1, Math.min(365, Number(d) || 30));
-  const [f, t, series] = await Promise.all([funnel(days), totals(), daily(Math.min(days, 60))]);
+  const [f, t, series, people] = await Promise.all([funnel(days), totals(), daily(Math.min(days, 60)), signups(200)]);
+  const when = (iso: string) => new Date(iso).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
   return (
     <main className="page wide">
@@ -42,6 +43,29 @@ export default async function Analytics({ searchParams }: { searchParams: Promis
               <tr><td>נרשמו (משפחות)</td><td className="num">{f.signups}</td><td className="num">{pct(f.signups, f.demo_completed)}</td><td className="num">{pct(f.signups, f.landed)}</td></tr>
               <tr><td>שיעורים שהושלמו על ידי ילדים רשומים</td><td className="num">{f.lessons_completed}</td><td>—</td><td>—</td></tr>
               <tr><td>הפעילו את ארטו (מנויים חדשים)</td><td className="num">{f.subscriptions}</td><td className="num">{pct(f.subscriptions, f.signups)}</td><td className="num">{pct(f.subscriptions, f.landed)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="panel">
+        <h3>מי נרשם · {people.length} משפחות</h3>
+        <div className="scroll">
+          <table className="table">
+            <thead><tr><th>מתי</th><th>שם</th><th>מייל</th><th>ילדים</th><th>שיעורים</th><th>ארטו</th><th>פעילות אחרונה</th></tr></thead>
+            <tbody>
+              {people.length === 0 ? <tr><td colSpan={7} className="small">עוד אין נרשמים.</td></tr> : null}
+              {people.map((p) => (
+                <tr key={p.email}>
+                  <td className="num">{when(p.created_at)}</td>
+                  <td>{p.name || "—"}</td>
+                  <td className="ltr">{p.email}</td>
+                  <td>{p.kids.map((k) => `${k.name} (${k.grade}, ${k.level === "advanced" ? "מתקדם" : k.level === "support" ? "עזרה" : "רגיל"})`).join(", ") || "—"}</td>
+                  <td className="num">{p.kids.reduce((a, k) => a + k.completions, 0)}</td>
+                  <td>{p.paying ? "משלם" : "חינם"}</td>
+                  <td className="num">{p.last_completion ? when(p.last_completion) : "—"}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
