@@ -1,8 +1,8 @@
 project_id = "gvwzpfoqeheciteetewv"
 
 [auth]
-site_url = "https://roots-and-wings-nine.vercel.app"
-additional_redirect_urls = ["https://roots-and-wings-nine.vercel.app/**", "http://localhost:3000/**"]
+site_url = "https://rootsandwings-edu.com"
+additional_redirect_urls = ["https://rootsandwings-edu.com/**", "https://www.rootsandwings-edu.com/**", "https://roots-and-wings-nine.vercel.app/**", "http://localhost:3000/**"]
 enable_signup = true
 
 [auth.email]
