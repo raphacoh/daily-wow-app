@@ -13,11 +13,12 @@ otp_expiry = 900
 
 # SMTP (Resend) is set in the Supabase dashboard → Authentication → SMTP Settings; the key never lives in a file.
 
+# (templates commented out until custom SMTP is enabled in the dashboard; then uncomment and push)
 # Links go straight to our callback with a token hash, so they work from any browser or mail app (no PKCE cookie needed).
-[auth.email.template.magic_link]
-subject = "הקישור לכניסה — שורשים וכנפיים"
-content_path = "./supabase/templates/magic_link.html"
+# [auth.email.template.magic_link]
+# subject = "הקישור לכניסה — שורשים וכנפיים"
+# content_path = "./supabase/templates/magic_link.html"
 
-[auth.email.template.confirmation]
-subject = "ברוכים הבאים לשורשים וכנפיים — קישור כניסה"
-content_path = "./supabase/templates/confirmation.html"
+# [auth.email.template.confirmation]
+# subject = "ברוכים הבאים לשורשים וכנפיים — קישור כניסה"
+# content_path = "./supabase/templates/confirmation.html"
