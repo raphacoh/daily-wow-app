@@ -32,6 +32,12 @@ export async function POST(req: Request) {
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
 
+  // action "smtp-key": mint a sending-only API key for Supabase's SMTP (returned once, never stored here)
+  if (b.action === "smtp-key") {
+    const k = await resend.apiKeys.create({ name: `supabase-smtp-${Date.now()}`, permission: "sending_access" });
+    if (k.error) return NextResponse.json({ error: k.error.message }, { status: 502 });
+    return NextResponse.json({ token: k.data?.token ?? null, id: k.data?.id ?? null });
+  }
   const list = await resend.domains.list();
   const existing = ((list.data as unknown as { data?: { id: string; name: string; status: string }[] } | null)?.data ?? []).find((d) => d.name === name);
   const action = b.action ?? (existing ? "get" : "create");
