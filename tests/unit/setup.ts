@@ -8,7 +8,7 @@ import { pgliteDb, setDb, type Db } from "@/lib/db";
 
 export async function freshDb(): Promise<{ db: Db; pg: PGlite }> {
   const pg = new PGlite();
-  const sql = await fs.readFile(path.join(process.cwd(), "supabase/migrations/0001_init.sql"), "utf8");
+  const sql = await fs.readFile(path.join(process.cwd(), "supabase/migrations/20260908000000_init.sql"), "utf8");
   await pg.exec(sql);
   const db = pgliteDb(pg as never);
   setDb(db);

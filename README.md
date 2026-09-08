@@ -24,7 +24,7 @@ This app **wraps** the kit's page engine, it does not replace it: every edition 
 | Families | `src/lib/family.ts`, `/join`, `/signin`, `/home`, `/billing` |
 | Editor | `src/lib/admin.ts`, `/admin`, `src/app/api/admin/*` (bearer `EDITOR_API_KEY` for the routines) |
 | Jobs | `src/lib/jobs.ts`, `src/app/api/jobs/*`, `vercel.json` crons |
-| Data | `supabase/migrations/0001_init.sql` (Postgres + RLS), `src/lib/db.ts` (`pg` in prod, PGlite in tests and for `DATABASE_URL=pglite://./.pglite`) |
+| Data | `supabase/migrations/20260908000000_init.sql` (Postgres + RLS), `src/lib/db.ts` (`pg` in prod, PGlite in tests and for `DATABASE_URL=pglite://./.pglite`) |
 | Emails | `src/lib/emails.ts` (Resend, Hebrew RTL templates with plain-text alternatives) |
 
 ## Run it locally (no accounts needed)
@@ -51,7 +51,7 @@ node kit/template/check.js && node kit/template/lint.js kit/template/edition-tem
 
 ## Deploy
 
-1. Supabase: create a project, run `supabase/migrations/0001_init.sql` in the SQL editor, enable Email OTP (magic links) in Auth, set the site URL and `https://<app>/auth/callback` as a redirect URL.
+1. Supabase: create a project, run `supabase/migrations/20260908000000_init.sql` in the SQL editor, enable Email OTP (magic links) in Auth, set the site URL and `https://<app>/auth/callback` as a redirect URL.
 2. Vercel: import the repo, set every variable from `.env.example` (`DATABASE_URL` = the **transaction pooler** string), deploy. `vercel.json` registers the crons (`CRON_SECRET` protects them).
 3. Resend: verify the sending domain (DKIM/SPF/DMARC), set `EMAIL_FROM` on it. Free tier ≈ 100 mails/day → paid at ~80 families (`RESEND_DAILY_LIMIT`, the admin page warns at 80 %).
 4. Dodo Payments: one recurring product "ארטו — העוזר של שורשים וכנפיים", ₪10 (or USD-equivalent shown as ≈ ₪10), webhook → `https://<app>/api/webhooks/dodo`.
