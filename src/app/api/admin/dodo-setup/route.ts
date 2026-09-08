@@ -78,7 +78,20 @@ export async function POST(req: Request) {
       const s = await client.webhooks.retrieveSecret(w.id);
       return NextResponse.json({ webhook_id: w.id, url, secret: s.secret });
     }
-    // status
+    // status: also detect which mode the key belongs to (test and live keys are different)
+    if (!b.action || b.action === "status") {
+      const detected: Record<string, string> = {};
+      for (const env of ["test_mode", "live_mode"] as const) {
+        try {
+          const c = new DodoPayments({ bearerToken: process.env.DODO_PAYMENTS_API_KEY, environment: env });
+          const r = await c.products.list();
+          detected[env] = "ok (" + (((r as unknown as { items?: unknown[] }).items ?? []).length) + " products)";
+        } catch (e) {
+          detected[env] = String((e as Error).message).slice(0, 60);
+        }
+      }
+      return NextResponse.json({ configured_environment: process.env.DODO_PAYMENTS_ENVIRONMENT || "test_mode", key_works_in: detected });
+    }
     const products = await client.products.list();
     const webhooks = await client.webhooks.list();
     const items = (products as unknown as { items?: unknown[] }).items ?? [];
