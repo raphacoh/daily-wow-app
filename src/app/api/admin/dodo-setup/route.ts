@@ -78,6 +78,16 @@ export async function POST(req: Request) {
       const s = await client.webhooks.retrieveSecret(w.id);
       return NextResponse.json({ webhook_id: w.id, url, secret: s.secret });
     }
+    if (b.action === "checkout-test") {
+      // creates a checkout session for the editor (nothing is charged unless someone completes it)
+      const c = await client.checkoutSessions.create({
+        product_cart: [{ product_id: process.env.DODO_PRODUCT_ID ?? "", quantity: 1 }],
+        customer: { email: APP.editorEmail, name: APP.editorName },
+        return_url: `${APP.url}/billing?ok=1`,
+        metadata: { test: "1" },
+      });
+      return NextResponse.json({ checkout_url: c.checkout_url ?? null, session_id: c.session_id });
+    }
     // status: also detect which mode the key belongs to (test and live keys are different)
     if (!b.action || b.action === "status") {
       const detected: Record<string, string> = {};
