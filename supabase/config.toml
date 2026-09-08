@@ -19,7 +19,7 @@ host = "smtp.resend.com"
 port = 465
 user = "resend"
 pass = "env(RESEND_SMTP_KEY)"
-admin_email = "hello@haggl.ai"
+admin_email = "hello@rootsandwings-edu.com"
 sender_name = "שורשים וכנפיים"
 
 # Links go straight to our callback with a token hash, so they work from any browser or mail app (no PKCE cookie needed).
