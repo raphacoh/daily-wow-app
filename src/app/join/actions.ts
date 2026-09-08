@@ -8,7 +8,7 @@ import { APP } from "@/lib/config";
 import { hasDb } from "@/lib/db";
 import { latestReleased } from "@/lib/editions";
 import { sendMail, welcomeMail } from "@/lib/emails";
-import { sendMagicLink, supabaseConfigured, supabaseServer } from "@/lib/auth";
+import { magicLinkRedirect, sendMagicLink, supabaseConfigured, supabaseServer } from "@/lib/auth";
 import { registerFamily, validateRegistration } from "@/lib/family";
 import { parseJoinForm } from "./parse";
 import { t } from "@/i18n";
@@ -43,7 +43,7 @@ export async function register(_prevState: JoinState, formData: FormData): Promi
   if (!hasDb()) return { status: "error", errors: {}, message: t("join.noDb") };
 
   const email = input.email;
-  const redirectTo = `${APP.url}/auth/callback?next=/home`;
+  const redirectTo = magicLinkRedirect("/home");
 
   try {
     // When the visitor is already signed in with this very address, the parents row must carry the auth

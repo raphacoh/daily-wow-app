@@ -2,9 +2,8 @@
 /**
  * Sign-in (PRD §5.3): an email, a magic link, nothing else. No passwords anywhere.
  */
-import { sendMagicLink } from "@/lib/auth";
+import { magicLinkRedirect, sendMagicLink } from "@/lib/auth";
 import { isEmail } from "@/lib/family";
-import { APP } from "@/lib/config";
 import { t } from "@/i18n";
 
 export interface SignInState {
@@ -20,7 +19,7 @@ export async function sendLink(_prevState: SignInState, formData: FormData): Pro
   try {
     const rawNext = formData.get("next");
     const next = typeof rawNext === "string" && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
-    const error = await sendMagicLink(email, `${APP.url}/auth/callback?next=${encodeURIComponent(next)}`);
+    const error = await sendMagicLink(email, magicLinkRedirect(next));
     if (error) return { status: "error", message: error, email };
   } catch (e) {
     console.error("[signin] magic link failed", e);

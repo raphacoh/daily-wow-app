@@ -86,3 +86,9 @@ export function isEditorApiKey(header: string | null): boolean {
   for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
   return diff === 0;
 }
+
+/** Magic-link landing with the destination in the path: /auth/cb/<base64url(next)> (see src/app/auth/cb). */
+export function magicLinkRedirect(next: string): string {
+  const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/home";
+  return `${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/auth/cb/${Buffer.from(safe, "utf8").toString("base64url")}`;
+}
