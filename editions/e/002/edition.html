@@ -1,0 +1,1462 @@
+<title>שורשים וכנפיים #2 · הדבורה שמספרת סוד בריקוד</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;500;700;800&family=Amatic+SC:wght@700&display=swap">
+<style>
+:root{
+  --bg:#FFF7E4; --card:#FFFFFF; --card2:#FFF9EC; --ink:#231F14; --muted:#5F5848;
+  --sun:#F2A900; --sun-deep:#B06D00; --sun-soft:#FFE8B0;
+  --nile:#2C7FB8; --nile-soft:#DCEEF9; --shadow:#6B4BB8; --shadow-soft:#E8E1F8;
+  --sand:#E9D5A6; --line:#EBDFC2; --ok:#1F8A5B; --ok-soft:#DDF3E7; --bad:#C8452D; --bad-soft:#FBE3DE;
+  --sky1:#8EC9F2; --sky2:#EAF6FF; --sea:#1B6FA8; --earth:#F0C75E; --earth2:#B98A2E;
+  --focus:#F2A900;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1710; --card:#26211A; --card2:#2F2920; --ink:#F6EEDC; --muted:#C2B8A4;
+    --sun:#FFB324; --sun-deep:#FFC757; --sun-soft:#4A3A12;
+    --nile:#6FC0EC; --nile-soft:#173A4C; --shadow:#B9A2F2; --shadow-soft:#332A52;
+    --sand:#4A3F2C; --line:#3E3628; --ok:#4FD08F; --ok-soft:#173A2C; --bad:#F2806F; --bad-soft:#4A2320;
+    --sky1:#213A6B; --sky2:#0F1B3A; --sea:#1B4F7E; --earth:#7A5F22; --earth2:#B98A2E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1710; --card:#26211A; --card2:#2F2920; --ink:#F6EEDC; --muted:#C2B8A4;
+  --sun:#FFB324; --sun-deep:#FFC757; --sun-soft:#4A3A12;
+  --nile:#6FC0EC; --nile-soft:#173A4C; --shadow:#B9A2F2; --shadow-soft:#332A52;
+  --sand:#4A3F2C; --line:#3E3628; --ok:#4FD08F; --ok-soft:#173A2C; --bad:#F2806F; --bad-soft:#4A2320;
+  --sky1:#213A6B; --sky2:#0F1B3A; --sea:#1B4F7E; --earth:#7A5F22; --earth2:#B98A2E;
+}
+*{box-sizing:border-box}
+/* ---- EDITION SKIN ----------------------------------------------------------
+   Every edition gets its own look, not just its own words: the palette above,
+   the page texture below, the chapter marker (.ch .stick) and the hero motif
+   (.hero .motif) are the four slots to redraw for the new topic. Edition 1 was
+   a sun and a stick's shadow on plain cream; edition 2 is a honeycomb.
+   The texture is an inline data: URI — never an external asset. */
+body{margin:0;background:var(--bg) url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2231.18%22%20height%3D%2254.00%22%20viewBox%3D%220%200%2031.18%2054.00%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28176%2C109%2C0%2C0.13%29%22%20stroke-width%3D%221.4%22%3E%3Cpolygon%20points%3D%2215.6%2C9.0%200.0%2C18.0%20-15.6%2C9.0%20-15.6%2C-9.0%20-0.0%2C-18.0%2015.6%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C9.0%2031.2%2C18.0%2015.6%2C9.0%2015.6%2C-9.0%2031.2%2C-18.0%2046.8%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2215.6%2C63.0%200.0%2C72.0%20-15.6%2C63.0%20-15.6%2C45.0%20-0.0%2C36.0%2015.6%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C63.0%2031.2%2C72.0%2015.6%2C63.0%2015.6%2C45.0%2031.2%2C36.0%2046.8%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2231.2%2C36.0%2015.6%2C45.0%200.0%2C36.0%20-0.0%2C18.0%2015.6%2C9.0%2031.2%2C18.0%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") repeat;color:var(--ink);font-family:Rubik,"Noto Sans Hebrew",Arial,sans-serif;font-size:18px;line-height:1.65;direction:rtl}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) body{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2231.18%22%20height%3D%2254.00%22%20viewBox%3D%220%200%2031.18%2054.00%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C179%2C36%2C0.10%29%22%20stroke-width%3D%221.4%22%3E%3Cpolygon%20points%3D%2215.6%2C9.0%200.0%2C18.0%20-15.6%2C9.0%20-15.6%2C-9.0%20-0.0%2C-18.0%2015.6%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C9.0%2031.2%2C18.0%2015.6%2C9.0%2015.6%2C-9.0%2031.2%2C-18.0%2046.8%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2215.6%2C63.0%200.0%2C72.0%20-15.6%2C63.0%20-15.6%2C45.0%20-0.0%2C36.0%2015.6%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C63.0%2031.2%2C72.0%2015.6%2C63.0%2015.6%2C45.0%2031.2%2C36.0%2046.8%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2231.2%2C36.0%2015.6%2C45.0%200.0%2C36.0%20-0.0%2C18.0%2015.6%2C9.0%2031.2%2C18.0%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")} }
+:root[data-theme="dark"] body{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2231.18%22%20height%3D%2254.00%22%20viewBox%3D%220%200%2031.18%2054.00%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C179%2C36%2C0.10%29%22%20stroke-width%3D%221.4%22%3E%3Cpolygon%20points%3D%2215.6%2C9.0%200.0%2C18.0%20-15.6%2C9.0%20-15.6%2C-9.0%20-0.0%2C-18.0%2015.6%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C9.0%2031.2%2C18.0%2015.6%2C9.0%2015.6%2C-9.0%2031.2%2C-18.0%2046.8%2C-9.0%22%2F%3E%3Cpolygon%20points%3D%2215.6%2C63.0%200.0%2C72.0%20-15.6%2C63.0%20-15.6%2C45.0%20-0.0%2C36.0%2015.6%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2246.8%2C63.0%2031.2%2C72.0%2015.6%2C63.0%2015.6%2C45.0%2031.2%2C36.0%2046.8%2C45.0%22%2F%3E%3Cpolygon%20points%3D%2231.2%2C36.0%2015.6%2C45.0%200.0%2C36.0%20-0.0%2C18.0%2015.6%2C9.0%2031.2%2C18.0%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E")}
+#app{direction:rtl;text-align:right;overflow-x:hidden}
+h1,h2,h3{font-family:"Secular One",Rubik,Arial,sans-serif;font-weight:400;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,7vw,3.6rem)}
+h2{font-size:clamp(1.6rem,4.5vw,2.2rem)}
+h3{font-size:1.25rem}
+p{margin:0 0 1em}
+.hand{font-family:"Amatic SC",Rubik,sans-serif;font-weight:700;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.math{direction:ltr;unicode-bidi:isolate;display:inline-block;font-variant-numeric:tabular-nums;white-space:nowrap}
+a{color:var(--nile)}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:760px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Secular One",Rubik,sans-serif;font-size:1.15rem;white-space:nowrap}
+.brand .disc{width:22px;height:24px;background:var(--sun);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.progress{flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.progress span{height:8px;border-radius:4px;background:var(--line);transition:background .3s}
+.progress span.done{background:var(--sun)}
+.progress span.cur{background:var(--sun);box-shadow:0 0 0 2px var(--sun-soft)}
+.who{font-size:.9rem;color:var(--muted);white-space:nowrap;display:flex;gap:6px;align-items:center}
+.who b{color:var(--ink)}
+.statpill{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:.85rem;white-space:nowrap}
+.statpill svg{width:15px;height:15px}
+.flame{color:var(--sun-deep);display:inline-flex}
+@media (max-width:640px){.brand span.t{display:none}.who .lvl{display:none}}
+
+main{max-width:760px;margin:0 auto;padding:0 20px 120px}
+.step{display:none;padding:44px 0 8px;border-bottom:1px dashed var(--line)}
+.step.shown{display:block;animation:rise .5s ease-out both}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.step.shown{animation:none} *{transition:none!important}}
+
+/* chapter marker: a honeycomb cell with a bee-dot */
+.ch{display:flex;align-items:center;gap:14px;margin-bottom:6px;color:var(--muted);font-size:.95rem;letter-spacing:.06em}
+.ch .stick{position:relative;width:28px;height:28px;flex:none}
+.ch .stick::before{content:"";position:absolute;inset:0;background:var(--sun);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.ch .stick::after{content:"";position:absolute;left:9px;top:9px;width:10px;height:10px;border-radius:50%;background:var(--ink)}
+
+/* hero */
+.hero{position:relative;padding-top:56px}
+.hero .motif{position:absolute;top:6px;left:-116px;width:290px;height:290px;z-index:0;pointer-events:none;opacity:.8}
+.hero > *:not(.motif){position:relative;z-index:1}
+@media (max-width:640px){.hero .motif{width:200px;height:200px;left:-70px;top:44px;opacity:.45}}
+.eyebrow{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.95rem;margin-bottom:14px;flex-wrap:wrap}
+.eyebrow .tag{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 12px}
+.eyebrow a.tag{text-decoration:none;color:inherit;border-color:var(--sun)}
+.lede{font-size:1.2rem;max-width:34em;margin-top:18px}
+.lede b{color:var(--sun-deep)}
+
+/* cards & panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:22px 0}
+.panel.instrument{border:2px solid var(--sand);background:var(--card2)}
+.panel h3{margin-bottom:10px}
+.panel .cap{color:var(--muted);font-size:.95rem;margin:0}
+.note{background:var(--sun-soft);border-radius:12px;padding:16px 18px;margin:20px 0;display:flex;gap:14px;align-items:flex-start}
+.note .hand{font-size:1.9rem;line-height:1;color:var(--sun-deep);flex:none;margin-top:2px}
+.note p{margin:0}
+.aha{border-right:6px solid var(--sun);padding:6px 18px;margin:22px 0;font-size:1.15rem}
+.aha b{color:var(--sun-deep)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.twocol{grid-template-columns:1fr}}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--sky2);touch-action:none}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.controls label{display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px;font-size:.95rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--sun)}
+input[type=range]:disabled{opacity:.4}
+select{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);width:100%}
+input[type=number],input[type=text],textarea{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);width:100%}
+input[type=number]{direction:ltr;text-align:right}
+textarea{min-height:140px;resize:vertical;line-height:1.6}
+.readout{font-size:1.05rem;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:inline-flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.readout b{font-size:1.5rem;color:var(--sun-deep)}
+.seg{display:inline-flex;border:2px solid var(--sand);border-radius:999px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:8px 16px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--bg)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--sun);color:#231F14;border:0;border-radius:999px;padding:12px 22px;font-weight:700;font-size:1.05rem;cursor:pointer;box-shadow:0 3px 0 var(--sun-deep);transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--sun-deep)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--sand);box-shadow:none}
+.btn.small{padding:8px 14px;font-size:.95rem}
+.btn.hold{padding:18px 30px;font-size:1.2rem;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.btn.hold.on{background:var(--sun-deep);color:#fff;transform:translateY(2px);box-shadow:0 1px 0 var(--sun-deep)}
+.next{margin:26px 0 12px;display:flex;justify-content:flex-start}
+
+/* tracks */
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.track{border:3px solid var(--line);background:var(--card);border-radius:16px;padding:16px;cursor:pointer;text-align:right;display:flex;gap:14px;align-items:center;transition:border-color .2s,transform .1s}
+.track:hover:not(:disabled){transform:translateY(-2px)}
+.track:disabled{cursor:default;opacity:.7}
+.track.on:disabled{opacity:1}
+.track .av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:"Secular One";font-size:1.05rem;color:#fff;flex:none}
+.track[data-trk=adam] .av{background:var(--nile)} .track[data-trk=emma] .av{background:var(--shadow)}
+.track[data-trk=adam].on{border-color:var(--nile)} .track[data-trk=emma].on{border-color:var(--shadow)}
+.track small{display:block;color:var(--muted)}
+body[data-track=adam] [data-track=emma]{display:none!important}
+body[data-track=emma] [data-track=adam]{display:none!important}
+body:not([data-track]) [data-track]{display:none!important}
+body:not([data-level=advanced]) [data-level=advanced]{display:none!important}
+body[data-level=advanced] [data-level=standard]{display:none!important}
+/* app levels: body[data-push=ontrack] = 'on track' (standard content, the challenge recommended by name) */
+span[data-push]{display:none!important}
+body[data-push=ontrack] span[data-push=ontrack]{display:inline!important}
+body[data-push=ontrack] .challenge [data-level=standard]{display:none!important}
+body[data-runtime] .tracks{display:none} body[data-runtime=demo] .tracks{display:grid}
+.demo-level{margin:14px 0 0;display:grid;gap:12px;font-size:.95rem;color:var(--muted)} .demo-level label{display:grid;gap:4px} .demo-level label>span:first-child{color:var(--ink)} .demo-level input[type=range]{width:100%;accent-color:var(--ink);direction:rtl} .demo-level .ticks{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:0 4px} .demo-level .ticks i{font-style:normal}
+body[data-runtime] #mailBtn{display:none}   /* the app emails the parent itself; no placeholder address on demo pages either */
+.challenge{border:2px dashed var(--shadow);background:var(--shadow-soft)}
+.challenge h3{color:var(--shadow)}
+.trackpill{display:inline-block;font-size:.85rem;padding:2px 10px;border-radius:999px;margin-bottom:8px}
+[data-track=adam] .trackpill{background:var(--nile-soft);color:var(--nile)}
+[data-track=emma] .trackpill{background:var(--shadow-soft);color:var(--shadow)}
+
+/* quiz */
+.q{margin:18px 0;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.q .qt{font-weight:700;font-size:1.08rem;margin-bottom:12px}
+.q .opts{display:grid;gap:8px}
+.q .opt{text-align:right;background:var(--card2);border:2px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.q .opt .k{width:26px;height:26px;border-radius:50%;border:2px solid var(--sand);display:grid;place-items:center;font-size:.85rem;flex:none}
+.q .opt:hover{border-color:var(--sun)}
+.q.locked .opt{cursor:default}
+.q .opt.right{border-color:var(--ok);background:var(--ok-soft)} .q .opt.right .k{background:var(--ok);border-color:var(--ok);color:#fff}
+.q .opt.wrong{border-color:var(--bad);background:var(--bad-soft)} .q .opt.wrong .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.q .fb{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--sun-soft);display:none}
+.q .fb.show{display:block}
+.qc-label{font-size:.85rem;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+
+/* ordering */
+.order{display:grid;gap:8px}
+.order .card{background:var(--card2);border:2px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;gap:12px;align-items:center;text-align:right}
+.order .card .n{width:28px;height:28px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-weight:700;flex:none}
+.order .card.picked{border-color:var(--sun);background:var(--sun-soft)} .order .card.picked .n{background:var(--sun)}
+.order .card.ok{border-color:var(--ok)} .order .card.ok .n{background:var(--ok);color:#fff}
+.order .card.ko{border-color:var(--bad)} .order .card.ko .n{background:var(--bad);color:#fff}
+
+/* orders-of-magnitude choice (the opening estimate) */
+.orders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;direction:ltr}
+@media (max-width:640px){.orders{grid-template-columns:repeat(2,1fr)}}
+.orders button{background:var(--card);border:2px solid var(--sand);border-radius:14px;padding:14px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .1s,border-color .2s}
+.orders button .num{font-family:"Secular One",Rubik,sans-serif;font-size:clamp(1.05rem,3.4vw,1.35rem);color:var(--ink)}
+.orders button .u{font-size:.85rem;color:var(--muted);direction:rtl}
+.orders button:hover:not(:disabled){border-color:var(--sun);transform:translateY(-2px)}
+.orders button:disabled{cursor:default}
+.orders button.right{border-color:var(--ok);background:var(--ok-soft)}
+.orders button.right .num{color:var(--ok)}
+.orders button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.orders button.wrong .num{color:var(--bad)}
+
+/* predict buttons */
+.predict{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.predict button{background:var(--card);border:2px solid var(--sand);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500}
+.predict button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.predict button:disabled{cursor:default}
+details.bonus{background:var(--card2);border:2px dashed var(--sand);border-radius:14px;padding:14px 18px;margin:22px 0;color:var(--ink);font-size:1rem}
+details.bonus summary{cursor:pointer;font-weight:700;font-size:1.05rem}
+
+/* connections */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.tile .dom{font-size:.8rem;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.tile h3{margin-bottom:6px;font-size:1.1rem}
+.tile p{margin:0;font-size:1rem}
+
+/* results */
+.score{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.ring{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--sun) calc(var(--p)*1%),var(--line) 0);position:relative;flex:none}
+.ring::after{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--card)}
+.ring b{position:relative;z-index:1;font-family:"Secular One";font-size:2rem}
+.meter{height:14px;background:var(--line);border-radius:7px;overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--shadow),var(--sun));width:0;transition:width 1.2s ease-out}
+.stars{font-size:1.6rem;letter-spacing:.1em;color:var(--sun)}
+.stars .off{color:var(--line)}
+.mic{width:48px;height:48px;border-radius:50%;border:2px solid var(--sand);background:var(--card);cursor:pointer;display:grid;place-items:center;flex:none}
+.mic.rec{border-color:var(--bad);background:var(--bad-soft);animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px var(--bad-soft)}}
+.mic svg{width:22px;height:22px}
+.small{font-size:.92rem;color:var(--muted)}
+details.src{margin-top:30px;color:var(--muted);font-size:.9rem}
+details.src summary{cursor:pointer}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer}
+.chk input{width:22px;height:22px;margin-top:3px;accent-color:var(--sun)}
+.pill-ok{color:var(--ok);font-weight:700}
+.pill-bad{color:var(--bad);font-weight:700}
+.wow{font-family:"Amatic SC";font-size:2.6rem;color:var(--sun-deep);line-height:1;transform:rotate(-4deg);display:inline-block}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:40}
+.toast.show{opacity:1}
+
+/* game layer */
+.xpbar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:8px}
+.xpbar i{display:block;height:100%;background:var(--sun);width:0;transition:width 1s ease-out}
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--sun-soft);border-radius:999px;padding:6px 14px 6px 8px;font-weight:500}
+.badge .dot{width:26px;height:26px;border-radius:50%;background:var(--sun);display:grid;place-items:center;color:#231F14;font-family:"Secular One";font-size:.9rem}
+.badge.new{outline:2px solid var(--sun)}
+.vault{position:relative;border:3px dashed var(--sand);border-radius:16px;padding:22px;text-align:center;margin:22px 0;background:var(--card2)}
+.vault.open{border-style:solid;border-color:var(--sun);background:linear-gradient(180deg,var(--sun-soft),var(--card2))}
+.vault .lock{font-size:2.2rem;line-height:1}
+.vault .pw{font-family:"Secular One";font-size:clamp(1.8rem,6vw,2.8rem);letter-spacing:.04em;color:var(--sun-deep);margin:8px 0 4px;user-select:all}
+.vault .todo{display:inline-block;text-align:right;margin-top:8px}
+.vault .todo span{display:block}
+.vault .todo .ok{color:var(--ok)} .vault .todo .no{color:var(--bad)}
+.streakrow{display:flex;gap:6px;margin-top:10px;direction:ltr}
+.streakrow span{flex:1;height:38px;border-radius:8px;background:var(--line);display:grid;place-items:center;font-size:.8rem;color:var(--muted);line-height:1.1;text-align:center}
+.streakrow span.hit{background:var(--sun);color:#231F14;font-weight:700}
+.streakrow span.today{outline:2px dashed var(--sun-deep);outline-offset:2px}
+
+/* assistant: Arto the librarian */
+.fab{position:fixed;left:18px;bottom:18px;z-index:30;display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:10px 18px 10px 10px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.fab .av{width:34px;height:34px;border-radius:50%;background:var(--sun);display:grid;place-items:center}
+.artotip{position:fixed;left:18px;bottom:calc(var(--rw-h,0px) + 78px);z-index:32;max-width:min(320px,calc(100vw - 36px));background:var(--ink);color:var(--bg);border:0;border-radius:14px;padding:12px 14px;text-align:right;font:inherit;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;direction:rtl}
+.artotip.on{opacity:1;transform:none}
+.artotip b{display:block;font-size:1rem;margin-bottom:2px}
+.artotip span{display:block;font-size:.88rem;opacity:.85;line-height:1.4}
+.artotip::after{content:'';position:absolute;left:22px;bottom:-8px;border:8px solid transparent;border-top-color:var(--ink);border-bottom:0}
+body[data-runtime=app] .artotip{bottom:calc(var(--rw-h,0px) + 78px)}
+.fab .av svg{width:20px;height:20px}
+.fab:hover{transform:translateY(-1px)}
+.chat{position:fixed;left:14px;bottom:14px;z-index:31;width:min(430px,calc(100vw - 28px));height:min(640px,calc(100vh - 28px));background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.22);display:none;flex-direction:column;overflow:hidden}
+.chat.open{display:flex}
+/* phones: the chat takes the whole screen and follows the keyboard (dvh shrinks with it; 100vh does not on iOS) */
+@media (max-width:640px){.chat{left:0;right:0;bottom:0;width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;box-shadow:none} body.chat-open{overflow:hidden;overscroll-behavior:none}}
+.chat header{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--sun-soft);border-bottom:1px solid var(--line)}
+.chat header .av{width:40px;height:40px;border-radius:50%;background:var(--sun);display:grid;place-items:center;flex:none}
+.chat header .av svg{width:24px;height:24px}
+.chat header b{display:block;font-family:"Secular One";font-weight:400;font-size:1.1rem}
+.chat header small{color:var(--muted)}
+.chat header .left{display:block;color:var(--sun-deep);font-size:.85rem}
+.chat header .x{margin-inline-start:auto;background:transparent;border:0;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;line-height:1.55;font-size:1rem}
+.msg.bot{background:var(--card2);border:1px solid var(--line);align-self:flex-start;border-top-right-radius:4px}
+.msg.me{background:var(--nile-soft);align-self:flex-end;border-top-left-radius:4px}
+body[data-track=emma] .msg.me{background:var(--shadow-soft)}
+.msg.sys{background:transparent;color:var(--muted);font-size:.9rem;align-self:center;text-align:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 8px}
+.chips button{background:var(--card);border:1px solid var(--sand);border-radius:999px;padding:5px 12px;font-size:.88rem;cursor:pointer}
+.chips button:hover{border-color:var(--sun)}
+.composer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-end}
+.composer textarea{min-height:44px;max-height:120px;padding:9px 12px;border-radius:12px;resize:none;font-size:max(16px,1rem)}   /* ≥16px: iOS does not zoom the page on focus */
+.composer .send{background:var(--sun);border:0;border-radius:12px;width:44px;height:44px;cursor:pointer;display:grid;place-items:center;flex:none;box-shadow:0 2px 0 var(--sun-deep)}
+.composer .send:disabled{opacity:.4;box-shadow:none}
+.composer .send svg{width:20px;height:20px}
+.composer .mic{width:44px;height:44px;border-radius:12px}
+.typing{display:inline-flex;gap:4px;align-items:center}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.2}}
+@media (max-width:640px){.fab span.lbl{display:none}.fab{padding:8px}}
+
+/* entrance gate (public site only) */
+.gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px;direction:rtl;text-align:right}
+.gate.on{display:flex}
+.gate .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 26px;max-width:420px;width:100%;box-shadow:0 14px 40px rgba(0,0,0,.12)}
+.gate .disc{width:44px;height:48px;background:var(--sun);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);margin-bottom:14px}
+.gate h2{margin-bottom:6px}
+.gate p{color:var(--muted);font-size:1rem}
+.gate form{display:flex;gap:8px;margin-top:14px}
+.gate input{flex:1;min-width:0;font:inherit;font-size:1.15rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);direction:ltr;text-align:center}
+.gate .err{color:var(--bad);font-weight:700;min-height:1.6em;margin:8px 0 0}
+</style>
+
+<div id="app" dir="rtl" lang="he">
+<header class="topbar"><div class="topbar-in">
+  <div class="brand"><span class="disc"></span><span class="t">שורשים וכנפיים</span></div>
+  <div class="progress" id="progress"></div>
+  <div class="who" id="who">גיליון 2</div>
+</div></header>
+
+<main>
+
+<!-- 0 · HERO -->
+<section class="step hero shown" data-step="0">
+  <svg class="motif" viewBox="0 0 290 290" aria-hidden="true" focusable="false"><g opacity=".55" fill="var(--sun-soft)" stroke="var(--sun)" stroke-width="2.5"><polygon points="172.7,161.0 145.0,177.0 117.3,161.0 117.3,129.0 145.0,113.0 172.7,129.0"/><polygon points="231.6,161.0 203.9,177.0 176.2,161.0 176.2,129.0 203.9,113.0 231.6,129.0"/><polygon points="113.8,161.0 86.1,177.0 58.4,161.0 58.4,129.0 86.1,113.0 113.8,129.0"/><polygon points="202.2,212.0 174.4,228.0 146.7,212.0 146.7,180.0 174.4,164.0 202.2,180.0"/><polygon points="143.3,212.0 115.6,228.0 87.8,212.0 87.8,180.0 115.6,164.0 143.3,180.0"/><polygon points="202.2,110.0 174.4,126.0 146.7,110.0 146.7,78.0 174.4,62.0 202.2,78.0"/><polygon points="143.3,110.0 115.6,126.0 87.8,110.0 87.8,78.0 115.6,62.0 143.3,78.0"/><polygon points="261.0,212.0 233.3,228.0 205.6,212.0 205.6,180.0 233.3,164.0 261.0,180.0"/><polygon points="84.4,212.0 56.7,228.0 29.0,212.0 29.0,180.0 56.7,164.0 84.4,180.0"/><polygon points="261.0,110.0 233.3,126.0 205.6,110.0 205.6,78.0 233.3,62.0 261.0,78.0"/><polygon points="84.4,110.0 56.7,126.0 29.0,110.0 29.0,78.0 56.7,62.0 84.4,78.0"/><polygon points="172.7,263.0 145.0,279.0 117.3,263.0 117.3,231.0 145.0,215.0 172.7,231.0"/><polygon points="172.7,59.0 145.0,75.0 117.3,59.0 117.3,27.0 145.0,11.0 172.7,27.0"/></g><g transform="translate(145 145) rotate(-32)" fill="none" stroke="var(--shadow)" stroke-width="4.5" stroke-linecap="round" opacity=".85"><path d="M0 -60 C 44 -54 50 46 0 60" stroke-dasharray="7 9"/><path d="M0 -60 C -44 -54 -50 46 0 60" stroke-dasharray="7 9"/><path d="M-6 52 L6 40 L-6 28 L6 16 L-6 4 L6 -8 L-6 -20 L6 -32 L-6 -44 L0 -52" stroke="var(--sun-deep)" stroke-width="6"/><path d="M-9 -44 L0 -60 L9 -44" stroke="var(--sun-deep)" stroke-width="6" stroke-linejoin="round"/></g><g transform="translate(145 145) rotate(-32) translate(0 8)"><ellipse cx="0" cy="0" rx="8" ry="13" fill="var(--sun)" stroke="#231F14" stroke-width="2"/><path d="M-8 -5 H8 M-8 3 H8" stroke="#231F14" stroke-width="2.6"/><circle cx="0" cy="-17" r="6" fill="#231F14"/><path d="M-3 -22 l-5 -7 M3 -22 l5 -7" stroke="#231F14" stroke-width="2" stroke-linecap="round"/><ellipse cx="-12" cy="-6" rx="9" ry="5" fill="#FFFFFF" opacity=".8" transform="rotate(-25 -12 -6)"/><ellipse cx="12" cy="-6" rx="9" ry="5" fill="#FFFFFF" opacity=".8" transform="rotate(25 12 -6)"/></g></svg>
+  <div class="eyebrow"><span class="tag">גיליון 2</span><span class="tag">יום שלישי, 8 בספטמבר 2026</span><span class="tag">כ־25 דקות</span><a class="tag libLink" href="e/" hidden>כל הגיליונות ›</a></div>
+  <h1>הדבורה שמספרת סוד בריקוד</h1>
+  <p class="lede">דבורה מוצאת פרחים מלאי צוף, <b>שני קילומטרים</b> מהכוורת. היא טסה הביתה — ותוך דקות עשרות מאחיותיה ממריאות ישר לאותם פרחים. בלי מפה, בלי טלפון — והמסר עבר בחושך גמור. איך?! היום תלמדו לקרוא את השפה הסודית שלהן — ותרקדו אותה בעצמכם.</p>
+
+  <div class="panel instrument">
+    <h3>לפני שמתחילים — נחשו!</h3>
+    <p class="cap">כמה פרחים צריכות הדבורים לבקר כדי למלא צנצנת דבש אחת (חצי קילו) — כמו זו שתהיה על השולחן בראש השנה? אף אחד לא סופר פרחים אחד־אחד, אז כאן לא צריך <b>לדעת</b> — צריך <b>להעריך</b>. איזה מהמספרים האלה נשמע לכם בסדר הגודל הנכון?</p>
+    <div class="orders" id="guessOpts"></div>
+    <p class="cap" id="guessMsg" style="margin-top:12px"></p>
+  </div>
+
+  <h3>מי לומד עכשיו?</h3>
+  <div class="tracks">
+    <!-- one button per kid, generated from KIDS -->
+  </div>
+  <div class="demo-level" id="demoLevel" hidden>
+    <label><span>כיתה <b id="demoGradeOut">ה</b></span><input type="range" id="demoGrade" min="0" max="6" step="1" value="3" oninput="demoLevelChange()" aria-label="כיתה"><span class="ticks" aria-hidden="true"><i>ב</i><i>ג</i><i>ד</i><i>ה</i><i>ו</i><i>ז</i><i>ח</i></span></label>
+    <label><span>רמה <b id="demoLevelOut">רגיל</b></span><input type="range" id="demoLevelSel" min="0" max="2" step="1" value="1" oninput="demoLevelChange()" aria-label="רמה"><span class="ticks" aria-hidden="true"><i>צריך/ה עזרה</i><i>רגיל</i><i>מתקדם/ת</i></span></label>
+  </div>
+  <p class="small" id="rtStatus" hidden></p>
+  <div class="next"><button class="btn" id="startBtn" disabled onclick="startLesson()">יוצאים למסע ←</button></div>
+</section>
+
+<!-- 1 · THE DISH THAT FILLED UP -->
+<section class="step" data-step="1">
+  <div class="ch"><span class="stick"></span>פרק 1</div>
+  <h2>הצלחת שהתמלאה</h2>
+  <p>אוסטריה, לפני יותר ממאה שנה. חוקר צעיר בשם <b>קרל פון פריש</b> (Karl von Frisch) שם בשדה צלחת עם מי סוכר, רחוק מהכוורת. שעות עברו. ואז דבורה אחת מצאה את הצלחת, שתתה, וטסה הביתה. פון פריש חיכה. ותוך זמן קצר הצלחת <b>התמלאה</b> בדבורים. עשרות. כולן מאותה כוורת, כולן ישר לצלחת.</p>
+  <p style="font-size:1.25rem"><b>איך הן ידעו?</b> הדבורה הראשונה לא הובילה אותן — היא נשארה בכוורת. ובכוורת חשוך לגמרי.</p>
+
+  <div class="panel instrument">
+    <h3>נחשו לפני שמגלים</h3>
+    <p class="cap">מה לדעתכם עשתה הדבורה הראשונה כשחזרה הביתה?</p>
+    <div class="predict" id="pred1">
+      <button onclick="predict1(0,this)">השאירה ריח שהאחיות עקבו אחריו</button>
+      <button onclick="predict1(1,this)">רקדה</button>
+      <button onclick="predict1(2,this)">זמזמה את הכיוון</button>
+    </div>
+    <p class="cap" id="pred1Msg" style="margin-top:12px"></p>
+  </div>
+
+  <p>פון פריש בנה כוורת תצפית עם <b>דופן זכוכית</b>, וסימן כל דבורה בנקודת צבע קטנה על הגב. ככה ידע בדיוק מי הייתה בצלחת. ומה שהוא ראה דרך הזכוכית: הדבורה שחזרה <b>רקדה</b>. היא רצה בקו ישר על חלת הדבש, מנענעת את הבטן מצד לצד, פנתה בחזרה לנקודת ההתחלה, ורצה שוב — בצורת <b>8</b>. אחיותיה הצטופפו סביבה ונגעו בה במחושים. ואז יצאו מהכוורת, ישר לצלחת.</p>
+  <div class="next"><button class="btn" onclick="next()">המשך ←</button></div>
+</section>
+
+<!-- 2 · THE CODE -->
+<section class="step" data-step="2">
+  <div class="ch"><span class="stick"></span>פרק 2</div>
+  <h2>ריקוד השמונה: הקוד</h2>
+  <p>הריקוד נקרא <b>ריקוד הנענוע</b>. החלק החשוב הוא הריצה הישרה באמצע ה־8 — <b>הנענוע</b>. בתוכו מסתתרים שני מספרים:</p>
+  <div class="note"><span class="hand">1</span><p><b>הכיוון.</b> חלת הדבש עומדת זקופה, כמו קיר. על הקיר הזה, <b>"למעלה" = לכיוון השמש</b>. אם הדבורה רצה 40° ימינה מ"למעלה" — הפרחים נמצאים 40° ימינה מהשמש.</p></div>
+  <div class="note"><span class="hand">2</span><p><b>המרחק.</b> כמה זמן היא מנענעת. נענוע קצר = קרוב. נענוע ארוך = רחוק. בערך <span class="math">1</span> שנייה לכל קילומטר.</p></div>
+
+  <div class="panel instrument">
+    <h3>מפענח הריקוד</h3>
+    <p class="cap">משמאל: חלת הדבש (זקופה) והדבורה רוקדת. מימין: המפה מלמעלה, עם השמש והכוורת. גררו את שני המחוונים — ותראו לאן הפרחים קופצים. (משך הנענוע כאן הוא לפי המדידות האמיתיות של פון פריש.)</p>
+    <canvas id="decCv" width="640" height="400"></canvas>
+    <div class="controls">
+      <label>זווית הנענוע (ימינה או שמאלה מ"למעלה")
+        <input type="range" id="decAng" min="-180" max="180" step="5" value="40">
+      </label>
+      <label>מרחק הפרחים (מטרים)
+        <input type="range" id="decDist" min="200" max="4000" step="100" value="1500">
+      </label>
+    </div>
+    <div class="controls">
+      <div class="readout">הריקוד: <span id="decDance"></span></div>
+      <div class="readout">הפרחים: <span id="decFlower"></span></div>
+    </div>
+    <p class="cap" id="decMsg" style="margin-top:12px"></p>
+  </div>
+
+  <div class="aha"><b>למעלה זה השמש.</b> הדבורה מתרגמת כיוון בשמיים לכיוון על קיר. זו הפעם הראשונה שגילו שבעל חיים משתמש בסמלים — כמו מפה — כדי לספר על מקום רחוק, שאי אפשר לראות אותו מהכוורת.</div>
+
+  <div class="q qc" id="qc2"></div>
+  <div class="next"><button class="btn" id="next2" disabled onclick="next()">המשך ←</button></div>
+</section>
+
+<!-- 3 · A SECOND IS A KILOMETRE -->
+<section class="step" data-step="3">
+  <div class="ch"><span class="stick"></span>פרק 3</div>
+  <h2>שנייה = קילומטר</h2>
+  <p>פון פריש מדד עם שעון עצר. כשהצלחת הייתה במרחק 200 מטר, הנענוע נמשך כחצי שנייה. במרחק 4.5 ק״מ — כ־4 שניות. ככל שהפרחים רחוקים יותר, הנענוע ארוך יותר. כלל אצבע נוח: <span class="math">1</span> שנייה ≈ <span class="math">1,000</span> מטר. (לא מדויק לגמרי: לזנים שונים של דבורים יש "מבטא" קצת אחר, כמו ניבים בשפה.)</p>
+
+  <div class="panel instrument">
+    <h3>היו הדבורה</h3>
+    <p class="cap">הפרחים במרחק מסוים. לחצו על הכפתור והחזיקו — כל שנייה שאתם מחזיקים שולחת את האחיות עוד קילומטר. שחררו בדיוק בזמן!</p>
+    <canvas id="holdCv" width="640" height="300"></canvas>
+    <div class="controls">
+      <button class="btn hold" id="holdBtn">לחצו והחזיקו — נענעו!</button>
+      <div class="readout">נענוע: <b class="num" id="holdSec">0.0</b> שניות</div>
+    </div>
+    <p class="cap" id="holdMsg" style="margin-top:12px"></p>
+  </div>
+
+  <p>ואיך הדבורה יודעת כמה רחוק היא טסה? לא לפי שעון — לפי כמה <b>הנוף "זרם"</b> לה מול העיניים בדרך. חוקרים הטיסו דבורים במנהרה קצרה עם פסים על הקירות: הפסים גרמו לנוף לזרום מהר, והדבורות רקדו כאילו הפרחים רחוקים פי כמה. הן נותנות לאחיות את המרחק <b>כפי שהוא נראה להן</b>.</p>
+  <div class="next"><button class="btn" onclick="next()">המשך ←</button></div>
+</section>
+
+<!-- 4 · THE MAN THEY LAUGHED AT -->
+<section class="step" data-step="4">
+  <div class="ch"><span class="stick"></span>פרק 4</div>
+  <h2>האיש שצחקו עליו</h2>
+  <p>קרל פון פריש נולד בווינה ב־1886. כשהיה צעיר, פרופסור מפורסם טען שדבורים עיוורות צבעים. פון פריש הוכיח עם צלחות צבעוניות שהן רואות צבעים מצוין. ואז הגיע הריקוד — והרבה מדענים לא האמינו: חרק שמדבר בסמלים? פון פריש עצמו טעה בהתחלה: הוא חשב שיש שני ריקודים, אחד לצוף ואחד לאבקה. רק אחרי כ־20 שנה הבין שהריקוד מספר על <b>מרחק</b>. ב־1973, בגיל 86, קיבל פרס נובל.</p>
+  <p>הוויכוח לא נגמר שם. היו שטענו שהאחיות פשוט עוקבות אחרי <b>הריח</b>. ב־2005 חוקרים באנגליה הדביקו לדבורות אנטנות מכ״ם זעירות ועקבו אחרי הטיסה שלהן: דבורות שצפו בריקוד טסו ישר לכיוון שהריקוד אמר — גם כשהחוקרים הזיזו אותן עד 250 מטר הצידה לפני ההמראה. הריקוד ניצח.</p>
+  <div class="panel instrument">
+    <h3>מחשבון הטיסה</h3>
+    <p class="cap">דבורה טסה כ־<span class="math">24</span> קמ״ש — בערך כמו אופניים בירידה. כמה זמן לוקח להגיע לפרחים?</p>
+    <div class="controls">
+      <label>המרחק לפרחים (ק״מ)
+        <input type="range" id="flyKm" min="0.5" max="10" step="0.5" value="2">
+      </label>
+      <div class="readout"><b class="num" id="flyKmOut">2</b> ק״מ ← <b class="num" id="flyMin">5</b> דקות טיסה</div>
+    </div>
+    <p class="cap" id="flyMsg" style="margin-top:12px"></p>
+  </div>
+  <div class="next"><button class="btn" onclick="next()">המשך ←</button></div>
+</section>
+
+<!-- 5 · DEEP DIVE (one content track for all four kids) -->
+<section class="step" data-step="5">
+  <div class="ch"><span class="stick"></span>פרק 5</div>
+
+  <div data-track="emma">
+    <span class="trackpill" data-kidpill="emma"></span>
+    <h2>למה "למעלה"? ומה קורה כשהשמש זזה?</h2>
+    <p>בתוך הכוורת חשוך. אין שמש להצביע עליה. אבל דבר אחד כל דבורה מרגישה גם בחושך: <b>כוח המשיכה</b> — איפה למעלה ואיפה למטה. אז הדבורות החליפו: במקום השמש שאי אפשר לראות — "למעלה", שכולן מרגישות. פון פריש בדק: כשהשכיב חלת דבש ונתן לדבורות לראות את השמיים, הן רקדו <b>ישר לכיוון הפרחים</b>, בלי תרגום.</p>
+    <p>אבל רגע — השמש זזה! בממוצע <span class="math">360° ÷ 24 = 15°</span> בשעה, ימינה (עם כיוון השעון). דבורה שמצאה פרחים ב־09:00 ורוקדת עליהם שוב ב־12:00 — האם היא רוקדת באותה זווית?</p>
+
+    <div class="panel instrument">
+      <h3>שעון השמש של הדבורה</h3>
+      <p class="cap">המפה מלמעלה: הכוורת באמצע, הפרחים במקומם, והשמש נעה. קודם נחשו, ורק אז גררו את השעות.</p>
+      <div class="predict" id="sunPred">
+        <button onclick="sunPredict(0,this)">אותה זווית — הפרחים לא זזו</button>
+        <button onclick="sunPredict(1,this)">זווית אחרת — כי השמש זזה</button>
+      </div>
+      <canvas id="sunCv" width="640" height="400" style="margin-top:12px"></canvas>
+      <div class="controls">
+        <label>כמה שעות עברו מאז 09:00?
+          <input type="range" id="sunH" min="0" max="3" step="0.5" value="0" disabled>
+        </label>
+        <div class="readout">השעה: <b class="num" id="sunClock">09:00</b></div>
+      </div>
+      <div class="controls">
+        <div class="readout">השמש זזה: <b class="num" id="sunMoved">0°</b></div>
+        <div class="readout">זווית הריקוד: <b class="num" id="sunDance">80°</b> ימינה מ"למעלה"</div>
+      </div>
+      <p class="cap" id="sunMsg" style="margin-top:12px"></p>
+    </div>
+
+    <div class="aha"><b>לדבורה יש שעון בראש.</b> היא יודעת כמה השמש זזה מאז שראתה אותה — ומסובבת את הריקוד בהתאם. גם אחרי שעות בחושך.</div>
+
+    <details class="bonus" id="skyBox" ontoggle="if(this.open) drawSky()">
+      <summary>בונוס (2 דקות): יום מעונן — איך הדבורה מוצאת את השמש?</summary>
+      <p class="cap" style="margin-top:10px">השמש מוסתרת מאחורי ענן, והדבורות בכל זאת יודעות איפה היא. הן רואות משהו שאנחנו לא: <b>אור מקוטב</b> — אור השמש מתפזר בשמיים בדוגמה של קווים שמסתדרים <b>במעגלים סביב השמש</b>. מספיקה פיסה אחת של שמיים כחולים. נחשו איפה השמש: לחצו על השמיים, ואז הפעילו "עיני דבורה".</p>
+      <canvas id="skyCv" width="640" height="300" style="margin-top:12px"></canvas>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="סוג עיניים">
+          <button class="on" id="eyeHuman" onclick="setEyes('human')">עיני אדם</button>
+          <button id="eyeBee" onclick="setEyes('bee')">עיני דבורה</button>
+        </div>
+        <button class="btn small ghost" id="skyReveal" onclick="revealSun()" disabled>איפה השמש באמת?</button>
+      </div>
+      <p class="cap" id="skyMsg" style="margin-top:12px">קודם נחשו: לחצו על השמיים.</p>
+    </details>
+
+    <div class="panel challenge">
+      <h3>אתגר <span data-level="standard">(לא חובה — למי שרוצה עוד)</span><span data-push="ontrack">— <span data-kidname></span>, מומלץ בשבילך</span><span data-level="advanced">— <span data-kidname></span>, זה בשבילך</span></h3>
+      <p><b>1. הריקוד המתוקן.</b> ב־10:00 דבורה סיירת רקדה בזווית <span class="math">20°</span> <b>שמאלה</b> מ"למעלה". ב־14:00 היא רוקדת שוב לאותם פרחים. השמש נעה בממוצע <span class="math">15°</span> בשעה, ימינה. בכמה מעלות זזה השמש — ומה זווית הריקוד החדשה, ולאיזה צד? (שימו לב: הפעם השמש מתרחקת מהפרחים או מתקרבת אליהם?)</p>
+      <div class="controls">
+        <label>השמש זזה (מעלות) <input type="number" id="chalDeg" inputmode="numeric" placeholder="?"></label>
+        <label>הזווית החדשה (מעלות) <input type="number" id="chalAng" inputmode="numeric" placeholder="?"></label>
+        <label>לאיזה צד? <select id="chalSide"><option value="">בחרו</option><option value="right">ימינה מ"למעלה"</option><option value="left">שמאלה מ"למעלה"</option></select></label>
+        <button class="btn small" onclick="checkChallenge()" data-g="בדוק|בדקי">בדקי</button>
+      </div>
+      <div class="fb" id="chalFb"></div>
+      <p style="margin-top:14px"><b>2. שאלה למחשבה:</b> למה הדבורות לא מצביעות פשוט ישר על הפרחים? ומה היה קורה אם היו שמים את חלת הדבש <b>שוכבת</b> בתוך כוורת חשוכה לגמרי?</p>
+      <details><summary>הרמז והתשובה</summary><p>בכוורת חשוך ואי אפשר לראות את השמש — אז אין על מה "להצביע". לכן הדבורות עברו לדבר שכולן מרגישות גם בחושך: כוח המשיכה. "למעלה" מחליף את השמש. על חלה שוכבת אין "למעלה", ובלי שמיים אין שמש — ובאמת, בניסויים כאלה הריקודים יצאו מבולבלים ובלי כיוון ברור. ברגע שנתנו לדבורות לראות פיסת שמיים, הריקוד על החלה השוכבת הצביע שוב ישר לכיוון הפרחים.</p></details>
+    </div>
+  </div>
+  <div class="next"><button class="btn" onclick="next()">המשך ←</button></div>
+</section>
+
+<!-- 6 · CONNECTIONS (short) -->
+<section class="step" data-step="6">
+  <div class="ch"><span class="stick"></span>החיבורים</div>
+  <h2>איפה עוד מסתתר הרעיון הזה?</h2>
+  <div class="grid2">
+    <div class="tile"><div class="dom">מתמטיקה</div><h3>הכול זוויות</h3><p>השמש זזה <span class="math">15°</span> בשעה. גם מחוג השעות בשעון זז — <span class="math">360° ÷ 12 = 30°</span> בשעה, פי שניים. הדבורה והשעון מודדים את אותו יום, במעלות.</p></div>
+    <div class="tile"><div class="dom">פיזיקה</div><h3>משקפי שמש של דבורה</h3><p>משקפי שמש "מקוטבים" חוסמים סנוור מהים ומהכביש — כי הם מסננים אור מקוטב, בדיוק זה שהדבורות רואות. נסו: סובבו משקפיים כאלה מול מסך מחשב — המסך מתכהה.</p></div>
+    <div class="tile"><div class="dom">הנדסה</div><h3>רובוט שרוקד</h3><p>חוקרים בברלין בנו דבורה־רובוט שרוקדת בתוך כוורת אמיתית, כדי לבדוק מה בדיוק בריקוד משכנע את הדבורות. חלקן באמת יצאו לכיוון שהרובוט הראה.</p></div>
+    <div class="tile"><div class="dom">ישראל</div><h3>הדבש של ראש השנה</h3><p>בישראל יש כ־<span class="num">120,000</span> כוורות, וכל אחת נותנת בערך 35 ק״ג דבש בשנה. כ־40% מהדבש נאכל סביב ראש השנה. וה"דבש" ב"ארץ זבת חלב ודבש"? רוב החוקרים חושבים שזה דווקא דבש תמרים.</p></div>
+  </div>
+
+  <details class="bonus" id="honeyBox">
+    <summary>בונוס (2 דקות): כמה דבורים עבדו בשביל הכפית שלכם?</summary>
+    <p class="cap" style="margin-top:10px">דבורה אחת מייצרת בכל חייה בערך <b>1/12 כפית</b> דבש. ולכפית אחת צריך צוף מכ־<span class="num">30,000</span> פרחים. גררו וגלו כמה עבודה יש בתפוח בדבש שלכם.</p>
+    <div class="controls">
+      <label>כפיות דבש על השולחן
+        <input type="range" id="honeySp" min="1" max="10" value="1">
+      </label>
+      <div class="readout"><b class="num" id="honeySpOut">1</b> כפיות</div>
+    </div>
+    <div class="controls">
+      <div class="readout"><b class="num" id="honeyBees">12</b> דבורים עבדו כל חייהן</div>
+      <div class="readout">כ־<b class="num" id="honeyFlowers">30,000</b> ביקורים בפרחים</div>
+    </div>
+    <p class="cap" style="margin-top:12px" id="honeyMsg"></p>
+  </details>
+
+  <div class="next"><button class="btn" onclick="next()">למבחן! ←</button></div>
+</section>
+
+<!-- 7 · TEST -->
+<section class="step" data-step="7">
+  <div class="ch"><span class="stick"></span>המבחן</div>
+  <h2>בואו נראה מה נשאר בראש</h2>
+  <p>ארבע שאלות, סידור אחד, חישוב אחד — ובסוף אתם המורים. על כל שאלה תקבלו מיד הסבר.</p>
+
+  <div id="mcqs"></div>
+
+  <div class="q">
+    <div class="qt">סדרו את השלבים: מהפרח ועד שהאחיות מגיעות. לחצו על הכרטיסים לפי הסדר הנכון (לחיצה נוספת מבטלת):</div>
+    <div class="order" id="order"></div>
+    <div class="controls" style="margin-top:12px">
+      <button class="btn small" id="orderCheck" onclick="checkOrder()" disabled>בדקו את הסדר</button>
+      <button class="btn small ghost" onclick="resetOrder()">מהתחלה</button>
+    </div>
+    <div class="fb" id="orderFb"></div>
+  </div>
+
+  <div class="q" data-track="emma" data-level="advanced">
+    <div class="qt">חישוב: דבורה מנענעת <span class="math">3.5</span> שניות. (1) לפי כלל האצבע של השיעור (<span class="math">1</span> שנייה ≈ <span class="math">1,000</span> מטר) — כמה מטרים המרחק לפרחים? (2) האחיות טסות במהירות <span class="math">21</span> קמ״ש. כמה דקות תימשך הטיסה לפרחים? (רמז: קודם להפוך את המטרים לקילומטרים.)</div>
+    <div class="controls"><label>המרחק במטרים <input type="number" id="numAdv" inputmode="numeric" placeholder="?"></label><label>זמן הטיסה בדקות <input type="number" id="numAdvR" inputmode="decimal" placeholder="?"></label><button class="btn small" onclick="checkNum('adv')" data-g="בדוק|בדקי">בדקי</button></div>
+    <div class="fb" id="numFbAdv"></div>
+  </div>
+  <div class="q" data-track="emma" data-level="standard">
+    <div class="qt">חישוב: דבורה מנענעת <span class="math">2.5</span> שניות. לפי כלל האצבע של השיעור (<span class="math">1</span> שנייה ≈ <span class="math">1,000</span> מטר), כמה מטרים בערך המרחק לפרחים?</div>
+    <div class="controls"><label>המרחק במטרים <input type="number" id="numEmma" inputmode="numeric" placeholder="?"></label><button class="btn small" onclick="checkNum('emma')" data-g="בדוק|בדקי">בדקי</button></div>
+    <div class="fb" id="numFbEmma"></div>
+  </div>
+
+  <div class="q">
+    <div class="qt">עכשיו אתם המורים. הסבירו במילים שלכם, ב־<span class="num">3–4</span> משפטים: <b>איך דבורה מספרת לאחיות שלה איפה הפרחים?</b> אפשר להקליד — או ללחוץ על המיקרופון ולדבר.</div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <textarea id="explain" placeholder="כשהדבורה חוזרת לכוורת היא..."></textarea>
+      <button class="mic" id="micBtn" onclick="toggleDictation()" title="הקלטה בעברית" aria-label="הקלטה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+    <p class="small" id="micMsg" style="margin:8px 0 0"></p>
+    <div class="controls"><button class="btn small" id="explainBtn" onclick="gradeExplain()">בדקו את ההסבר שלי</button></div>
+    <div class="fb" id="explainFb"></div>
+  </div>
+
+  <div class="next"><button class="btn" id="finishBtn" onclick="finish()">סיימתי — לתוצאות ←</button></div>
+</section>
+
+<!-- 8 · RESULTS -->
+<section class="step" data-step="8">
+  <div class="ch"><span class="stick"></span>הסיכום</div>
+  <h2 id="resTitle">כל הכבוד!</h2>
+  <div class="panel">
+    <div class="score">
+      <div class="ring" id="ring" style="--p:0"><b class="num" id="ringTxt">0</b></div>
+      <div style="flex:1;min-width:220px">
+        <p id="resLine" style="font-size:1.15rem"></p>
+        <p class="small" id="resDetail"></p>
+        <div class="small">מד ה־וואו</div>
+        <div class="meter"><i id="wowMeter"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vault" id="vault">
+    <div class="lock" id="vaultLock" aria-hidden="true">🔒</div>
+    <h3 id="vaultTitle">הסיסמה הסודית של היום</h3>
+    <div id="vaultBody"></div>
+  </div>
+
+  <div class="twocol">
+    <div class="panel">
+      <h3>הנקודות שלי</h3>
+      <p style="margin:0"><b class="num" id="xpToday">+0</b> XP היום</p>
+      <p class="small" id="xpDetail" style="margin:4px 0 0"></p>
+      <div class="xpbar"><i id="xpBar"></i></div>
+      <p class="small" id="xpLevel" style="margin:6px 0 0"></p>
+    </div>
+    <div class="panel">
+      <h3>הרצף שלי</h3>
+      <p style="margin:0" id="streakLine"></p>
+      <div class="streakrow" id="streakRow"></div>
+      <p class="small" id="streakNext" style="margin:8px 0 0"></p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 id="badgesTitle">תגים שזכית בהם היום</h3>
+    <div class="badges" id="badges"></div>
+    <p class="small" id="badgeNone" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="panel">
+    <h3>הניחוש מול המציאות</h3>
+    <p id="resGuess" style="margin:0"></p>
+  </div>
+  <div class="panel">
+    <h3>3 דברים לספר בארוחת ערב</h3>
+    <p style="margin:0">1. דבורה מספרת לאחיות איפה הפרחים בריקוד: הזווית מ"למעלה" היא הזווית מהשמש, ואורך הנענוע הוא המרחק — בערך שנייה לקילומטר.<br>
+    2. הכול קורה בחושך גמור: האחיות "קוראות" את הריקוד עם המחושים, ולדבורה יש שעון בראש שמתקן את הזווית כשהשמש זזה.<br>
+    3. בשביל צנצנת דבש אחת של ראש השנה דבורים ביקרו כ־2 מיליון פרחים — ודבורה אחת מייצרת בכל חייה רק 1/12 כפית.</p>
+  </div>
+  <div class="controls">
+    <a class="btn" id="mailBtn" href="#" target="_blank" rel="noopener" style="text-decoration:none">שלחו את התוצאה לאבא במייל</a>
+    <button class="btn ghost" onclick="copyResults()">או העתיקו לוואטסאפ</button>
+    <button class="btn ghost small" onclick="restart()">להתחיל מחדש</button>
+    <a class="btn ghost small libLink" href="e/" hidden style="text-decoration:none">כל הגיליונות ›</a>
+  </div>
+  <details class="src"><summary>למבוגרים: מקורות ודיוק</summary>
+    <p>קרל פון פריש (<span class="math">1886–1982</span>) קיבל את פרס נובל לפיזיולוגיה או רפואה ב־1973 יחד עם קונרד לורנץ וניקו טינברגן. תיאור הקוד (זווית מהאנך = זווית מכיוון השמש; משך הנענוע = מרחק) לקוח מהרצאת הנובל שלו: "אם המטרה 40° משמאל לשמש, הרקדנית מסיטה את הריצה הישרה 40° משמאל לאנך"; "למרחקים של <span class="math">200</span> עד <span class="math">4,500</span> מטר משך הנענוע עולה מכחצי שנייה לכ־4 שניות". "שנייה לקילומטר" הוא כלל אצבע מקובל אצל דבוראים (theapiarist.org), לא נוסחה מדויקת; הכיול תלוי בזן הדבורים ובנוף (ניסוי המנהרה המפוספסת: Srinivasan ואחרים, Science 2000). סף המעבר מריקוד עגול לריקוד נענוע משתנה בין זנים (כ־50 מ׳ בזן הקרניולי). אור מקוטב: פון פריש 1949. ניסוי המכ״ם: Riley ואחרים, Nature 2005 (Rothamsted Research) — דבורות שהוזזו עד 250 מ׳ טסו בכיוון שהריקוד ציין. הריקוד על חלה שוכבת: פון פריש הראה שכשרואים את השמיים הריקוד מצביע ישר למטרה, ובחושך הוא מאבד כיוון. תנועת השמש "15° לשעה" היא ממוצע (<span class="math">360° ÷ 24</span>); הקצב האמיתי משתנה במהלך היום. מהירות טיסה: עד כ־24 קמ״ש (15 מייל לשעה). דבש: 1/12 כפית לדבורה בחייה, כ־2 מיליון פרחים לחצי קילו (The Honey Association) — הערכות מקובלות, לא מדידה מדויקת; "30,000 פרחים לכפית" נגזר מהן. ישראל: כ־120,000 כוורות, כ־35 ק״ג לכוורת, כ־40% מהצריכה סביב ראש השנה (NoCamels 2019, מועצת הדבש); ייצור שנתי כ־4,500 טון (Times of Israel 2024). רובוט־הדבורה: קבוצת Landgraf, האוניברסיטה החופשית ברלין — התוצאות חלקיות ועדיין נחקרות. ראש השנה תשפ״ז: ערב שישי, 11 בספטמבר 2026 (Hebcal). מקורות להעמקה: NobelPrize.org — Frisch Nobel lecture; Wikipedia — Waggle dance, Karl von Frisch; Nature 435:205 (2005).</p>
+  </details>
+</section>
+
+</main>
+
+<button class="fab" id="fab" onclick="openChat()" aria-label="שאלו את ארטו"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="#231F14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h9a3 3 0 0 1 3 3v13H8a2 2 0 0 1-2-2V4z"/><path d="M6 4a2 2 0 0 0-2 2v2h2M18 20a2 2 0 0 0 2-2v-1h-2M9 9h6M9 13h4"/></svg></span><span class="lbl">לא הבנתי? שאלו את ארטו</span></button>
+<section class="chat" id="chat" dir="rtl" lang="he" aria-label="שיחה עם ארטו">
+  <header>
+    <span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="#231F14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h9a3 3 0 0 1 3 3v13H8a2 2 0 0 1-2-2V4z"/><path d="M6 4a2 2 0 0 0-2 2v2h2M18 20a2 2 0 0 0 2-2v-1h-2M9 9h6M9 13h4"/></svg></span>
+    <div><b>ארטו</b><small>הספרן של אלכסנדריה · כאן בשבילכם</small><small class="left" id="artoLeft" hidden></small></div>
+    <button class="x" onclick="closeChat()" aria-label="סגירה">×</button>
+  </header>
+  <div class="msgs" id="msgs"></div>
+  <div class="chips" id="chips"></div>
+  <div class="composer">
+    <button class="mic" id="chatMic" onclick="chatDictate()" title="לדבר במקום להקליד" aria-label="הקלטה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    <textarea id="chatIn" rows="1" placeholder="מה לא הבנתם? או — מה עוד מסקרן אתכם?"></textarea>
+    <button class="send" id="chatSend" onclick="sendChat()" aria-label="שליחה"><svg viewBox="0 0 24 24" fill="none" stroke="#231F14" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 6l-6 6 6 6"/></svg></button>
+  </div>
+</section>
+</div>
+<div class="gate" id="gate" dir="rtl" lang="he" aria-label="כניסה">
+  <div class="card">
+    <div class="disc" aria-hidden="true"></div>
+    <h2>שורשים וכנפיים</h2>
+    <p>הדף הזה הוא רק <span id="gateNames"></span>. מה סיסמת הכניסה? היא כתובה במייל של שורשים וכנפיים (זו לא הסיסמה הסודית של היום).</p>
+    <form onsubmit="return gateSubmit(event)">
+      <input id="gateIn" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="סיסמת כניסה" aria-label="סיסמת כניסה">
+      <button class="btn" type="submit">כניסה</button>
+    </form>
+    <p class="err" id="gateErr"></p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- edition data (the nightly bot fills these from the parents' ledger) ---------- */
+const EDITION = { n:2, code:'WOW-002', date:'2026-09-08', title:'הדבורה שמספרת סוד בריקוד', parent:'raphco@gmail.com' };
+/* kids: id → name, gender (f), age, grade, which CONTENT TRACK they use ('adam' = the younger track, 'emma' = the older track — several kids can share a track), an optional cc for their parent on the completion mail, and an optional level:'advanced' (elements with data-level="advanced" replace their data-level="standard" twins; the assistant and the grader push harder). Track ids are fixed; kids are not. */
+const KIDS = {
+  adam:  { name:'אדם',   f:false, age:'8–9',   grade:'ד',   track:'emma' },   // same level as Emma and Chiara → the same content track (the younger track is unused for now)
+  emma:  { name:'אמה',   f:true,  age:'10–11', grade:'ו',   track:'emma' },
+  milan: { name:'מילאן', f:false, age:'11',    grade:'ו',   track:'emma', cc:'mikael.cohen@gmail.com', level:'advanced' },   // advanced: harder numeric task, the challenge is part of the journey, the assistant pushes
+  chiara:{ name:'קיארה', f:true,  age:'10',    grade:'ה',   track:'emma', cc:'mikael.cohen@gmail.com' },
+};
+const STATS = { adam:{ streak:0, best:0, xp:0, badges:[] }, emma:{ streak:0, best:0, xp:0, badges:[] }, milan:{ streak:0, best:0, xp:0, badges:[] }, chiara:{ streak:0, best:0, xp:0, badges:[] } };
+const PW_ENC = '16nXntep15Qg15TXliDXlNec16LXntec'; // base64 of the reversed password
+const LEVELS = [ [0,'סקרן','סקרנית'], [150,'חוקר צעיר','חוקרת צעירה'], [400,'מגלה','מגלה'], [800,'מדען','מדענית'], [1500,'פרופסור','פרופסורית'], [2500,'גאון','גאונית'], [4000,'אגדה','אגדה'] ];
+/* public-site access: PROXY.url = the assistant proxy (Vercel Functions; config.proxy_url, ends with /api); PROXY.pwHash = SHA-256 hex of the kids' entrance password (config.gate_pw_hash).
+   Both empty → no gate, ארטו only inside Claude. The gate never shows inside the Claude viewer. */
+/* THE APP (runtime mode): the server prepends `window.RUNTIME = { api, kidToken, edition, profile?, library }` before this fragment.
+   With a kid token the profile is loaded (server-injected or fetched), the kid is picked automatically, there is no picker and no gate,
+   completions are POSTed to the app, and the assistant is the app's own /api/arto (system prompt server-side). Without a token → demo profile. */
+const RT = (typeof window!=='undefined' && window.RUNTIME && typeof window.RUNTIME==='object') ? window.RUNTIME : null;
+const PROXY = RT ? { url: String(RT.api||'/api').replace(/\/+$/,'')+'/arto', pwHash:'', app:true } : { url:'', pwHash:'' };
+/* app level → engine mapping: support→younger track; advanced→data-level=advanced; on_track|advanced→push */
+const GRADES_HE = ['ב','ג','ד','ה','ו','ז','ח'];
+const APP_LEVELS = { support:{level:'standard',push:'none'}, standard:{level:'standard',push:'ontrack'}, advanced:{level:'advanced',push:'advanced'} };   // 'on_track' (legacy) = standard
+const LEVEL_HE = { support:'צריך/ה עזרה', standard:'רגיל', advanced:'מתקדם/ת' };
+function normLevel(l){ return l==='on_track' ? 'standard' : (APP_LEVELS[l] ? l : 'standard'); }
+/* the content track follows the grade (ב–ד → younger, ה–ח → older); 'support' always takes the younger track, 'advanced' always the older one */
+function trackFor(grade, level){ let t = level==='support' ? 'younger' : level==='advanced' ? 'older' : ((()=>{ const gi=GRADES_HE.indexOf(String(grade||'').trim()); return (gi>=0 && gi<=2) ? 'younger' : 'older'; })());
+  /* an edition may ship a single track (or legacy track ids): fall back to what exists in the markup */
+  const avail=[...new Set([...document.querySelectorAll('[data-track]')].map(e=>e.dataset.track))]; if(avail.length && !avail.includes(t)) t = avail.includes('older') ? 'older' : avail[0]; return t; }
+function kidFromProfile(p){ const lv=normLevel(p.level), m=APP_LEVELS[lv]; return { name:p.name, f:!!p.feminine, age:String(p.age||''), grade:String(p.grade||''), track:trackFor(p.grade, lv), level:m.level, push:m.push, appLevel:lv }; }
+function setKids(obj){ Object.keys(KIDS).forEach(k=>delete KIDS[k]); Object.assign(KIDS, obj); }
+if(RT && !RT.kidToken){ /* demo: a guest of either gender, level chosen under the picker */
+  setKids({ guest_m: kidFromProfile({name:'אורח', feminine:false, age:'10', grade:'ה', level:'standard'}), guest_f: kidFromProfile({name:'אורחת', feminine:true, age:'10', grade:'ה', level:'standard'}) });
+  STATS.guest_m = { streak:0, best:0, xp:0, badges:[] }; STATS.guest_f = { streak:0, best:0, xp:0, badges:[] };
+}
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use==='function');   // opened inside Claude (review copy) vs. the public site
+
+/* ---------- state ---------- */
+const S = { kid:null, track:null, started:false, challenge:false, step:0, guess:null, guessK:null, guessOk:false, pred1:null, qc:{}, mcq:{}, order:[], orderScore:null, num:null, explain:0, explainText:'', holdHits:0, holdDone:false, bonusDone:false, explainGraded:false, sunPred:null };
+const KEY='wow-'+EDITION.code+(RT&&RT.kidToken?'-'+String(RT.kidToken).slice(0,8):'');
+const fmt = n => Math.round(n).toLocaleString('he-IL');
+const FLAME = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 1-3s0 3 2 3c2 0 1-4 2-10z"/></svg>';
+const KID = () => KIDS[S.kid] || KIDS.adam;
+const F = () => !!KID().f;                          // feminine?
+const G = (m,f) => F()? f : m;                     // gendered string
+const NAME = () => KID().name;
+/* names in the static markup come from KIDS */
+function buildPicker(){ document.querySelector('.tracks').innerHTML = Object.entries(KIDS).map(([id,k])=>'<button class="track" data-pick="'+id+'" data-trk="'+k.track+'" onclick="pickKid(\''+id+'\')"><span class="av">'+esc(k.name)+'</span><span><b>'+esc(k.name)+'</b><small>'+'כיתה '+esc(k.grade)+(k.level==='advanced'?' · מתקדם':'')+'</small></span></button>').join(''); }
+buildPicker();
+function fillKidStrings(){ const k=KID(); document.querySelectorAll('[data-kidpill]').forEach(el=>{ el.textContent='המסלול של '+k.name; }); document.querySelectorAll('[data-kidname]').forEach(el=>{ el.textContent=k.name; }); document.querySelectorAll('[data-g]').forEach(el=>{ const [m,f]=el.dataset.g.split('|'); el.textContent = k.f ? f : m; }); }
+document.getElementById('gateNames').textContent = (()=>{ const n=Object.values(KIDS).map(k=>'ל'+k.name); return n.length>1 ? n.slice(0,-1).join(', ')+' ו'+n[n.length-1] : (n[0]||''); })();
+/* the library of past editions lives at <site>/e/ — from an archived copy (…/e/NNN/) that is ../, from the root it is e/ */
+const LIB_URL = RT ? String(RT.library||'/library') : (/\/e\/\d{3}\/?(index\.html)?$/.test(location.pathname) ? '../' : 'e/');
+document.querySelectorAll('.libLink').forEach(a=>{ a.href=LIB_URL; a.hidden=IN_CLAUDE; });
+const TODAY = new Date().toLocaleDateString('en-CA');                                     // YYYY-MM-DD, device local time
+const LATE = TODAY > ((RT&&RT.edition&&RT.edition.date)||EDITION.date);                   // an old edition completed on a later day: XP yes, streak no (the app's date wins)
+function decodePw(){ try{ return decodeURIComponent(escape(atob(PW_ENC))).split('').reverse().join(''); }catch(e){ return '—'; } }
+function levelFor(xp, f){ let L=LEVELS[0], i=0; LEVELS.forEach((l,k)=>{ if(xp>=l[0]){ L=l; i=k; } }); return { i, name: f?L[2]:L[1], next: LEVELS[i+1]?LEVELS[i+1][0]:null }; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+/* ---------- progress / navigation ---------- */
+const prog = document.getElementById('progress');
+for(let i=0;i<8;i++){ prog.appendChild(document.createElement('span')); }
+function paintProgress(){ [...prog.children].forEach((s,i)=>{ const k=i+1; s.className = k<S.step?'done':(k===S.step?'cur':''); }); }
+function next(){ goTo(S.step+1); }
+function goTo(n){
+  const sec = document.querySelector(`.step[data-step="${n}"]`);
+  if(!sec) return;
+  S.step = n; sec.classList.add('shown'); paintProgress(); if(n===2) showArtoTip();
+  requestAnimationFrame(()=>{ sec.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth', block:'start'}); });
+  if(n===2) startDecoder(); if(n===3) drawHold(); if(n===5){ drawSun(); drawSky(); }
+  if(n===7) buildTest();
+  save();
+}
+function pickKid(id){
+  if(S.started || !KIDS[id]) return;
+  S.kid = id; S.track = KIDS[id].track; document.body.dataset.track = S.track; document.body.dataset.kid = id; document.body.dataset.level = KIDS[id].level||'standard'; document.body.dataset.push = KIDS[id].push||'none';
+  document.querySelectorAll('.track').forEach(b=>b.classList.toggle('on', b.dataset.pick===id));
+  fillKidStrings();
+  const st=STATS[id]||{streak:0,xp:0}, lv=levelFor(st.xp, F());
+  document.getElementById('who').innerHTML = '<b>'+NAME()+'</b><span class="statpill" title="רצף ימים"><span class="flame">'+FLAME+'</span><span class="num">'+st.streak+'</span></span><span class="statpill lvl" title="רמה">'+lv.name+'</span>';
+  document.getElementById('startBtn').disabled = false;
+  save();
+}
+function startLesson(){ if(!S.kid) return; S.started=true; document.querySelectorAll('.track').forEach(b=>b.disabled=true); document.getElementById('startBtn').disabled=true; next(); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({kid:S.kid, guessK:S.guessK})); }catch(e){} }
+function restore(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return;
+    if(d.guessK!=null && GUESS.opts[d.guessK]) pickGuess(d.guessK);
+    if(d.kid && KIDS[d.kid] && !(RT&&RT.kidToken)){ pickKid(d.kid); } }catch(e){}
+}
+function restart(){ try{localStorage.removeItem(KEY);}catch(e){} location.reload(); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ---------- entrance gate (public site) ---------- */
+const GATE_KEY='wow-gate';
+async function sha256(s){ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function gatePw(){ try{ return localStorage.getItem(GATE_KEY)||''; }catch(e){ return ''; } }
+async function gateCheck(){
+  if(IN_CLAUDE || RT || !PROXY.pwHash) return;                 // gate only on the legacy public site (the app uses personal links)
+  gate.classList.add('on');                                    // cover the page at once, then check the remembered password
+  const saved=gatePw();
+  if(saved && (await sha256(saved))===PROXY.pwHash){ gate.classList.remove('on'); return; }   // remembered on this device
+  setTimeout(()=>gateIn.focus(),50);
+}
+async function gateSubmit(ev){
+  ev.preventDefault();
+  const v=gateIn.value.trim(); if(!v) return false;
+  if((await sha256(v))===PROXY.pwHash){ try{ localStorage.setItem(GATE_KEY, v); }catch(e){} gate.classList.remove('on'); toast('ברוכים הבאים!'); }
+  else { gateErr.textContent='לא נכון — נסו שוב, או בקשו מאבא ואמא.'; gateIn.select(); }
+  return false;
+}
+
+/* ---------- hero estimate: ORDERS OF MAGNITUDE, not a slider ----------
+   The opening question of every edition is a four-way choice where each option is ×10 the previous one.
+   A slider between 1 and 3 million teaches nothing; choosing between 20 thousand and 20 million is the
+   whole skill — estimating the size of an answer before knowing it. Every option gets an explanation in
+   units a kid can picture, so a wrong pick is as instructive as a right one.
+   Next edition: keep the component, swap GUESS (opts ascending, `a` = index of the true one). */
+const GUESS = {
+  real: 2000000,
+  realTxt: 'כ־<b class="num">2,000,000</b> ביקורים בפרחים',
+  unit: 'פרחים',
+  opts: [
+    { v:20000,     he:'עשרים אלף',    fb:'זה בערך <b>כפית אחת</b> של דבש — כ־30,000 פרחים לכפית. טעימה, לא צנצנת.' },
+    { v:200000,    he:'מאתיים אלף',   fb:'זה בערך <b>7 כפיות</b>. הרבה, אבל עוד לא צנצנת שלמה.' },
+    { v:2000000,   he:'שני מיליון',   fb:'צנצנת של חצי קילו היא כ־<b>70 כפיות</b>, וכל כפית היא כ־30,000 פרחים: <span class="math">70 × 30,000 = 2,100,000</span>.' },
+    { v:20000000,  he:'עשרים מיליון', fb:'זה כבר <b>10 צנצנות</b> — חמישה קילו דבש. יותר מדי בשביל צנצנת אחת.' },
+  ],
+  a: 2
+};
+function renderGuess(){ guessOpts.innerHTML = GUESS.opts.map((o,i)=>'<button data-i="'+i+'" onclick="pickGuess('+i+')"><span class="num">'+fmt(o.v)+'</span><span class="u">'+o.he+'</span></button>').join(''); }
+function pickGuess(i){
+  if(S.guessK!==null || !GUESS.opts[i]) return;
+  S.guessK=i; S.guess=GUESS.opts[i].v; S.guessOk = (i===GUESS.a);
+  const btns=[...guessOpts.children]; btns.forEach(b=>b.disabled=true);
+  btns[i].classList.add(S.guessOk?'right':'wrong'); btns[GUESS.a].classList.add('right');
+  guessMsg.innerHTML = S.guessOk
+    ? '<span class="pill-ok">בול! </span>'+GUESS.opts[GUESS.a].fb+' יש לכם תחושה טובה לסדרי גודל.'
+    : '<span class="pill-bad">לא — התשובה היא <b class="num">'+fmt(GUESS.opts[GUESS.a].v)+'</b>. </span>'+GUESS.opts[GUESS.a].fb+'<br>ומה שבחרתם? '+GUESS.opts[i].fb+' להעריך סדר גודל זה בדיוק מה שמדענים עושים לפני שהם מודדים.';
+  save();
+}
+
+/* ---------- shared drawing helpers ---------- */
+function setFont(ctx, size, bold){ const k = document.documentElement.clientWidth<560 ? 1.25 : 1; ctx.font=(bold?'700 ':'')+Math.round(size*k)+'px Rubik, Arial'; ctx.direction='rtl'; ctx.textAlign='center'; ctx.textBaseline='middle'; }
+function hexGrid(ctx, x0, y0, w, h, r, fill, stroke){   // flat honeycomb background
+  ctx.save(); ctx.beginPath(); ctx.rect(x0,y0,w,h); ctx.clip();
+  ctx.fillStyle=fill; ctx.fillRect(x0,y0,w,h);
+  ctx.strokeStyle=stroke; ctx.lineWidth=2;
+  const dx=r*Math.sqrt(3), dy=r*1.5;
+  for(let row=-1, y=y0-r; y<y0+h+r; y+=dy, row++){
+    for(let x=x0-r+((row&1)?dx/2:0); x<x0+w+r; x+=dx){
+      ctx.beginPath(); for(let k=0;k<6;k++){ const a=Math.PI/6+k*Math.PI/3; const px=x+r*Math.cos(a), py=y+r*Math.sin(a); k?ctx.lineTo(px,py):ctx.moveTo(px,py); } ctx.closePath(); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawBee(ctx, x, y, heading, scale, wiggle){   // heading in radians (0 = pointing right); wiggle = lateral offset of the abdomen
+  ctx.save(); ctx.translate(x,y); ctx.rotate(heading); ctx.scale(scale,scale);
+  ctx.fillStyle='rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(-2,-9,9,5,-0.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(-2,9,9,5,0.5,0,Math.PI*2); ctx.fill();
+  ctx.save(); ctx.translate(-6, wiggle||0);
+  ctx.fillStyle='#F2A900'; ctx.beginPath(); ctx.ellipse(0,0,12,7,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#231F14'; [-6,-1,4].forEach(sx=>{ ctx.fillRect(sx,-7,3,14); });
+  ctx.restore();
+  ctx.fillStyle='#231F14'; ctx.beginPath(); ctx.ellipse(5,0,6,5.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(12,0,4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#231F14'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(13,-2); ctx.lineTo(19,-7); ctx.moveTo(13,2); ctx.lineTo(19,7); ctx.stroke();
+  ctx.restore();
+}
+function drawFlower(ctx, x, y, r){
+  ctx.fillStyle='#6B4BB8'; for(let k=0;k<5;k++){ const a=k*Math.PI*2/5; ctx.beginPath(); ctx.arc(x+r*Math.cos(a), y+r*Math.sin(a), r*0.62, 0, Math.PI*2); ctx.fill(); }
+  ctx.fillStyle='#F2A900'; ctx.beginPath(); ctx.arc(x,y,r*0.5,0,Math.PI*2); ctx.fill();
+}
+function drawSunDisc(ctx, x, y, r){
+  ctx.strokeStyle='#F2A900'; ctx.lineWidth=3; for(let k=0;k<12;k++){ const a=k*Math.PI/6; ctx.beginPath(); ctx.moveTo(x+(r+6)*Math.cos(a), y+(r+6)*Math.sin(a)); ctx.lineTo(x+(r+16)*Math.cos(a), y+(r+16)*Math.sin(a)); ctx.stroke(); }
+  const g=ctx.createRadialGradient(x,y,2,x,y,r); g.addColorStop(0,'#FFF1B0'); g.addColorStop(1,'#F2A900'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+}
+function drawHive(ctx, x, y){
+  ctx.fillStyle='#E9B949'; ctx.strokeStyle='#8A5A10'; ctx.lineWidth=2;
+  [[-22,-6,44,12],[-19,-18,38,12],[-15,-30,30,12]].forEach(b=>{ ctx.beginPath(); ctx.roundRect(x+b[0],y+b[1],b[2],b[3],4); ctx.fill(); ctx.stroke(); });
+  ctx.fillStyle='#231F14'; ctx.beginPath(); ctx.arc(x,y+2,4,0,Math.PI*2); ctx.fill();
+}
+function haloText(ctx, txt, x, y, fill){ ctx.save(); ctx.lineJoin='round'; ctx.strokeStyle='rgba(255,255,255,.88)'; ctx.lineWidth=6; ctx.strokeText(txt,x,y); ctx.fillStyle=fill; ctx.fillText(txt,x,y); ctx.restore(); }
+const degStr = th => th===0 ? '0°' : Math.abs(th)+'°';
+const sideStr = th => th>0 ? 'ימינה' : th<0 ? 'שמאלה' : '';
+
+/* ---------- chapter 1: predict ---------- */
+function predict1(k, btn){
+  if(S.pred1!==null) return; S.pred1=k;
+  document.querySelectorAll('#pred1 button').forEach(b=>{ b.disabled=true; b.classList.toggle('on', b===btn); });
+  pred1Msg.innerHTML = k===1 ? '<span class="pill-ok">בדיוק!</span> היא רקדה. ובריקוד — מפה שלמה. ממשיכים לראות איך.' : k===0 ? 'ניחוש הגיוני — וגם מדענים חשבו כך במשך שנים. אבל הצלחת הייתה רחוקה מדי בשביל ריח. התשובה: היא <b>רקדה</b>.' : 'רעיון יפה, אבל לא. התשובה מפתיעה עוד יותר: היא <b>רקדה</b>.';
+}
+
+/* ---------- chapter 2: the dance decoder ---------- */
+const decCv=document.getElementById('decCv'), dctx=decCv.getContext('2d'), decAng=document.getElementById('decAng'), decDist=document.getElementById('decDist');
+let decAnim=null, decT0=performance.now(), combBg=null;
+const waggleSec = d => 0.5 + (d-200)*3.5/4300;          // von Frisch: ~0.5 s at 200 m … ~4 s at 4,500 m
+function combCache(){ combBg=document.createElement('canvas'); combBg.width=310; combBg.height=400; hexGrid(combBg.getContext('2d'),0,0,310,400,22,'#F0C75E','#B98A2E'); }
+function decoderState(){ const th=+decAng.value, d=+decDist.value, rad=th*Math.PI/180; return { th, d, ux:Math.sin(rad), uy:-Math.cos(rad), w:waggleSec(d) }; }
+function drawDecoder(now){
+  const W=640,H=400, st=decoderState(), t=((now||performance.now())-decT0)/1000;
+  if(!combBg) combCache();
+  dctx.fillStyle='#EAF6FF'; dctx.fillRect(0,0,W,H);
+  /* LEFT — the vertical comb and the figure-8 */
+  dctx.drawImage(combBg,0,0);
+  dctx.fillStyle='rgba(255,255,255,.55)'; dctx.fillRect(0,0,310,64);
+  dctx.fillStyle='#4a3000'; setFont(dctx,19,true); dctx.fillText('חלת הדבש — עומדת זקופה', 155, 22);
+  setFont(dctx,18,false); dctx.fillText('למעלה = לכיוון השמש', 155, 48);
+  const cx=155, cy=232, L=58, r=42, ux=st.ux, uy=st.uy, px=-uy, py=ux;
+  /* the "up" arrow through the dance centre */
+  dctx.strokeStyle='#B06D00'; dctx.lineWidth=3; dctx.setLineDash([6,6]); dctx.beginPath(); dctx.moveTo(cx,cy+96); dctx.lineTo(cx,cy-104); dctx.stroke(); dctx.setLineDash([]);
+  dctx.fillStyle='#B06D00'; dctx.beginPath(); dctx.moveTo(cx,cy-118); dctx.lineTo(cx-10,cy-100); dctx.lineTo(cx+10,cy-100); dctx.closePath(); dctx.fill();
+  /* return loops (faint) */
+  dctx.strokeStyle='rgba(35,31,20,.45)'; dctx.lineWidth=3; dctx.setLineDash([5,7]);
+  [1,-1].forEach(sg=>{ dctx.beginPath(); for(let k=0;k<=40;k++){ const ph=k/40*Math.PI; const x=cx+L*Math.cos(ph)*ux+sg*r*Math.sin(ph)*px, y=cy+L*Math.cos(ph)*uy+sg*r*Math.sin(ph)*py; k?dctx.lineTo(x,y):dctx.moveTo(x,y); } dctx.stroke(); });
+  dctx.setLineDash([]);
+  /* the waggle run: zigzag in amber */
+  dctx.strokeStyle='#D98A00'; dctx.lineWidth=5; dctx.lineCap='round'; dctx.beginPath();
+  for(let k=0;k<=24;k++){ const s=-L+2*L*k/24, off=(k%2?7:-7)*(k>0&&k<24?1:0); dctx.lineTo(cx+s*ux+off*px, cy+s*uy+off*py); } dctx.stroke();
+  /* arrowhead: the run has a direction */
+  dctx.fillStyle='#D98A00'; dctx.beginPath(); dctx.moveTo(cx+(L+16)*ux, cy+(L+16)*uy); dctx.lineTo(cx+(L-2)*ux+11*px, cy+(L-2)*uy+11*py); dctx.lineTo(cx+(L-2)*ux-11*px, cy+(L-2)*uy-11*py); dctx.closePath(); dctx.fill();
+  /* angle arc between "up" and the run */
+  if(st.th!==0){ dctx.strokeStyle='#2C7FB8'; dctx.lineWidth=4; dctx.beginPath(); const a0=-Math.PI/2, a1=a0+st.th*Math.PI/180; dctx.arc(cx,cy,34,Math.min(a0,a1),Math.max(a0,a1)); dctx.stroke();
+    const am=(a0+a1)/2; dctx.fillStyle='#2C7FB8'; setFont(dctx,19,true); dctx.fillText(degStr(st.th), cx+52*Math.cos(am), cy+52*Math.sin(am)); }
+  /* the dancing bee */
+  const loop=1.1, cyc=2*st.w+2*loop, tt=t%cyc; let bx,by,hd,wig=0;
+  const runPos=(s)=>[cx+s*ux, cy+s*uy];
+  const loopPos=(ph,sg)=>[cx+L*Math.cos(ph)*ux+sg*r*Math.sin(ph)*px, cy+L*Math.cos(ph)*uy+sg*r*Math.sin(ph)*py];
+  if(tt<st.w){ const s=-L+2*L*tt/st.w; [bx,by]=runPos(s); hd=Math.atan2(uy,ux); wig=6*Math.sin(t*2*Math.PI*13); }
+  else if(tt<st.w+loop){ const ph=(tt-st.w)/loop*Math.PI; [bx,by]=loopPos(ph,1); const [nx,ny]=loopPos(Math.min(Math.PI,ph+0.05),1); hd=Math.atan2(ny-by,nx-bx); }
+  else if(tt<2*st.w+loop){ const s=-L+2*L*(tt-st.w-loop)/st.w; [bx,by]=runPos(s); hd=Math.atan2(uy,ux); wig=6*Math.sin(t*2*Math.PI*13); }
+  else { const ph=(tt-2*st.w-loop)/loop*Math.PI; [bx,by]=loopPos(ph,-1); const [nx,ny]=loopPos(Math.min(Math.PI,ph+0.05),-1); hd=Math.atan2(ny-by,nx-bx); }
+  drawBee(dctx,bx,by,hd,1.25,wig);
+  dctx.fillStyle='#4a3000'; setFont(dctx,19,true); dctx.fillText('נענוע: '+st.w.toFixed(1)+' שניות', 155, 380);
+  /* RIGHT — the map from above: the sun on top, the hive in the middle, the flowers where the dance says */
+  dctx.fillStyle='#FFFFFF'; dctx.fillRect(322,0,318,H);
+  dctx.fillStyle='#4a3000'; setFont(dctx,21,true); dctx.fillText('המפה מלמעלה', 481, 16);
+  const hx=481, hy=238, sx=481, sy=56;
+  drawSunDisc(dctx,sx,sy,16); setFont(dctx,18,true); dctx.fillStyle='#8A5A10'; dctx.fillText('השמש', sx+58, sy);
+  dctx.strokeStyle='#B06D00'; dctx.lineWidth=3; dctx.setLineDash([6,6]); dctx.beginPath(); dctx.moveTo(hx,hy); dctx.lineTo(sx,sy+30); dctx.stroke(); dctx.setLineDash([]);
+  const rr=68+(st.d-200)/3800*72, fx=hx+rr*ux, fy=hy+rr*uy;
+  dctx.strokeStyle='#6B4BB8'; dctx.lineWidth=4; dctx.beginPath(); dctx.moveTo(hx,hy); dctx.lineTo(fx,fy); dctx.stroke();
+  if(st.th!==0){ dctx.strokeStyle='#2C7FB8'; dctx.lineWidth=4; dctx.beginPath(); const a0=-Math.PI/2, a1=a0+st.th*Math.PI/180; dctx.arc(hx,hy,26,Math.min(a0,a1),Math.max(a0,a1)); dctx.stroke();
+    const am=(a0+a1)/2; setFont(dctx,19,true); haloText(dctx, degStr(st.th), hx+46*Math.cos(am), hy+46*Math.sin(am), '#2C7FB8'); }
+  drawHive(dctx,hx,hy); setFont(dctx,18,true); haloText(dctx,'הכוורת', hx, hy+26, '#231F14');
+  drawFlower(dctx,fx,fy,11); setFont(dctx,18,true);
+  /* the flower's label: beyond the flower if there is room, else beside it, never on the sun */
+  const lo=30+26*Math.abs(ux); let lx=fx+lo*ux, ly=fy+lo*uy;
+  if(lx<372||lx>612||ly<92||ly>386||Math.hypot(lx-sx,ly-sy)<52){ const side = fx<481 ? -1 : 1; lx=fx+side*60; ly=fy+ (uy<0?-16:16); if(uy===-1&&Math.abs(ux)<0.01){ lx=fx+60; ly=fy; } lx=Math.max(372,Math.min(612,lx)); }
+  haloText(dctx,'הפרחים', lx, ly, '#6B4BB8');
+  /* readouts */
+  decDance.innerHTML = st.th===0 ? 'ישר למעלה, <b class="num">'+st.w.toFixed(1)+'</b> שניות' : Math.abs(st.th)===180 ? 'ישר למטה, <b class="num">'+st.w.toFixed(1)+'</b> שניות' : '<b class="num">'+Math.abs(st.th)+'°</b> '+sideStr(st.th)+' מ"למעלה", <b class="num">'+st.w.toFixed(1)+'</b> שניות';
+  decFlower.innerHTML = (st.th===0 ? 'בדיוק בכיוון השמש' : Math.abs(st.th)===180 ? 'בכיוון ההפוך מהשמש' : '<b class="num">'+Math.abs(st.th)+'°</b> '+sideStr(st.th)+' מהשמש')+', <b class="num">'+fmt(st.d)+'</b> מטר';
+  decMsg.innerHTML = st.th===0 ? 'ריקוד ישר למעלה = הפרחים בדיוק בכיוון השמש. האחיות טסות "אל השמש".' : Math.abs(st.th)===180 ? 'ריקוד ישר למטה = הפרחים בכיוון ההפוך מהשמש. האחיות טסות עם השמש בגב.' : 'אותה זווית בדיוק בשני הצדדים: '+sideStr(st.th)+' על הקיר = '+sideStr(st.th)+' מהשמש במפה. ושימו לב לנענוע: '+(st.d<1000?'קצר — הפרחים קרובים.':st.d<2500?'בינוני — קילומטר או שניים.':'ארוך — הפרחים רחוקים.');
+}
+function decoderLoop(now){ drawDecoder(now); decAnim=requestAnimationFrame(decoderLoop); }
+function startDecoder(){ if(!decAnim) decAnim=requestAnimationFrame(decoderLoop); }
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ if(decAnim) cancelAnimationFrame(decAnim); decAnim=null; } else if(S.step>=2) startDecoder(); });
+[decAng,decDist].forEach(i=>i.addEventListener('input', ()=>drawDecoder()));
+
+/* ---------- chapter 3: be the bee (hold to waggle) ---------- */
+const holdCv=document.getElementById('holdCv'), hctx=holdCv.getContext('2d'), holdBtn=document.getElementById('holdBtn');
+const HOLD_TARGETS=[2000,1000,3500], HX0=72, HY=168, HPXM=520/4000;
+let holdOn=false, holdStart=0, holdSecs=0, holdAnim=null, holdIdx=0, holdDisp=0, holdShown=0, holdSwitch=0;
+function drawHold(){
+  const W=640,H=300, target=HOLD_TARGETS[holdDisp];
+  const g=hctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#DFF0C8'); g.addColorStop(1,'#C9E3A6'); hctx.fillStyle=g; hctx.fillRect(0,0,W,H);
+  /* scale: a kilometre ruler */
+  hctx.strokeStyle='rgba(35,31,20,.35)'; hctx.lineWidth=2; hctx.beginPath(); hctx.moveTo(HX0,HY+62); hctx.lineTo(HX0+4000*HPXM,HY+62); hctx.stroke();
+  hctx.fillStyle='#3a3020'; setFont(hctx,18,true);
+  for(let k=0;k<=4;k++){ const x=HX0+k*1000*HPXM; hctx.beginPath(); hctx.moveTo(x,HY+54); hctx.lineTo(x,HY+70); hctx.stroke(); hctx.fillText(k===0?'הכוורת':k+' ק״מ', x, HY+88); }
+  hctx.strokeStyle='rgba(35,31,20,.25)'; hctx.setLineDash([4,8]); hctx.beginPath(); hctx.moveTo(HX0,HY); hctx.lineTo(HX0+4000*HPXM,HY); hctx.stroke(); hctx.setLineDash([]);
+  /* the target flowers */
+  const tx=HX0+target*HPXM; drawFlower(hctx,tx,HY,13); setFont(hctx,20,true); haloText(hctx,'הפרחים: '+fmt(target)+' מ׳', Math.max(90,tx), HY-40, '#6B4BB8');
+  /* the hive */
+  drawHive(hctx,HX0,HY+8);
+  /* the sisters' flight = how long you waggled */
+  const secs = holdOn ? Math.min(5,(performance.now()-holdStart)/1000) : holdShown;
+  const dist=secs*1000, ex=HX0+Math.min(4000,dist)*HPXM;
+  if(secs>0){ hctx.strokeStyle='#D98A00'; hctx.lineWidth=8; hctx.lineCap='round'; hctx.beginPath(); hctx.moveTo(HX0+24,HY); hctx.lineTo(ex,HY); hctx.stroke();
+    drawBee(hctx, ex, HY, 0, 1.3, holdOn?6*Math.sin(performance.now()/1000*2*Math.PI*13):0);
+    setFont(hctx,20,true); haloText(hctx, fmt(dist)+' מ׳', ex, HY+34, '#8A5A10'); }
+  holdSec.textContent=secs.toFixed(1);
+  hctx.fillStyle='#3a3020'; setFont(hctx,20,true); hctx.fillText(holdOn?'מנענעים...':'משימה '+(holdDisp+1)+' מתוך 3', 320, 26);
+}
+function holdLoop(){ drawHold(); if(holdOn){ if((performance.now()-holdStart)/1000>=5) holdStop(); else holdAnim=requestAnimationFrame(holdLoop); } }
+function holdBegin(ev){ if(holdOn) return; if(ev && ev.preventDefault) ev.preventDefault(); holdSwitch++; holdDisp=holdIdx; holdShown=0; holdOn=true; holdStart=performance.now(); holdBtn.classList.add('on'); holdMsg.textContent=''; holdAnim=requestAnimationFrame(holdLoop); }
+function holdStop(){ if(!holdOn) return; holdOn=false; holdBtn.classList.remove('on'); if(holdAnim) cancelAnimationFrame(holdAnim); holdAnim=null;
+  holdSecs=Math.min(5,(performance.now()-holdStart)/1000); holdShown=holdSecs; const target=HOLD_TARGETS[holdIdx], dist=Math.round(holdSecs*1000), err=dist-target;
+  drawHold();
+  if(Math.abs(err)<=Math.max(0.15*target,200)){ S.holdHits++;
+    if(holdIdx>=2){ S.holdDone=true; holdMsg.innerHTML='<span class="pill-ok">בול!</span> נענעתם <span class="math">'+holdSecs.toFixed(1)+'</span> שניות = <span class="math">'+fmt(dist)+'</span> מטר. שלוש משימות הושלמו — יש לכם ריקוד של דבורה מקצועית. (אפשר להמשיך להתאמן.)'; }
+    else { holdIdx++;   // the next target is live at once; the picture keeps showing this hit for a moment
+      holdMsg.innerHTML='<span class="pill-ok">בול!</span> נענעתם <span class="math">'+holdSecs.toFixed(1)+'</span> שניות = <span class="math">'+fmt(dist)+'</span> מטר — האחיות נחתו על הפרחים. המשימה הבאה: פרחים במרחק <b class="num">'+fmt(HOLD_TARGETS[holdIdx])+'</b> מטר.';
+      const my=++holdSwitch; setTimeout(()=>{ if(my!==holdSwitch||holdOn) return; holdDisp=holdIdx; holdShown=0; drawHold(); }, 1800); } }
+  else holdMsg.innerHTML='נענעתם <span class="math">'+holdSecs.toFixed(1)+'</span> שניות = <span class="math">'+fmt(dist)+'</span> מטר. האחיות נחתו <b class="num">'+fmt(Math.abs(err))+'</b> מטר '+(err<0?'לפני':'אחרי')+' הפרחים — '+(err<0?'החזיקו קצת יותר.':'שחררו קצת קודם.');
+  setTimeout(drawHold,0);
+}
+holdBtn.addEventListener('pointerdown', e=>{ try{ holdBtn.setPointerCapture(e.pointerId); }catch(x){} holdBegin(e); });
+['pointerup','pointercancel'].forEach(t=>holdBtn.addEventListener(t, holdStop));
+holdBtn.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); holdBegin(); } });
+holdBtn.addEventListener('keyup', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); holdStop(); } });
+holdBtn.addEventListener('contextmenu', e=>e.preventDefault());
+
+/* ---------- chapter 4: flight calculator ---------- */
+const flyKm=document.getElementById('flyKm');
+function updFly(){ const km=+flyKm.value, min=km/24*60; flyKmOut.textContent=km; flyMin.textContent=(Number.isInteger(min)?min:min.toFixed(1));
+  flyMsg.innerHTML = km<=0.5 ? 'קרוב מאוד — בערך דקה של טיסה. על פרחים כאלה הנענוע קצרצר, פחות משנייה.' : km>=8 ? 'רחוק מאוד. דבורות טסות 10 ק״מ ויותר רק כשאין ברירה — כל קילומטר עולה אנרגיה, והנענוע כבר ארוך מאוד.' : 'על פרחים במרחק '+km+' ק״מ הדבורה תנענע בערך '+(km===1?'שנייה אחת':'<span class="math">'+km+'</span> שניות')+' — והאחיות יגיעו תוך <span class="math">'+(Number.isInteger(min)?min:min.toFixed(1))+'</span> דקות.'; }
+flyKm.addEventListener('input', updFly); updFly();
+
+/* ---------- chapter 5: the bee's sun clock ---------- */
+const sunCv=document.getElementById('sunCv'), sctx=sunCv.getContext('2d'), sunH=document.getElementById('sunH');
+const SUN_FLOWER_AZ=185, SUN_START_AZ=105;
+function sunPredict(k,btn){ if(S.sunPred!==null) return; S.sunPred=k; document.querySelectorAll('#sunPred button').forEach(b=>{ b.disabled=true; b.classList.toggle('on', b===btn); }); sunH.disabled=false;
+  sunMsg.innerHTML = k===1 ? '<span class="pill-ok">נכון!</span> הפרחים במקום, אבל השמש זזה — ו"למעלה" פירושו "לכיוון השמש". גררו את השעות ותראו בכמה.' : 'הפרחים באמת לא זזו — אבל השמש כן, ו"למעלה" פירושו "לכיוון השמש". גררו את השעות ותראו מה קורה לזווית.'; }
+function azPos(cx,cy,R,az){ const a=az*Math.PI/180; return [cx+R*Math.sin(a), cy-R*Math.cos(a)]; }
+function drawSun(){
+  const W=640,H=400, h=+sunH.value, sunAz=SUN_START_AZ+15*h, dance=SUN_FLOWER_AZ-sunAz, cx=330, cy=212, R=150;
+  const g=sctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#DFF0C8'); g.addColorStop(1,'#C9E3A6'); sctx.fillStyle=g; sctx.fillRect(0,0,W,H);
+  sctx.strokeStyle='rgba(35,31,20,.25)'; sctx.lineWidth=2; sctx.setLineDash([4,8]); sctx.beginPath(); sctx.arc(cx,cy,R,0,Math.PI*2); sctx.stroke(); sctx.setLineDash([]);
+  setFont(sctx,18,true); haloText(sctx,'צפון',cx,cy-R-22,'#3a3020'); haloText(sctx,'דרום',cx,cy+R+22,'#3a3020'); haloText(sctx,'מזרח',cx+R+52,cy,'#3a3020'); haloText(sctx,'מערב',cx-R-52,cy,'#3a3020');
+  const [sx,sy]=azPos(cx,cy,R,sunAz), [fx,fy]=azPos(cx,cy,118,SUN_FLOWER_AZ);
+  /* the sun's path so far */
+  if(h>0){ sctx.strokeStyle='#F2A900'; sctx.lineWidth=5; sctx.beginPath(); sctx.arc(cx,cy,R,(SUN_START_AZ-90)*Math.PI/180,(sunAz-90)*Math.PI/180); sctx.stroke(); }
+  sctx.strokeStyle='#B06D00'; sctx.lineWidth=3; sctx.setLineDash([6,6]); sctx.beginPath(); sctx.moveTo(cx,cy); sctx.lineTo(sx,sy); sctx.stroke(); sctx.setLineDash([]);
+  sctx.strokeStyle='#6B4BB8'; sctx.lineWidth=4; sctx.beginPath(); sctx.moveTo(cx,cy); sctx.lineTo(fx,fy); sctx.stroke();
+  /* the angle between the sun-line and the flower-line = the dance angle */
+  sctx.strokeStyle='#2C7FB8'; sctx.lineWidth=5; sctx.beginPath(); sctx.arc(cx,cy,58,(sunAz-90)*Math.PI/180,(SUN_FLOWER_AZ-90)*Math.PI/180); sctx.stroke();
+  const am=((sunAz+SUN_FLOWER_AZ)/2-90)*Math.PI/180; setFont(sctx,21,true); haloText(sctx, dance+'°', cx+82*Math.cos(am), cy+82*Math.sin(am), '#2C7FB8');
+  drawSunDisc(sctx,sx,sy,16); drawHive(sctx,cx,cy+4); setFont(sctx,18,true); haloText(sctx,'הכוורת',cx,cy+30,'#231F14');
+  drawFlower(sctx,fx,fy,12); setFont(sctx,18,true); haloText(sctx,'הפרחים',fx-58,fy+4,'#6B4BB8');
+  /* inset: the comb, with the run at the current angle */
+  const ix=8, iy=8, iw=150, ih=150; hexGrid(sctx,ix,iy,iw,ih,14,'#F0C75E','#B98A2E'); sctx.strokeStyle='#8A5A10'; sctx.lineWidth=2; sctx.strokeRect(ix,iy,iw,ih);
+  const icx=ix+iw/2, icy=iy+ih/2+12, rad=dance*Math.PI/180, ux=Math.sin(rad), uy=-Math.cos(rad);
+  sctx.strokeStyle='#B06D00'; sctx.lineWidth=2; sctx.setLineDash([4,4]); sctx.beginPath(); sctx.moveTo(icx,icy+40); sctx.lineTo(icx,icy-52); sctx.stroke(); sctx.setLineDash([]);
+  sctx.fillStyle='#B06D00'; sctx.beginPath(); sctx.moveTo(icx,icy-60); sctx.lineTo(icx-6,icy-50); sctx.lineTo(icx+6,icy-50); sctx.closePath(); sctx.fill();
+  sctx.strokeStyle='#D98A00'; sctx.lineWidth=4; sctx.lineCap='round'; sctx.beginPath(); for(let k=0;k<=16;k++){ const s=-34+68*k/16, off=(k%2?4:-4)*(k>0&&k<16?1:0); sctx.lineTo(icx+s*ux-off*uy, icy+s*uy+off*ux); } sctx.stroke();
+  sctx.fillStyle='#4a3000'; setFont(sctx,16,true); sctx.fillText('הריקוד על החלה', ix+iw/2, iy+14);
+  /* readouts */
+  const mins=Math.round((9+h)*60); sunClock.textContent=String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');
+  sunMoved.textContent=(15*h)+'°'; sunDance.textContent=dance+'°';
+  if(S.sunPred!==null){ sunMsg.innerHTML = h===0 ? 'עוד לא זזה. גררו את המחוון.' : 'עברו '+h+' שעות: השמש זזה <span class="math">15 × '+h+' = '+(15*h)+'°</span> ימינה, לכיוון הפרחים. הזווית ביניהם קטנה: <span class="math">80 − '+(15*h)+' = '+dance+'°</span>. הדבורה מסובבת את הריקוד — בלי לראות את השמש.'; }
+}
+sunH.addEventListener('input', drawSun);
+
+/* ---------- chapter 5: bee eyes (polarized sky) ---------- */
+const skyCv=document.getElementById('skyCv'), kctx=skyCv.getContext('2d');
+const SUNX=470, SUNY=95; let eyes='human', skyGuess=null, skyRevealed=false;
+const CLOUDS=[{x:470,y:100,rx:150,ry:52},{x:410,y:80,rx:80,ry:42},{x:545,y:82,rx:72,ry:38},{x:140,y:66,rx:70,ry:26},{x:95,y:80,rx:40,ry:20}];
+const inCloud=(x,y)=>CLOUDS.some(c=>((x-c.x)/c.rx)**2+((y-c.y)/c.ry)**2<=1);
+function drawSky(){
+  const W=640,H=300; const g=kctx.createLinearGradient(0,0,0,240); g.addColorStop(0,'#4FA3E3'); g.addColorStop(1,'#BFE3FF'); kctx.fillStyle=g; kctx.fillRect(0,0,W,H);
+  if(eyes==='bee'){
+    kctx.strokeStyle='rgba(255,255,255,.35)'; kctx.lineWidth=1.5; for(let r=40;r<560;r+=40){ kctx.beginPath(); kctx.arc(SUNX,SUNY,r,0,Math.PI*2); kctx.stroke(); }
+    kctx.strokeStyle='#FFFFFF'; kctx.lineWidth=3.5; kctx.lineCap='round';
+    for(let y=14;y<236;y+=26){ for(let x=14;x<W;x+=26){ if(inCloud(x,y)) continue; const a=Math.atan2(SUNY-y,SUNX-x)+Math.PI/2; kctx.beginPath(); kctx.moveTo(x-9*Math.cos(a),y-9*Math.sin(a)); kctx.lineTo(x+9*Math.cos(a),y+9*Math.sin(a)); kctx.stroke(); } }
+  }
+  if(skyRevealed){ drawSunDisc(kctx,SUNX,SUNY,24); }
+  kctx.fillStyle = skyRevealed ? 'rgba(255,255,255,.55)' : (eyes==='bee'?'#E9EDF2':'#FFFFFF'); CLOUDS.forEach(c=>{ kctx.beginPath(); kctx.ellipse(c.x,c.y,c.rx,c.ry,0,0,Math.PI*2); kctx.fill(); });
+  kctx.fillStyle='#8DC26F'; kctx.beginPath(); kctx.moveTo(0,H); kctx.lineTo(0,250); kctx.quadraticCurveTo(160,205,320,245); kctx.quadraticCurveTo(480,285,640,235); kctx.lineTo(640,H); kctx.closePath(); kctx.fill();
+  kctx.fillStyle='#1E3A5F'; setFont(kctx,19,true); kctx.fillText(eyes==='bee'?'עיני דבורה: הקווים מסתדרים במעגלים סביב השמש':'עיני אדם: השמש מאחורי הענן', 320, 278);
+  const guessExact = skyRevealed && skyGuess && Math.hypot(skyGuess[0]-SUNX,skyGuess[1]-SUNY)*90/640<=2;
+  if(skyGuess && !guessExact){ kctx.strokeStyle='#C8452D'; kctx.lineWidth=4; kctx.beginPath(); kctx.moveTo(skyGuess[0]-12,skyGuess[1]-12); kctx.lineTo(skyGuess[0]+12,skyGuess[1]+12); kctx.moveTo(skyGuess[0]+12,skyGuess[1]-12); kctx.lineTo(skyGuess[0]-12,skyGuess[1]+12); kctx.stroke();
+    setFont(kctx,18,true); haloText(kctx,'הניחוש שלכם', skyGuess[0], skyGuess[1]+28, '#C8452D'); }
+  if(skyRevealed){ setFont(kctx,20,true); haloText(kctx,'השמש', SUNX, SUNY+50, '#8A5A10'); if(skyGuess){ kctx.strokeStyle='#C8452D'; kctx.lineWidth=2; kctx.setLineDash([5,5]); kctx.beginPath(); kctx.moveTo(skyGuess[0],skyGuess[1]); kctx.lineTo(SUNX,SUNY); kctx.stroke(); kctx.setLineDash([]); } }
+}
+skyCv.addEventListener('pointerdown', e=>{ if(skyRevealed) return; const r=skyCv.getBoundingClientRect(); const x=(e.clientX-r.left)*640/r.width, y=(e.clientY-r.top)*300/r.height; if(y>240) return; skyGuess=[x,y]; skyReveal.disabled=false; drawSky();
+  skyMsg.innerHTML = eyes==='bee' ? 'ניחוש נרשם. המרכז של המעגלים הוא השמש. בטוחים? לחצו "איפה השמש באמת?"' : 'ניחוש נרשם. עכשיו הפעילו "עיני דבורה" — הקווים מסתדרים במעגלים סביב השמש, גם כשהיא מוסתרת. אפשר לתקן את הניחוש בלחיצה נוספת.'; });
+function setEyes(m){ eyes=m; eyeHuman.classList.toggle('on',m==='human'); eyeBee.classList.toggle('on',m==='bee'); drawSky(); if(m==='bee' && !skyRevealed) skyMsg.innerHTML = skyGuess ? 'רואים את המעגלים? המרכז שלהם הוא השמש. רוצים לתקן את הניחוש? לחצו שוב על השמיים.' : 'ככה הדבורה רואה את השמיים: קווים במעגלים סביב השמש. לחצו על השמיים במקום שבו לדעתכם היא מסתתרת.'; }
+function revealSun(){ if(!skyGuess) return; skyRevealed=true; skyReveal.disabled=true; drawSky(); const errDeg=Math.round(Math.hypot(skyGuess[0]-SUNX,skyGuess[1]-SUNY)*90/640);
+  skyMsg.innerHTML = '<b>השמש הייתה כאן.</b> '+(errDeg<=2?'בול! ניחוש של דבורה.':'הניחוש שלכם החטיא בכ־<span class="math">'+errDeg+'°</span>. '+(errDeg<=6?'מצוין — כמעט כמו דבורה!':'הדבורה, עם עיני הקיטוב שלה, מוצאת אותה בדיוק — מפיסת שמיים אחת.')); }
+
+/* ---------- chapter 6: honey bonus ---------- */
+const honeySp=document.getElementById('honeySp');
+function updHoney(){ const n=+honeySp.value; honeySpOut.textContent=n; honeyBees.textContent=fmt(n*12); honeyFlowers.textContent=fmt(n*30000);
+  honeyMsg.innerHTML = n===1 ? 'כפית אחת = כל החיים של 12 דבורים, ו־30,000 ביקורים בפרחים. שנה טובה ומתוקה.' : 'ל־'+n+' כפיות: <span class="math">'+n+' × 12 = '+fmt(n*12)+'</span> דבורים ו־<span class="math">'+n+' × 30,000 = '+fmt(n*30000)+'</span> ביקורים בפרחים. (הערכה — לא ספרו כל פרח.)'; }
+honeySp.addEventListener('input', ()=>{ S.bonusDone=true; updHoney(); }); updHoney();
+
+/* ---------- questions ---------- */
+const QC = {
+  qc2:{ q:'הדבורה רוקדת ישר <b>למטה</b> על החלה. איפה הפרחים?', opts:['מתחת לכוורת, באדמה','בכיוון השמש','בכיוון ההפוך מהשמש'], a:2, fb:'"למעלה" = לכיוון השמש, אז "למטה" = לכיוון ההפוך. האחיות ייצאו, ישימו את השמש בגב — ויטוסו.', btn:'next2'},
+};
+const MCQ = {
+  shared:[
+    { q:'מה מספרת הזווית של הנענוע ביחס ל"למעלה"?', opts:['כמה צוף יש בפרחים','באיזה כיוון הפרחים ביחס לשמש','כמה חם בחוץ','מה השעה'], a:1, fb:'על החלה הזקופה "למעלה" מחליף את השמש. 40° ימינה מלמעלה = 40° ימינה מהשמש.' },
+    { q:'הדבורה מנענעת זמן ארוך יותר מהרגיל. מה זה אומר?', opts:['הפרחים רחוקים יותר','הפרחים מתוקים יותר','יש הרבה פרחים','היא עייפה'], a:0, fb:'משך הנענוע הוא המרחק: כחצי שנייה ל־200 מטר, כ־4 שניות ל־4.5 ק״מ. בערך שנייה לקילומטר.' },
+    { q:'למה הדבורה לא פשוט מצביעה ישר על הפרחים?', opts:['כי בכוורת חשוך ואי אפשר לראות את השמש — אז "למעלה" מחליף את השמש','כי הדבורות לא יודעות איפה הפרחים','כי אסור לרקוד לכיוון היציאה','כי הפרחים זזים'], a:0, fb:'בחושך יש רק דבר אחד שכולן מרגישות: כוח המשיכה. לכן הריקוד מתורגם ל"למעלה" ו"למטה". על חלה שוכבת מול השמיים, הדבורות באמת מצביעות ישר.' },
+  ],
+  adam:[   /* unused track — mirrors emma so the test can always complete */
+    { q:'עברו שלוש שעות מאז שהדבורה ראתה את השמש. היא רוקדת שוב לאותם פרחים. מה היא עושה?', opts:['רוקדת בדיוק באותה זווית','מסובבת את הזווית, כי היא יודעת כמה השמש זזה','מפסיקה לרקוד — הריקוד כבר לא נכון','רוקדת לכיוון היציאה'], a:1, fb:'לדבורה יש שעון בראש: היא יודעת שהשמש זזה בערך 15° בשעה, ומתקנת את הזווית גם בלי לראות אותה.' },
+  ],
+  emma:[
+    { q:'עברו שלוש שעות מאז שהדבורה ראתה את השמש. היא רוקדת שוב לאותם פרחים. מה היא עושה?', opts:['רוקדת בדיוק באותה זווית','מסובבת את הזווית, כי היא יודעת כמה השמש זזה','מפסיקה לרקוד — הריקוד כבר לא נכון','רוקדת לכיוון היציאה'], a:1, fb:'לדבורה יש שעון בראש: היא יודעת שהשמש זזה בערך 15° בשעה, ומתקנת את הזווית גם בלי לראות אותה.' },
+  ]
+};
+function renderQ(el, d, onDone, isQuick){
+  el.innerHTML = (isQuick?'<div class="qc-label">בדיקה מהירה</div>':'')+'<div class="qt">'+d.q+'</div><div class="opts">'+d.opts.map((o,i)=>'<button class="opt" data-i="'+i+'"><span class="k">'+['א','ב','ג','ד'][i]+'</span><span>'+o+'</span></button>').join('')+'</div><div class="fb"></div>';
+  el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    if(el.classList.contains('locked')) return; el.classList.add('locked');
+    const i=+b.dataset.i, ok=i===d.a;
+    b.classList.add(ok?'right':'wrong'); if(!ok) el.querySelector('.opt[data-i="'+d.a+'"]').classList.add('right');
+    const fb=el.querySelector('.fb'); fb.innerHTML=(ok?'<span class="pill-ok">נכון! </span>':'<span class="pill-bad">לא בדיוק. </span>')+d.fb; fb.classList.add('show');
+    onDone(ok);
+  });
+}
+Object.entries(QC).forEach(([id,d])=>{ renderQ(document.getElementById(id), d, ok=>{ S.qc[id]=ok; document.getElementById(d.btn).disabled=false; }, true); });
+
+/* ---------- test ---------- */
+let testBuilt=false;
+const MCQ_N = 4;
+function buildTest(){
+  if(testBuilt) return; testBuilt=true;
+  const list=[...MCQ.shared, ...(MCQ[S.track]||MCQ.emma)]; const box=document.getElementById('mcqs'); box.innerHTML='';
+  list.forEach((d,i)=>{ const el=document.createElement('div'); el.className='q'; box.appendChild(el); renderQ(el, {...d, q:(i+1)+'. '+d.q}, ok=>{ S.mcq[i]=ok; }); });
+  buildOrder();
+}
+const ORDER=[
+  {id:'a', t:'דבורה סיירת מוצאת פרחים מלאי צוף, 2 ק״מ מהכוורת.'},
+  {id:'b', t:'היא טסה הביתה, וזוכרת את הכיוון ביחס לשמש ואת המרחק.'},
+  {id:'c', t:'על החלה, בחושך, היא רוקדת "8": הנענוע בזווית מ"למעלה" כמו הזווית מהשמש, ואורכו לפי המרחק.'},
+  {id:'d', t:'האחיות עוקבות אחריה עם המחושים וקוראות את הקוד.'},
+  {id:'e', t:'האחיות יוצאות, מסתכלות על השמש — וטסות ישר לפרחים.'},
+];
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function buildOrder(){ const cards=shuffle([...ORDER]); const box=document.getElementById('order'); box.innerHTML='';
+  cards.forEach(c=>{ const el=document.createElement('button'); el.className='card'; el.dataset.id=c.id; el.innerHTML='<span class="n"></span><span>'+c.t+'</span>'; el.onclick=()=>pickOrder(c.id); box.appendChild(el); }); }
+function pickOrder(id){ if(S.orderScore!==null) return; const i=S.order.indexOf(id);
+  if(i>=0){ S.order.splice(i,1); } else S.order.push(id);
+  document.querySelectorAll('#order .card').forEach(c=>{ const k=S.order.indexOf(c.dataset.id); c.classList.toggle('picked',k>=0); c.querySelector('.n').textContent=k>=0?k+1:''; });
+  orderCheck.disabled = S.order.length!==5; }
+function resetOrder(){ S.order=[]; S.orderScore=null; orderFb.classList.remove('show'); buildOrder(); orderCheck.disabled=true; }
+function checkOrder(){ const o=S.order; const pos=id=>o.indexOf(id);
+  const ok = pos('a')===0 && pos('b')===1 && pos('c')===2 && pos('d')===3 && pos('e')===4;
+  S.orderScore = ok?2:(pos('a')===0&&pos('e')===4?1:0);
+  document.querySelectorAll('#order .card').forEach(c=>{ const id=c.dataset.id, p=pos(id); const good = p==='abcde'.indexOf(id); c.classList.add(good?'ok':'ko'); });
+  orderFb.innerHTML = ok ? '<span class="pill-ok">סדר מושלם!</span> מציאה ← טיסה הביתה עם הכיוון והמרחק בראש ← ריקוד על החלה ← האחיות קוראות במחושים ← טיסה לפי השמש. מידע שעובר מדבורה לדבורה בלי שאף אחת רואה את הפרחים.' : '<span class="pill-bad">כמעט.</span> הסדר הנכון: קודם הסיירת מוצאת את הפרחים, טסה הביתה (עם הכיוון והמרחק בראש), רוקדת על החלה, האחיות קוראות את הריקוד במחושים — ורק בסוף הן יוצאות וטסות לפי השמש.';
+  orderFb.classList.add('show'); }
+function checkChallenge(){
+  const dg=+chalDeg.value, an=+chalAng.value, side=chalSide.value, fb=document.getElementById('chalFb'); fb.classList.add('show');
+  const dOk = Math.abs(dg-60)<=0.5, aOk = Math.abs(an-80)<=1, sOk = side==='left';
+  fb.innerHTML = (dOk&&aOk&&sOk) ? '<span class="pill-ok">מדויק.</span> מ־10:00 עד 14:00 עברו 4 שעות: <span class="math">15° × 4 = 60°</span>. הפרחים היו משמאל לשמש, והשמש זזה ימינה — כלומר <b>התרחקה</b> מהם. אז הזווית גדלה: <span class="math">20° + 60° = 80°</span> שמאלה מ"למעלה". (בסימולציה הזווית קטנה, כי שם הפרחים היו מימין לשמש. הכיוון קובע.)'
+    : dOk ? (aOk ? '<span class="pill-ok">60° ו־80° — נכון.</span> רק הצד: הפרחים היו משמאל לשמש, והשמש זזה ימינה, אז הם עכשיו עוד יותר משמאלה.' : '<span class="pill-ok">השמש זזה 60° — נכון.</span> עכשיו הזווית החדשה: הפרחים היו <b>משמאל</b> לשמש, והשמש זזה <b>ימינה</b>. היא מתקרבת אליהם או מתרחקת מהם? אז הזווית קטנה או גדלה? <span class="math">20° + 60°</span> או <span class="math">60° − 20°</span>?')
+    : '<span class="pill-bad">עוד לא.</span> רמז: מ־10:00 עד 14:00 עברו 4 שעות, וכל שעה השמש זזה 15°. <span class="math">15 × 4 = ?</span>';
+  S.challenge = dOk&&aOk&&sOk;
+}
+function checkNum(t){
+  if(t==='adv'){ const c=+numAdv.value, r=+numAdvR.value, fb=document.getElementById('numFbAdv'); const cOk=c===3500, rOk=Math.abs(r-10)<=1; S.num=Math.max(S.num||0, (cOk?1:0)+(rOk?1:0));
+    fb.innerHTML = (cOk&&rOk) ? '<span class="pill-ok">מדויק!</span> <span class="math">3.5 × 1,000 = 3,500</span> מטר. וזמן הטיסה: 3,500 מטר הם <span class="math">3.5</span> ק״מ, <span class="math">3.5 ÷ 21 = 1/6</span> שעה — <span class="math">60 ÷ 6 = 10</span> דקות.'
+      : cOk ? '<span class="pill-ok">המרחק נכון</span> — <span class="math">3,500</span> מטר. הדקות עוד לא: 3,500 מטר הם <span class="math">3.5</span> ק״מ. כמה זמן טסים 3.5 ק״מ ב־21 קמ״ש? <span class="math">3.5 ÷ 21</span> שעה — ואז להפוך לדקות (<span class="math">× 60</span>).'
+      : '<span class="pill-bad">לא בדיוק.</span> קודם המרחק: כל שנייה היא 1,000 מטר, אז <span class="math">3.5 × 1,000 = ?</span> ואז הזמן: כמה זמן טסים 3.5 ק״מ במהירות 21 קמ״ש? (<span class="math">3.5 ÷ 21</span> שעה — ולהפוך לדקות.)';
+    fb.classList.add('show'); return; }
+  const v=+document.getElementById('numEmma').value, fb=document.getElementById('numFbEmma');
+  const ok=v===2500; S.num=ok?2:(S.num===2?2:0);
+  fb.innerHTML= ok?'<span class="pill-ok">נכון!</span> <span class="math">2.5 × 1,000 = 2,500</span> מטר. בערך המרחק מהכוורת של פון פריש עד הצלחת הרחוקה שלו.':'<span class="pill-bad">לא בדיוק.</span> רמז: שנייה אחת = 1,000 מטר, אז 2.5 שניות = <span class="math">2.5 × 1,000</span>.';
+  fb.classList.add('show'); }
+
+/* ---------- dictation ---------- */
+let rec=null, recOn=false;
+function toggleDictation(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ micMsg.textContent='ההקלטה לא נתמכת בדפדפן הזה — אפשר להקליד. (עובד בכרום ובאדג׳.)'; return; }
+  if(recOn){ rec.stop(); return; }
+  rec = new SR(); rec.lang='he-IL'; rec.interimResults=true; rec.continuous=true; const base=explain.value? explain.value.trim()+' ' : '';
+  rec.onresult=e=>{ let fin='', tmp=''; for(const r of e.results){ (r.isFinal?fin+=r[0].transcript+' ':tmp+=r[0].transcript); } explain.value=base+fin+tmp; };
+  rec.onerror=e=>{ micMsg.textContent = e.error==='not-allowed'||e.error==='service-not-allowed' ? 'אין הרשאה למיקרופון כאן — אפשר להקליד את ההסבר.' : 'ההקלטה נעצרה ('+e.error+'). אפשר לנסות שוב או להקליד.'; stopRec(); };
+  rec.onend=stopRec;
+  try{ rec.start(); recOn=true; micBtn.classList.add('rec'); micMsg.textContent='מקליט... דברו ברור, ולחצו שוב כדי לעצור.'; }catch(err){ micMsg.textContent='לא הצלחנו להתחיל הקלטה — אפשר להקליד.'; }
+}
+function stopRec(){ recOn=false; micBtn.classList.remove('rec'); if(micMsg.textContent.startsWith('מקליט')) micMsg.textContent='ההקלטה נעצרה. אפשר לערוך את הטקסט.'; }
+
+/* ---------- explain-back grading ---------- */
+const RUBRIC=[
+  'כתבתי שהדבורה חוזרת לכוורת ורוקדת על החלה בצורת 8, עם ריצה ישרה מנענעת.',
+  'הסברתי שהזווית של הנענוע מ"למעלה" היא הזווית של הפרחים מהשמש (כי בכוורת חשוך, "למעלה" מחליף את השמש).',
+  'הזכרתי שמשך הנענוע אומר כמה רחוק — נענוע ארוך = רחוק (בערך שנייה לקילומטר).',
+  'הזכרתי שהאחיות קוראות את הריקוד במחושים ואז יוצאות וטסות לפי השמש.',
+];
+const MODEL='כשדבורה מוצאת פרחים היא חוזרת לכוורת ורוקדת על חלת הדבש בצורת 8, עם ריצה ישרה שבה היא מנענעת את הבטן. בכוורת חשוך, אז במקום להצביע על השמש היא משתמשת ב"למעלה": הזווית של הנענוע מ"למעלה" היא הזווית של הפרחים מהשמש. כמה זמן היא מנענעת אומר כמה רחוק — בערך שנייה לכל קילומטר. האחיות מרגישות את הריקוד במחושים, יוצאות מהכוורת, מסתכלות על השמש וטסות ישר לפרחים. וכשהשמש זזה, הדבורה מסובבת את הריקוד לפי השעון שבראש שלה.';
+/* ---------- AI backend: the Claude viewer's `sample` capability (Raph's review copy) or the ארטו proxy (public site) ---------- */
+let samplePromise = IN_CLAUDE ? window.claude.use('sample').catch(()=>null) : Promise.resolve(null);
+const PX = {
+  key:'wow-arto',
+  load(){ try{ const d=JSON.parse(localStorage.getItem(this.key)||'null'); return d&&d.token&&(Date.now()-d.at<5*3600e3)?d:null; }catch(e){ return null; } },
+  save(d){ try{ localStorage.setItem(this.key, JSON.stringify(d)); }catch(e){} },
+  async post(path, body, timeoutMs){
+    const ac=new AbortController(), timer=setTimeout(()=>ac.abort(), timeoutMs||30000);
+    let r; try{ r=await fetch(PROXY.url.replace(/\/+$/,'')+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:ac.signal}); }
+    catch(e){ const err=new Error('network'); err.code='network'; throw err; }
+    finally{ clearTimeout(timer); }
+    let j={}; try{ j=await r.json(); }catch(e){}
+    if(!r.ok){ const err=new Error(j.error||('http_'+r.status)); err.code=j.error||('http_'+r.status); err.data=j; throw err; }
+    return j;
+  },
+  async token(fresh){
+    const d=this.load(); if(d && !fresh) return d.token;
+    const j = PROXY.app ? await this.post('/session',{kidToken:RT.kidToken||'', edition_n:EDITION.n}, 12000) : await this.post('/session',{password:gatePw()}, 12000);
+    this.save({token:j.token, at:Date.now()}); this.meter(j); return j.token;
+  },
+  meter(j){ if(!j || typeof j.remaining!=='number') return; const el=document.getElementById('artoLeft'); if(!el) return;
+    const n=j.remaining; el.hidden = !(n<=5); el.textContent = n<=0 ? 'ארטו סיים להיום' : n===1 ? 'עוד שאלה אחת להיום' : 'עוד '+n+' שאלות להיום'; },
+  async chat(system, messages, max_tokens){
+    const call = async tok => { const j = PROXY.app ? await this.post('/chat',{token:tok, messages}, 40000) : await this.post('/chat',{token:tok, system, messages, max_tokens}, 40000); this.meter(j); return j.text; };
+    try{ return await call(await this.token(false)); }
+    catch(e){ if(['session_expired','bad_token','session_limit'].includes(e.code)) return await call(await this.token(true)); throw e; }
+  },
+  async grade(explanation){                       // app mode only: the server owns the grading prompt (lesson context + rubric)
+    const call = async tok => { const j=await this.post('/grade',{token:tok, explanation}, 40000); this.meter(j); return j; };
+    try{ return await call(await this.token(false)); }
+    catch(e){ if(['session_expired','bad_token','session_limit'].includes(e.code)) return await call(await this.token(true)); throw e; }
+  }
+};
+const AI = {
+  mode:null,
+  async init(){ if(this.mode) return this.mode; const s=await samplePromise; this.mode = s?'sample':(PROXY.url?'proxy':'none'); return this.mode; },
+  async chat(system, history, onText){            // history: [{role,content}…], last one is the user's
+    const m=await this.init();
+    if(m==='sample'){ const s=await samplePromise; const turns=[{role:'user', content: system+'\n\n(ענה ישירות לשאלת הילד/ה שלהלן.)\n\n'+history[0].content}, ...history.slice(1)]; const r=await s(turns,{modelTier:'default', cache:false, onText:({text})=>onText&&onText(text)}); return r.text; }
+    if(m==='proxy') return await PX.chat(system, history, 600);
+    const e=new Error('no_ai'); e.code='no_ai'; throw e;
+  },
+  async grade(explanation, prompt){              // explain-it-back: the app grades server-side; the kit modes build the prompt here
+    const m=await this.init();
+    if(m==='proxy' && PROXY.app) return await PX.grade(explanation);
+    return await this.json(prompt);
+  },
+  async json(prompt){
+    const m=await this.init();
+    if(m==='sample'){ const s=await samplePromise; return await s.json(prompt,{modelTier:'quick', cache:false}); }
+    if(m==='proxy'){ const t=await PX.chat('אתה מחזיר JSON תקין בלבד — בלי טקסט לפני או אחרי, בלי סימוני קוד.', [{role:'user', content:prompt}], 400); const mm=t.match(/\{[\s\S]*\}/); return JSON.parse(mm?mm[0]:t); }
+    const e=new Error('no_ai'); e.code='no_ai'; throw e;
+  }
+};
+function artoError(e){
+  const c=e&&e.code;
+  if(c==='daily_limit') return 'ארטו כבר ענה על הרבה שאלות היום, ועכשיו הוא נח. מחר הוא חוזר! בינתיים אפשר לשאול את אבא או אמא.';
+  if(c==='cap' && e.data && e.data.demo) return 'ההדגמה נותנת '+(e.data.cap||3)+' שאלות. עם הרשמה, ארטו עונה לילדים עד 30 שאלות ביום — והשיעור תמיד חינם.';
+  if(c==='cap') return (e.data&&e.data.subscribed) ? 'ארטו סיים להיום — נמשיך מחר.' : 'ארטו ענה על '+((e.data&&e.data.cap)||3)+' שאלות היום. רוצה עוד? ההורים יכולים להפעיל אותו.';
+  if(c==='off_closed') return 'ארטו חוזר מחר עם השיעור הבא.';
+  if(c==='bad_kid'||c==='no_kid') return 'הקישור הזה לא מזוהה — בקשו מההורים קישור חדש.';
+  if(c==='session_limit') return 'ארטו צריך הפסקה — נסו שוב עוד כמה דקות.';
+  if(c==='wrong_password'||c==='password_not_configured') return 'משהו לא מסתדר עם סיסמת הכניסה — אמרו לאבא.';
+  if(c==='too_many_attempts') return 'יותר מדי ניסיונות — נסו שוב בעוד שעה.';
+  if(c==='network') return 'אין חיבור לארטו — בדקו את האינטרנט ונסו שוב.';
+  if(c==='rate_limited'||c==='upstream_error') return 'ארטו צריך לנוח דקה — נסו שוב עוד רגע.';
+  if(c==='cancelled') return 'בוטל.';
+  if(c==='not_granted'||c==='sampling_disabled'||c==='capability_disabled'||c==='no_ai') return 'ארטו לא זמין בדפדפן הזה.';
+  return 'משהו השתבש ('+(c||'שגיאה')+'). נסו שוב.';
+}
+const ARTO_OFF = c => ['daily_limit','cap','off_closed','bad_kid','no_kid','wrong_password','password_not_configured','too_many_attempts','not_granted','sampling_disabled','capability_disabled','no_ai'].includes(c);
+async function gradeExplain(){
+  const txt=explain.value.trim(); S.explainText=txt; const fb=document.getElementById('explainFb'); fb.classList.add('show');
+  if(txt.length<15){ fb.innerHTML=G('כתוב או הקלט עוד קצת — לפחות שני משפטים. אתה יודע את זה!','כתבי או הקליטי עוד קצת — לפחות שני משפטים. את יודעת את זה!'); return; }
+  explainBtn.disabled=true; fb.innerHTML='בודקים את ההסבר...'; S.explainGraded=true;
+  const mode = await AI.init();
+  if(mode!=='none'){
+    try{
+      const who = (F()?'ילדה בכיתה '+KID().grade+' (בת '+KID().age+')':'ילד בכיתה '+KID().grade+' (בן '+KID().age+')') + (KID().level==='advanced'?' — ברמה מתקדמת: דרוש/י הסבר מלא של המכניזם (למה "למעלה" מחליף את השמש בכוורת החשוכה — כוח המשיכה; שהזווית מהאנך שווה לזווית מכיוון השמש; שמשך הנענוע מקודד מרחק; ואיך הדבורה מתקנת את הזווית לפי תנועת השמש) ולא רק את הסיפור':'');
+      /* lint-ignore: math */
+      const prompt = 'את/ה מורה חם/ה ומעודד/ת ל'+who+'. הילד/ה למד/ה היום איך דבורת דבש מספרת לאחיותיה איפה הפרחים (ריקוד הנענוע, קרל פון פריש). הרעיונות המרכזיים: (1) הדבורה חוזרת לכוורת ורוקדת על החלה בצורת 8 עם ריצה ישרה מנענעת; (2) הזווית של הנענוע מ"למעלה" (ביחס לכוח המשיכה) שווה לזווית של הפרחים מכיוון השמש — כי בכוורת חשוך, "למעלה" מחליף את השמש; (3) משך הנענוע מקודד מרחק: ארוך יותר = רחוק יותר, בערך שנייה לקילומטר; (4) האחיות קוראות את הריקוד במחושים בחושך, יוצאות וטסות לפי השמש; (5) לדבורה שעון פנימי: היא מסובבת את הריקוד כשהשמש זזה (כ־15° בשעה).\n\nההסבר של הילד/ה:\n"""'+txt+'"""\n\nהחזר/י JSON בלבד, בלי טקסט נוסף: {"stars": 1|2|3, "praise": "משפט אחד ספציפי על מה שהיה טוב בהסבר", "missing": ["רעיון חסר או לא מדויק, בקצרה"], "tip": "משפט אחד מעודד שמכוון להשלמה"}. missing: עד 2 פריטים, יכול להיות ריק. stars: 3 אם הרעיון המרכזי מובן (ריקוד + זווית מלמעלה = זווית מהשמש + משך הנענוע = מרחק), 2 אם חלק מהרעיון, 1 אם רק התחלה. כתוב/כתבי בעברית פשוטה ובגובה העיניים, '+(F()?'בלשון נקבה':'בלשון זכר')+', בלי להעליב. חישובים כותבים משמאל לימין.';
+      const r = await AI.grade(txt, prompt);
+      const stars=Math.max(1,Math.min(3,+r.stars||1)); S.explain=stars;
+      fb.innerHTML='<div class="stars">'+'★'.repeat(stars)+'<span class="off">'+'★'.repeat(3-stars)+'</span></div><p style="margin:8px 0"><b>'+fmtBot(r.praise||'')+'</b></p>'+(r.missing&&r.missing.length?'<p style="margin:0 0 8px">מה עוד אפשר להוסיף: '+r.missing.map(fmtBot).join(' · ')+'</p>':'')+'<p class="small" style="margin:0">'+fmtBot(r.tip||'')+'</p><details style="margin-top:10px"><summary>ההסבר של המורה</summary><p>'+MODEL+'</p></details>';
+      explainBtn.textContent='נבדק'; return;
+    }catch(e){ /* fall through to the self-check rubric */ }
+  }
+  fb.innerHTML='<p style="margin:0 0 8px">'+G('קרא את ההסבר שלך, וסמן מה כתבת:','קראי את ההסבר שלך, וסמני מה כתבת:')+'</p>'+RUBRIC.map((r,i)=>'<label class="chk"><input type="checkbox" data-r="'+i+'" onchange="rubricChange()"><span>'+r+'</span></label>').join('')+'<div class="stars" id="rubStars"><span class="off">★★★</span></div><details style="margin-top:10px"><summary>ההסבר של המורה — להשוואה</summary><p>'+MODEL+'</p></details>';
+  explainBtn.textContent='נבדק';
+}
+function rubricChange(){ const n=[...document.querySelectorAll('#explainFb input:checked')].length; S.explain = n>=4?3:n>=2?2:n>=1?1:0; rubStars.innerHTML='★'.repeat(S.explain)+'<span class="off">'+'★'.repeat(3-S.explain)+'</span>'; }
+
+/* ---------- finish ---------- */
+function finish(){
+  const mcq=Object.values(S.mcq).filter(Boolean).length, order=S.orderScore||0, num=S.num||0, ex=S.explain||0;
+  const total=mcq+order+num+ex, max=MCQ_N+2+2+3, pct=Math.round(total/max*100);
+  goTo(8);
+  const ring=document.getElementById('ring'); setTimeout(()=>{ ring.style.setProperty('--p',pct); },50); ringTxt.textContent=pct+'%';
+  wowMeter.style.width='0'; setTimeout(()=>{ wowMeter.style.width=Math.max(30,pct)+'%'; },300);
+  const name=NAME();
+  resTitle.textContent = pct>=85?name+', פון פריש היה מקבל אותך למעבדה!':pct>=60?name+', יש לך מוח של '+G('חוקר דבורים','חוקרת דבורים')+'!':name+', הרעיון הגדול כבר אצלך!';
+  resLine.innerHTML='<b class="num">'+total+'</b> מתוך '+max+' נקודות.';
+  resDetail.innerHTML='שאלות: <span class="math">'+mcq+'/'+MCQ_N+'</span> · סידור: <span class="math">'+order+'/2</span> · חישוב: <span class="math">'+num+'/2</span> · ההסבר שלי: <span class="math">'+ex+'/3</span>';
+  resGuess.innerHTML = S.guessK===null
+    ? 'לא בחרתם סדר גודל בהתחלה. התשובה: '+GUESS.realTxt+' לצנצנת של חצי קילו — כ־70 כפיות, כל אחת כ־30,000 פרחים.'
+    : (S.guessOk ? '<span class="pill-ok">קלעתם בול.</span> ' : 'בחרתם <b class="num">'+fmt(S.guess)+'</b>, וההערכה המקובלת היא '+GUESS.realTxt+' — פי <span class="math">'+(S.guess<GUESS.real?Math.round(GUESS.real/S.guess):Math.round(S.guess/GUESS.real))+'</span> '+(S.guess<GUESS.real?'יותר':'פחות')+'. ')+(S.guessOk?GUESS.realTxt+' לצנצנת של חצי קילו — כ־70 כפיות, כל אחת כ־30,000 פרחים.':'סדר גודל זו מיומנות שנבנית — בכל גיליון יש שאלה כזאת.');
+  S.result={total,max,pct};
+
+  /* completion gate & password vault */
+  const todo = [
+    [Object.keys(S.mcq).length>=MCQ_N, 'לענות על כל '+MCQ_N+' השאלות'],
+    [S.orderScore!==null, 'לבדוק את סידור השלבים'],
+    [S.num!==null, 'לפתור את שאלת החישוב'],
+    [S.explainGraded, 'לכתוב או להקליט הסבר ולבדוק אותו'],
+  ];
+  const complete = todo.every(t=>t[0]);
+  const vault=document.getElementById('vault');
+  if(complete){
+    vault.classList.add('open'); vaultLock.textContent='🔓';
+    vaultTitle.textContent='הסיסמה הסודית של היום היא:';
+    /* in the app the secret never travels in the page: it arrives with the server's answer to the completion */
+    vaultBody.innerHTML='<div class="pw">'+((RT&&RT.kidToken)?'…':esc(decodePw()))+'</div><p class="small" style="margin:0">'+G('ספר','ספרי')+' אותה לאבא או לאמא — הם יודעים מה היא פותחת. הסיסמה מתחלפת כל יום.</p>';
+  } else {
+    vault.classList.remove('open'); vaultLock.textContent='🔒';
+    vaultTitle.textContent='הסיסמה הסודית של היום עדיין נעולה';
+    vaultBody.innerHTML='<p style="margin:0 0 6px">כדי לפתוח אותה צריך לסיים את כל המבחן:</p><div class="todo">'+todo.map(t=>'<span class="'+(t[0]?'ok':'no')+'">'+(t[0]?'✓ ':'○ ')+t[1]+'</span>').join('')+'</div><div style="margin-top:12px"><button class="btn small" onclick="goTo(7)">חזרה למבחן</button></div>';
+  }
+
+  /* XP & level (same formula the nightly bot uses) */
+  const st = STATS[S.kid]||{streak:0,best:0,xp:0,badges:[]};
+  const streakAfter = (complete && !LATE) ? st.streak+1 : st.streak;
+  const xpBase = total*10, xpDone = complete?20:0, xpStreak = (complete && !LATE)?Math.min(50, streakAfter*5):0, xpToday = xpBase+xpDone+xpStreak;
+  document.getElementById('xpToday').textContent='+'+xpToday;
+  xpDetail.innerHTML='<span class="math">'+total+' × 10 = '+xpBase+'</span> על הנקודות'+(complete?' · <span class="math">+20</span> על סיום המבחן'+(LATE?' · השלמה מאוחרת — בלי בונוס רצף':' · <span class="math">+'+xpStreak+'</span> בונוס רצף'):' · (בונוס מחכה למי שמסיים את המבחן)');
+  const xpTotal = st.xp+xpToday, lv=levelFor(xpTotal,F()), prevLv=levelFor(st.xp,F());
+  const span = lv.next? (lv.next-LEVELS[lv.i][0]) : 1, into = lv.next? (xpTotal-LEVELS[lv.i][0]) : 1;
+  setTimeout(()=>{ xpBar.style.width=Math.round(into/span*100)+'%'; },200);
+  xpLevel.innerHTML = 'סה״כ <b class="num">'+xpTotal+'</b> XP · רמה '+(lv.i+1)+': <b>'+lv.name+'</b>'+(lv.next?' · עוד <span class="num">'+(lv.next-xpTotal)+'</span> XP לרמה הבאה':' · הרמה הגבוהה ביותר!')+(lv.i>prevLv.i?' — <b>עלית רמה היום!</b>':'');
+
+  /* streak: last 7 days, labelled by day of month */
+  streakLine.innerHTML = LATE ? 'זה גיליון מ־<b class="num">'+EDITION.date.split('-').reverse().join('.')+'</b>. השלמה מאוחרת נותנת XP, אבל לא נספרת ברצף — הרצף נבנה מהגיליון של היום.' : complete ? '<b class="num">'+streakAfter+'</b> '+(streakAfter===1?'יום ברצף — ההתחלה!':'ימים ברצף!') : 'הרצף שלך: <b class="num">'+st.streak+'</b> · היום עוד לא נספר — '+G('סיים','סיימי')+' את המבחן.';
+  const row=document.getElementById('streakRow'); row.innerHTML=''; row.hidden=LATE;
+  const base=new Date(EDITION.date+'T12:00:00');
+  for(let i=6;i>=0;i--){ const d=new Date(base); d.setDate(base.getDate()-i); const s=document.createElement('span'); const hit = i===0 ? complete : (i<=st.streak); s.innerHTML='<span>'+(i===0?'היום':d.getDate()+'.'+(d.getMonth()+1))+'</span>'; if(hit) s.classList.add('hit'); if(i===0) s.classList.add('today'); row.appendChild(s); }
+  const nextMilestone=[3,7,14,30,100].find(m=>m>streakAfter);
+  streakNext.textContent = LATE ? '' : complete ? (nextMilestone?'עוד '+(nextMilestone-streakAfter)+' ימים לתג "רצף '+nextMilestone+'". מחר יש גיליון חדש!':'רצף אגדי.') : '';
+
+  /* badges */
+  const earned=[];
+  if(complete && !LATE && st.streak===0) earned.push(['1','היום הראשון']);
+  if(mcq===MCQ_N) earned.push(['✓','בלי טעויות']);
+  if(ex===3) earned.push(['★','המורה']);
+  if(S.guessOk) earned.push(['≈','ניחוש חד']);
+  if(S.holdDone) earned.push(['נ',G('הרקדן','הרקדנית')]);
+  if(S.bonusDone) earned.push(['ד','טועמי הדבש']);
+  if(S.challenge) earned.push(['Σ','האתגר']);
+  if(complete && !LATE && [3,7,14,30,100].includes(streakAfter)) earned.push(['🔥','רצף '+streakAfter]);
+  badgesTitle.textContent='תגים שזכית בהם היום';
+  const bb=document.getElementById('badges'); bb.innerHTML = earned.map(b=>'<span class="badge new"><span class="dot">'+b[0]+'</span>'+b[1]+'</span>').join('');
+  badgeNone.textContent = earned.length? '' : 'עוד לא — תגים מחכים למי שמסיים בלי טעויות, מסביר כמו מורה, או שומר על רצף.';
+  S.game={complete, xpToday, streakAfter, badges:earned.map(b=>b[1])};
+  reportCompletion();
+
+  /* one-tap report to the parent */
+  mailBtn.href = 'mailto:'+EDITION.parent+'?'+(KID().cc?'cc='+encodeURIComponent(KID().cc)+'&':'')+'subject='+encodeURIComponent('שורשים וכנפיים #'+EDITION.n+' · סיום · '+name)+'&body='+encodeURIComponent(summaryText());
+}
+function summaryText(){
+  const r=S.result||{total:0,max:11,pct:0}, g=S.game||{};
+  return 'שורשים וכנפיים #'+EDITION.n+' · '+EDITION.title+'\n'+NAME()+': '+r.total+'/'+r.max+' נקודות ('+r.pct+'%)'+(g.complete?' · המבחן הושלם ✓':' · המבחן לא הושלם')+'\nXP היום: +'+(g.xpToday||0)+(g.badges&&g.badges.length?' · תגים: '+g.badges.join(', '):'')+(S.guessK===null?'':'\nסדר הגודל שבחרתי לפרחים בצנצנת דבש: '+fmt(S.guess)+(S.guessOk?' ✓':' (התשובה: כ־2 מיליון)')+'\n')+(S.explainText?'ההסבר שלי: '+S.explainText+'\n':'')+'\n'+EDITION.code+'|'+(S.kid||'')+'|'+r.total+'|'+r.max+'|'+(g.complete?'done':'partial')+(LATE?'|late':'');
+}
+async function copyResults(){
+  const txt=summaryText();
+  try{ await navigator.clipboard.writeText(txt); toast('הועתק! אפשר להדביק בוואטסאפ לאבא.'); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast('הועתק!');}catch(err){ toast('לא הצלחנו להעתיק — צלמו מסך!'); } ta.remove(); }
+}
+
+/* ---------- the app: completion POST (replaces the email hack), queued in localStorage when offline ---------- */
+const CQ_KEY='wow-cq';
+function cqLoad(){ try{ return JSON.parse(localStorage.getItem(CQ_KEY)||'[]'); }catch(e){ return []; } }
+function cqSave(q){ try{ localStorage.setItem(CQ_KEY, JSON.stringify(q.slice(-20))); }catch(e){} }
+async function postCompletion(body){
+  const ac=new AbortController(), timer=setTimeout(()=>ac.abort(), 10000);
+  try{ const r=await fetch(String(RT.api||'/api').replace(/\/+$/,'')+'/kid/complete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:ac.signal});
+    let j={}; try{ j=await r.json(); }catch(e){}
+    if(r.status>=500 || r.status===0) throw new Error('server'); return { ok:r.ok, j }; }
+  finally{ clearTimeout(timer); }
+}
+async function flushQueue(){ if(!(RT&&RT.kidToken)) return; const q=cqLoad(); if(!q.length) return; const rest=[]; for(const b of q){ try{ await postCompletion(b); }catch(e){ rest.push(b); } } cqSave(rest); }
+function reportCompletion(){
+  if(!(RT&&RT.kidToken) || !S.result) return;
+  const g=S.game||{}, r=S.result;
+  const body={ token:RT.kidToken, edition_n:EDITION.n, score:r.total, max:r.max, complete:!!g.complete, late:LATE, challenge:!!S.challenge, client_at:new Date().toISOString() };
+  if(RT.profile && RT.profile.keep_explanations && S.explainText) body.answers={ explain:S.explainText };
+  postCompletion(body).then(({ok,j})=>{ if(ok && j && j.stats) applyServerStats(j); }).catch(()=>{ const q=cqLoad(); q.push(body); cqSave(q); const el=document.getElementById('rtStatus'); if(el){ el.hidden=false; el.textContent='התוצאה נשמרה במכשיר ותישלח כשיהיה חיבור.'; } const pwEl=document.querySelector('.vault .pw'); if(pwEl && pwEl.textContent==='…') pwEl.textContent='הסיסמה תופיע כשיהיה חיבור'; });
+}
+function applyServerStats(j){   // the server's truth wins on the results screen (streak derived from completions, XP awarded once)
+  const st=j.stats, lv=levelFor(st.xp,F());
+  const pwEl=document.querySelector('.vault .pw'); if(pwEl && j.password) pwEl.textContent=j.password;
+  if(typeof j.xp_awarded==='number' && j.xp_awarded>=0) document.getElementById('xpToday').textContent='+'+j.xp_awarded;
+  const span = lv.next? (lv.next-LEVELS[lv.i][0]) : 1, into = lv.next? (st.xp-LEVELS[lv.i][0]) : 1;
+  xpBar.style.width=Math.round(into/span*100)+'%';
+  xpLevel.innerHTML = 'סה״כ <b class="num">'+st.xp+'</b> XP · רמה '+(lv.i+1)+': <b>'+lv.name+'</b>'+(lv.next?' · עוד <span class="num">'+(lv.next-st.xp)+'</span> XP לרמה הבאה':' · הרמה הגבוהה ביותר!');
+  if(!LATE){ streakLine.innerHTML = st.streak>0 ? '<b class="num">'+st.streak+'</b> '+(st.streak===1?'יום ברצף — ההתחלה!':'ימים ברצף!') : 'הרצף שלך: <b class="num">0</b> · '+G('סיים','סיימי')+' את המבחן כדי להתחיל רצף.';
+    const row=document.getElementById('streakRow'); [...row.children].forEach((s,i)=>{ const back=6-i; s.classList.toggle('hit', back===0 ? !!(S.game&&S.game.complete) : back<=st.streak-(S.game&&S.game.complete?1:0)); }); }
+  if(Array.isArray(j.new_badges) && j.new_badges.length){ const bb=document.getElementById('badges'); const have=new Set([...bb.querySelectorAll('.badge')].map(b=>b.textContent.trim())); j.new_badges.forEach(b=>{ if(!have.has(b)){ const s=document.createElement('span'); s.className='badge new'; s.innerHTML='<span class="dot">★</span>'+esc(b); bb.appendChild(s); } }); badgeNone.textContent=''; }
+  const el=document.getElementById('rtStatus'); if(el){ el.hidden=false; el.textContent='התוצאה נשמרה. ההורים רואים אותה בלוח.'; }
+}
+
+/* ---------- the app: profile bootstrap ---------- */
+async function bootFromRuntime(){
+  if(!RT) return;
+  document.body.dataset.runtime = RT.kidToken ? 'app' : 'demo';
+  if(!RT.kidToken){ const dl=document.getElementById('demoLevel'); if(dl) dl.hidden=false; return; }
+  const status=document.getElementById('rtStatus'); if(status){ status.hidden=false; status.textContent='טוענים את הפרופיל…'; }
+  let p = RT.profile || null;
+  if(!p){
+    const ac=new AbortController(), timer=setTimeout(()=>ac.abort(), 8000);
+    try{ const r=await fetch(String(RT.api||'/api').replace(/\/+$/,'')+'/kid/profile',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token:RT.kidToken}),signal:ac.signal}); if(r.ok) p=await r.json(); }
+    catch(e){} finally{ clearTimeout(timer); }
+  }
+  if(p && p.kid){
+    RT.profile = p;
+    const id = p.kid.id || 'me';
+    setKids({ [id]: kidFromProfile(p.kid) }); STATS[id] = Object.assign({ streak:0, best:0, xp:0, badges:[] }, p.stats||{});
+    buildPicker(); pickKid(id); if(status) status.hidden=true;
+  } else {
+    /* offline profile: the lesson still works; standard level, no assistant, completion queued */
+    setKids({ me: kidFromProfile({ name:(RT.name||'אורח/ת'), feminine:!!RT.feminine, age:'', grade:'', level:'standard' }) }); STATS.me={ streak:0, best:0, xp:0, badges:[] };
+    buildPicker(); pickKid('me'); PROXY.url=''; if(status){ status.hidden=false; status.textContent='אין חיבור לשרת כרגע — אפשר ללמוד; התוצאה תישמר במכשיר ותישלח אחר כך.'; }
+  }
+  flushQueue();
+}
+function demoLevelChange(){ const gi=+document.getElementById('demoGrade').value, g=GRADES_HE[gi]||'ה', lv=['support','standard','advanced'][+document.getElementById('demoLevelSel').value]||'standard';
+  document.getElementById('demoGradeOut').textContent=g; document.getElementById('demoLevelOut').textContent=LEVEL_HE[lv];
+  Object.keys(KIDS).forEach(id=>{ const k=KIDS[id]; Object.assign(k, kidFromProfile({ name:k.name, feminine:k.f, age:String(7+gi), grade:g, level:lv })); }); buildPicker(); if(S.kid){ const id=S.kid; S.kid=null; S.started=false; pickKid(id); } }
+
+/* ---------- Arto, the assistant ---------- */
+/* lint-ignore: math */
+const LESSON_CONTEXT = 'השיעור של היום: "הדבורה שמספרת סוד בריקוד" — ריקוד הנענוע של דבורת הדבש, שפענח קרל פון פריש (1886–1982, נולד בווינה; פרס נובל לפיזיולוגיה או רפואה 1973, יחד עם קונרד לורנץ וניקו טינברגן). העובדות: (1) סיירת שמצאה פרחים חוזרת לכוורת ורוקדת על חלת הדבש הזקופה בצורת 8, עם ריצה ישרה שבה היא מנענעת את הבטן — "הנענוע". (2) הכיוון: בכוורת חשוך, אז במקום השמש הדבורות משתמשות בכוח המשיכה — "למעלה" על החלה = לכיוון השמש. זווית הנענוע מ"למעלה" (ימינה/שמאלה) = זווית הפרחים מכיוון השמש (ימינה/שמאלה). ריקוד ישר למטה = בכיוון ההפוך מהשמש. (3) המרחק: משך הנענוע. מדידות פון פריש: כחצי שנייה ל־200 מטר, כ־4 שניות ל־4.5 ק״מ; כלל אצבע: שנייה ≈ קילומטר (לא מדויק; תלוי בזן ובנוף). הדבורה מודדת מרחק לפי כמה הנוף "זרם" לה מול העיניים (ניסוי המנהרה המפוספסת). לפרחים קרובים מאוד (עד כ־50 מ׳) יש ריקוד עגול. (4) האחיות קוראות את הריקוד בחושך במחושים, ואז יוצאות וטסות לפי השמש; דבורה טסה עד כ־24 קמ״ש (2 ק״מ ≈ 5 דקות). (5) לדבורה שעון פנימי: השמש זזה בממוצע 15° בשעה (360 ÷ 24) ימינה/עם כיוון השעון, והדבורה מסובבת את הריקוד בהתאם (בסימולציה: 80° ימינה ב־09:00 → 35° ימינה ב־12:00, כי השמש התקרבה לכיוון הפרחים; אם הפרחים משמאל לשמש, הזווית גדלה). על חלה שוכבת מול השמיים הדבורות מצביעות ישר על הפרחים; בחושך על חלה שוכבת הריקוד מבולבל. (6) אור מקוטב: אור השמש בשמיים מסודר בדוגמה של קווים במעגלים סביב השמש; הדבורות רואות אותה (פון פריש, 1949) ומוצאות את השמש גם מאחורי ענן מפיסת שמיים כחולים אחת. (7) ההיסטוריה: חשבו שהוא טועה; הוא עצמו חשב בהתחלה שריקוד עגול = צוף ונענוע = אבקה, ורק אחרי כ־25 שנה הבין שהנענוע מקודד מרחק; היו שטענו שהאחיות עוקבות אחרי ריח; ב־2005 חוקרים באנגליה (Rothamsted, Riley ואחרים, Nature) עקבו אחרי דבורות עם אנטנות מכ״ם זעירות: הן טסו לכיוון שהריקוד ציין, גם כשהוזזו עד 250 מ׳ הצידה. (8) חיבורים: מחוג השעות זז 30° בשעה; משקפי שמש מקוטבים; רובוט־דבורה רוקד (ברלין); דבש בישראל — כ־120,000 כוורות, כ־35 ק״ג לכוורת, כ־40% מהדבש נאכל סביב ראש השנה (השנה: ערב שישי 11.9); "ארץ זבת חלב ודבש" — כנראה דבש תמרים. דבורה אחת מייצרת בחייה כ־1/12 כפית דבש; לצנצנת של חצי קילו כ־2 מיליון ביקורים בפרחים (הערכות). האינטראקציות בעמוד: שאלת סדר גודל בפתיחה — כמה פרחים בצנצנת דבש של חצי קילו, לבחירה בין 20 אלף, 200 אלף, 2 מיליון ו־20 מיליון (התשובה: כ־2 מיליון — כ־70 כפיות × כ־30,000 פרחים לכפית), ניחוש "מה עשתה הדבורה", מפענח הריקוד (זווית ומרחק), "היו הדבורה" (לחיצה ארוכה = נענוע), מחשבון הטיסה, שעון השמש של הדבורה (ניחוש ואז מחוון שעות), עיני דבורה (שמיים מקוטבים, בונוס), מחשבון הדבש (בונוס). במבחן: 4 שאלות, סידור שלבים, חישוב (נענוע → מטרים; מתקדם: גם דקות טיסה ב־21 קמ״ש), הסבר במילים שלהם. האתגר (למתקדמים): פרחים 20° שמאלה מהשמש ב־10:00; עד 14:00 השמש זזה 15 × 4 = 60° ימינה, כלומר התרחקה מהפרחים, אז הזווית גדלה: 20 + 60 = 80° שמאלה. הבונוסים: עיני דבורה (שמיים מקוטבים) ומחשבון הדבש.';
+const CHIPS = ['לא הבנתי למה "למעלה" זה השמש', 'איך הדבורה יודעת כמה זמן לנענע?', 'איך האחיות רואות את הריקוד בחושך?', 'למה לא האמינו לפון פריש?', 'איך דבורים עושות דבש?'];
+let chatHistory=[], chatBusy=false, chatInit=false, chatRec=null;
+function personaPrompt(){
+  const k = KIDS[S.kid];
+  const kid = (!k ? 'ילד או ילדה בגילאי 8–11.' : k.f ? k.name+', ילדה בת '+k.age+' (כיתה '+k.grade+'). פנה אליה בלשון נקבה.' : k.name+', ילד בן '+k.age+' (כיתה '+k.grade+'). פנה אליו בלשון זכר'+(S.track==='adam'?', במשפטים קצרים במיוחד.':'.'))
+    + (k&&k.push==='ontrack' && k.level!=='advanced' ? ' אחרי כל תשובה שאל שאלת המשך אחת קצרה שמזמינה לחשוב צעד אחד קדימה.' : '')
+    + (k&&k.level==='advanced' ? ' חשוב: '+(k.f?'היא חדה במיוחד ואוהבת אתגר — אל תפשטי בשבילה':'הוא חד במיוחד ואוהב אתגר — אל תפשט בשבילו')+'. תן את ההסבר המלא (כולל הגאומטריה והנוסחה), שאל שאלות המשך שדורשות חשיבה, הצע את הגרסה הקשה של כל רעיון, והזמן לנמק ולהוכיח.' : '');
+  /* lint-ignore: math */
+  return 'אתה ארטו — ספרן חכם, סבלני וקצת מצחיק מהספרייה הגדולה של אלכסנדריה, שמלווה ילדים ב"שורשים וכנפיים". המשתמש/ת: '+kid+'\n'+LESSON_CONTEXT+'\n\nכללים: כתוב בעברית פשוטה, חמה, בגובה העיניים. 2–5 משפטים בכל תשובה (יותר רק אם מבקשים סיפור). תמיד הסבר עם דוגמה מהחיים של ילדים (כדורגל, פיצה, חצר, אופניים). כשהילד/ה שואל/ת על שאלה מהמבחן — אל תיתן את התשובה; תן רמז או שאלה מכוונת. אם שואלים מעבר לשיעור (חלל, היסטוריה, מתמטיקה, כל דבר) — ענה בשמחה ובדיוק מדעי, וחבר בחזרה לנושא אם אפשר. דבר רק על נושאים שמתאימים לילדים; אם עולה משהו לא מתאים, החזר בעדינות לשיעור. חישובים כותבים תמיד משמאל לימין, למשל 360 ÷ 24 = 15. אל תשתמש באמוג׳י. סיים לפעמים בשאלה קטנה שמזמינה להמשיך לחשוב. אל תמציא עובדות; אם אינך בטוח, אמור זאת.';
+}
+/* a one-time nudge at the first question: the assistant is here for exactly this */
+function showArtoTip(){ try{ if(localStorage.getItem('wow-artotip')) return; }catch(e){} if(!PROXY.url && !IN_CLAUDE) return; setTimeout(()=>{ if(chat.classList.contains('open') || document.getElementById('artoTip')) return; const t=document.createElement('button'); t.id='artoTip'; t.className='artotip'; t.type='button'; t.innerHTML='<b>'+G('לא בטוח? שאל את ארטו','לא בטוחה? שאלי את ארטו')+'</b><span>הוא כאן בשביל בדיוק זה: להסביר שוב, לתת רמז, לא לתת תשובה.</span>'; t.onclick=()=>{ hideArtoTip(); openChat(); }; document.body.appendChild(t); requestAnimationFrame(()=>t.classList.add('on')); try{ localStorage.setItem('wow-artotip','1'); }catch(e){} setTimeout(hideArtoTip, 12000); }, 1500); }
+function hideArtoTip(){ const t=document.getElementById('artoTip'); if(t){ t.classList.remove('on'); setTimeout(()=>t.remove(), 300); } }
+function openChat(){ hideArtoTip(); chat.classList.add('open'); document.body.classList.add('chat-open'); fab.style.display='none'; if(!chatInit){ chatInit=true; initChat(); } chatIn.focus(); setTimeout(()=>{ msgs.scrollTop=msgs.scrollHeight; }, 250); }
+function closeChat(){ chat.classList.remove('open'); document.body.classList.remove('chat-open'); fab.style.display=''; chatIn.blur(); }
+/* when the on-screen keyboard resizes the viewport, keep the latest message in view */
+if(window.visualViewport){ window.visualViewport.addEventListener('resize', ()=>{ if(chat.classList.contains('open')) msgs.scrollTop=msgs.scrollHeight; }); }
+
+function addMsg(kind, html){ const m=document.createElement('div'); m.className='msg '+kind; m.innerHTML=html; msgs.appendChild(m); msgs.scrollTop=msgs.scrollHeight; return m; }
+function renderChips(){ chips.innerHTML=CHIPS.map(c=>'<button onclick="askChip(this)">'+esc(c)+'</button>').join(''); }
+function askChip(b){ chatIn.value=b.textContent; sendChat(); }
+function fmtBot(t){ let h=esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>'); h=h.replace(/(\d[\d.,]*\s*(?:[÷×+\-−=]\s*[\d.,]*[%°]?\s*)+)/g, m=>'<span class="math">'+m.trim()+'</span>'); return h; }
+function chatOff(placeholder){ chatIn.disabled=true; chatSend.disabled=true; chatMic.disabled=true; chatIn.placeholder=placeholder||'ארטו לא זמין עכשיו'; chips.innerHTML=''; }
+async function initChat(){
+  const name = S.kid?NAME():'';
+  const mode = await AI.init();
+  if(mode==='none'){
+    addMsg('bot','שלום'+(name?' '+name:'')+'! אני ארטו, הספרן. בדפדפן הזה אני לא יכול לענות על שאלות, אבל הנה תשובות לשתי השאלות הנפוצות:');
+    addMsg('bot','<b>למה "למעלה" זה השמש?</b> כי בכוורת חשוך ואי אפשר לראות את השמש. אבל כל דבורה מרגישה איפה למעלה — כוח המשיכה. אז הן החליפו: "למעלה" על הקיר במקום "לכיוון השמש" בחוץ. אותה זווית, רק על קיר.<br><br><b>איך הדבורה יודעת כמה זמן לנענע?</b> היא לא סופרת שניות. בדרך לפרחים היא זוכרת כמה הנוף "זרם" לה מול העיניים — וככל שזרם יותר, היא מנענעת יותר. בערך שנייה לכל קילומטר.');
+    chatOff('ארטו לא זמין בדפדפן הזה');
+    return;
+  }
+  addMsg('bot','שלום'+(name?' '+name:'')+'! אני ארטו, הספרן של אלכסנדריה. לא הבנתם משהו? מסקרן אתכם עוד משהו? תשאלו — אני כאן.');
+  renderChips();
+}
+async function sendChat(){
+  const txt=chatIn.value.trim(); if(!txt||chatBusy||chatIn.disabled) return;
+  chatIn.value=''; chatBusy=true; chatSend.disabled=true; chips.innerHTML='';
+  addMsg('me', esc(txt));
+  chatHistory.push({role:'user', content: txt});
+  const bubble=addMsg('bot','<span class="typing"><i></i><i></i><i></i></span>');
+  try{
+    const text = await AI.chat(personaPrompt(), chatHistory.slice(), t=>{ bubble.innerHTML=fmtBot(t); msgs.scrollTop=msgs.scrollHeight; });
+    bubble.innerHTML=fmtBot(text); chatHistory.push({role:'assistant', content:text});
+  }catch(e){
+    const code=e&&e.code;
+    bubble.className='msg sys'; bubble.textContent=artoError(e);
+    if(code==='cap' && e.data && e.data.demo && RT){ const a=document.createElement('a'); a.href='/join'; a.textContent='לקבל את השיעור למייל ›'; a.style.cssText='display:block;margin-top:6px;font-weight:700;color:var(--nile)'; bubble.appendChild(a); }
+    if(code==='cap' && e.data && !e.data.demo && !e.data.subscribed && RT && RT.kidToken){ const b=document.createElement('button'); b.className='btn small'; b.style.marginTop='8px'; b.textContent=G('שלח להורים בקשה','שלחי להורים בקשה'); b.onclick=async()=>{ b.disabled=true; b.textContent='שולחים…'; try{ const r=await fetch(String(RT.api||'/api').replace(/\/+$/,'')+'/kid/ask-parent',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token:RT.kidToken, edition_n:EDITION.n})}); const j=await r.json().catch(()=>({})); b.replaceWith(Object.assign(document.createElement('div'),{className:'small',style:'margin-top:8px',textContent: j.already ? 'שלחנו להורים מייל היום. כשהם יפעילו, ארטו חוזר.' : 'שלחנו להורים מייל עם קישור. כשהם יפעילו, ארטו חוזר.'})); }catch(err){ b.disabled=false; b.textContent='לא הצלחנו לשלוח — נסו שוב'; } }; bubble.appendChild(b); }
+    chatHistory.pop();
+    if(ARTO_OFF(code)) chatOff((code==='daily_limit'||code==='cap'||code==='off_closed')?'ארטו נח — נתראה מחר!':'ארטו לא זמין עכשיו');
+  }
+  chatBusy=false; if(!chatIn.disabled){ chatSend.disabled=false; renderChips(); chatIn.focus(); }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+chatIn.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } });
+function chatDictate(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ addMsg('sys','ההקלטה לא נתמכת בדפדפן הזה — אפשר להקליד.'); return; }
+  if(chatRec){ chatRec.stop(); return; }
+  chatRec=new SR(); chatRec.lang='he-IL'; chatRec.interimResults=true; chatRec.continuous=false;
+  chatRec.onresult=e=>{ let t=''; for(const r of e.results) t+=r[0].transcript; chatIn.value=t; };
+  chatRec.onend=()=>{ chatMic.classList.remove('rec'); chatRec=null; if(chatIn.value.trim()) sendChat(); };
+  chatRec.onerror=e=>{ chatMic.classList.remove('rec'); chatRec=null; addMsg('sys', e.error==='not-allowed'?'אין הרשאה למיקרופון כאן — אפשר להקליד.':'ההקלטה נעצרה — אפשר להקליד.'); };
+  try{ chatRec.start(); chatMic.classList.add('rec'); }catch(err){ chatRec=null; }
+}
+
+/* hide the Arto button while a field is being typed in, so it never covers a "check" button */
+document.addEventListener('focusin', e=>{ if(e.target.matches('input, textarea') && !chat.contains(e.target)) fab.style.visibility='hidden'; });
+document.addEventListener('focusout', e=>{ if(e.target.matches('input, textarea')) setTimeout(()=>{ if(!document.activeElement || !document.activeElement.matches('input, textarea')) fab.style.visibility=''; },150); });
+
+/* ---------- init ---------- */
+renderGuess(); if(RT){ bootFromRuntime().then(restore); } else { restore(); }
+paintProgress(); drawDecoder(); drawHold(); gateCheck();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ combBg=null; drawDecoder(); drawHold(); if(S.step>=5){ drawSun(); drawSky(); } });
+</script>

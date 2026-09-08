@@ -1,0 +1,22 @@
+{
+  "n": 2,
+  "code": "WOW-002",
+  "date": "2026-09-08",
+  "language": "he",
+  "title": "הדבורה שמספרת סוד בריקוד",
+  "topics": [
+    "ביולוגיה",
+    "מתמטיקה",
+    "תקשורת",
+    "טבע"
+  ],
+  "summary": "How honeybees tell each other where the flowers are with the waggle dance.",
+  "teaser": "דבורה חוזרת לכוורת ומתחילה לרקוד. תוך דקה, עשרות דבורות עפות בדיוק לפרח שהיא מצאה — בלי מפה, בלי מילים. איך? היום מפענחים את הריקוד.",
+  "max_score": 11,
+  "status": "released",
+  "released_at": "2026-09-08T08:00:00.000Z",
+  "password": "למעלה זה השמש",
+  "reviewer_verdict": "PASS (legacy pipeline)",
+  "review_url": null,
+  "editor_note": null
+}
