@@ -56,6 +56,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ created: true, domain: r.data });
   }
   if (!existing) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  if (action === "enable-receiving") {
+    // inbound mail on the domain (hello@…): Resend receives it, our webhook forwards it to the editor
+    const u = await resend.domains.update({ id: existing.id, capabilities: { receiving: "enabled" } } as never);
+    if (u.error) return NextResponse.json({ error: u.error.message }, { status: 502 });
+    const g = await resend.domains.get(existing.id);
+    return NextResponse.json({ domain: g.data });
+  }
+  if (action === "inbound-webhook") {
+    const w = await resend.webhooks.create({ endpoint: `${process.env.NEXT_PUBLIC_APP_URL || "https://rootsandwings-edu.com"}/api/webhooks/resend`, events: ["email.received"] });
+    if (w.error) return NextResponse.json({ error: w.error.message }, { status: 502 });
+    return NextResponse.json({ webhook_id: w.data?.id, signing_secret: w.data?.signing_secret });
+  }
   if (action === "delete") {
     const r = await resend.domains.remove(existing.id);
     if (r.error) return NextResponse.json({ error: r.error.message }, { status: 502 });
