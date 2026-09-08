@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
   }
   const name = ALLOWED.find((n) => n === b.name);
-  if (!name) return NextResponse.json({ ok: false }, { status: 204 });
+  if (!name) return new NextResponse(null, { status: 204 });
   await track(name, { visitor: visitorHash(req), edition_n: Number.isInteger(b.n) ? Number(b.n) : null });
   return new NextResponse(null, { status: 204 });
 }
