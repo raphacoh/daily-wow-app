@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     response_type: "code",
     scope: "openid email profile",
     state,
-    nonce: createHash("sha256").update(nonce).digest("base64url"), // Google echoes the hash inside the ID token
+    nonce: createHash("sha256").update(nonce).digest("hex"), // Google echoes this in the ID token; Supabase checks it against sha256(raw nonce) in hex
     prompt: "select_account",
     access_type: "online",
   });

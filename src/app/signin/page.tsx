@@ -17,14 +17,14 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   }
   if (parent) redirect("/home");
 
-  const { error, next } = await searchParams;
+  const { error, next, why } = await searchParams;
   const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
 
   return (
     <main className="page">
       <h1>{t("signin.title")}</h1>
       <p className="lede">{t("signin.lede")}</p>
-      {error ? <p className="msg bad">{error === "google" ? t("signin.googleError") : t("signin.callbackError")}</p> : null}
+      {error ? <p className="msg bad">{error === "google" ? `${t("signin.googleError")}${typeof why === "string" && why ? ` (${why})` : ""}` : t("signin.callbackError")}</p> : null}
       <section className="panel">
         {googleSignInEnabled() ? <GoogleButton next={nextPath} /> : null}
         <SignInForm next={nextPath} />
