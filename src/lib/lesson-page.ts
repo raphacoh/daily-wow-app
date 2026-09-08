@@ -126,6 +126,14 @@ export function encodePw(pw: string): string {
   return Buffer.from(pw.split("").reverse().join(""), "utf8").toString("base64");
 }
 
+/** A visitor without a link or an account asked for a followers-only edition. */
+export function membersOnlyPage(n: number): string {
+  return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${APP.name}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500&family=Rubik:wght@400;500&display=swap">
+<style>body{font-family:Rubik,Arial,sans-serif;background:#FAF8F3;color:#1B1B1B;display:grid;place-items:center;min-height:100vh;margin:0;line-height:1.6}main{max-width:520px;padding:32px 24px;text-align:right}h1{font-family:"Frank Ruhl Libre",Georgia,serif;font-weight:500;font-size:2rem;margin:0 0 10px}p{margin:0 0 1em}.btn{display:inline-block;background:#1B1B1B;color:#FAF8F3;text-decoration:none;border-radius:999px;padding:12px 24px;font-weight:500}a{color:#1B1B1B}.small{color:#6B6B66;font-size:.95rem}</style></head>
+<body><main><h1>גיליון ${n} הוא לעוקבים</h1><p>השיעור של היום מגיע כל בוקר למייל, עם קישור אישי לכל ילד/ה. חינם, בלי פרסומות.</p><p><a class="btn" href="/join">לקבל את השיעור למייל</a></p><p class="small">כבר נרשמתם? <a href="/signin?next=${encodeURIComponent(`/l/${n}`)}">כניסה</a> · <a href="/">לנסות את שיעור ההדגמה</a> · <a href="/library">כל הגיליונות</a></p></main></body></html>`;
+}
+
 export function notFoundPage(msg: string): string {
   return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${APP.name}</title>
 <style>body{font-family:Rubik,Arial,sans-serif;background:#FAF8F3;color:#1B1B1B;display:grid;place-items:center;min-height:100vh;margin:0}main{text-align:center;padding:24px}a{color:#1B1B1B}</style></head>

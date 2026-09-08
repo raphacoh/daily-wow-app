@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { latestReleased } from "@/lib/editions";
+import { DEMO_EDITION_N, getEdition, latestReleased } from "@/lib/editions";
 import { APP } from "@/lib/config";
-import { HTML_HEADERS, notFoundPage, renderLesson } from "@/lib/lesson-page";
+import { HTML_HEADERS, membersOnlyPage, notFoundPage, renderLesson } from "@/lib/lesson-page";
 import { currentParent } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -26,6 +26,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ n: string }> })
   if (!Number.isInteger(n) || n < 1) return new NextResponse(notFoundPage("כתובת לא תקינה."), { status: 404, headers: HTML_HEADERS });
 
   const parent = token ? null : await currentParent().catch(() => null);
+  // only the demo edition is open to everyone; the rest is for followers (a personal link or a signed-in parent)
+  if (n !== DEMO_EDITION_N && !token && !parent) {
+    if (!(await getEdition(n))) return new NextResponse(notFoundPage("הגיליון הזה עוד לא יצא."), { status: 404, headers: HTML_HEADERS });
+    return new NextResponse(membersOnlyPage(n), { status: 200, headers: HTML_HEADERS });
+  }
   const r = await renderLesson(n, { token, banner: !token, parent: parent ? { name: parent.name } : null });
   return new NextResponse(r.body, { status: r.status, headers: HTML_HEADERS });
 }

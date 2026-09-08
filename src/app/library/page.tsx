@@ -11,6 +11,7 @@ import { listEditions } from "@/lib/editions";
 import { currentParent } from "@/lib/auth";
 import { db, hasDb } from "@/lib/db";
 import { kidByToken, kidLink, type KidRow } from "@/lib/kids";
+import { DEMO_EDITION_N } from "@/lib/editions";
 import { heDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "כל הגיליונות", description: "כל גיליון של שורשים וכנפיים, מהחדש לישן. אפשר להשלים כל אחד מהם מתי שרוצים." };
@@ -41,6 +42,7 @@ export default async function Library({ searchParams }: { searchParams: Promise<
   // a kid's personal token (from the emails) scopes the page to that kid, no sign-in needed
   const tokenKid = k && hasDb() ? await kidByToken(k).catch(() => null) : null;
   const [editions, kids] = await Promise.all([listEditions(), tokenKid ? Promise.resolve([tokenKid as KidRow]) : myKids()]);
+  const signedIn = !!tokenKid || !!(await currentParent().catch(() => null));
   const linkFor = (kid: KidRow, n: number) => (tokenKid && k ? `/l/${n}?k=${encodeURIComponent(k)}` : safeKidLink(kid, n));
 
   return (
@@ -78,9 +80,13 @@ export default async function Library({ searchParams }: { searchParams: Promise<
                         {t("library.openFor", { name: l.name })}
                       </a>
                     ))
-                  ) : (
+                  ) : e.n === DEMO_EDITION_N || signedIn ? (
                     <a className="btn small" href={`/l/${e.n}`}>
                       {t("library.open")}
+                    </a>
+                  ) : (
+                    <a className="btn small ghost" href="/join">
+                      {t("library.followers")}
                     </a>
                   )}
                 </div>

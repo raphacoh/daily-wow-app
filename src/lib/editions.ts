@@ -32,6 +32,9 @@ export interface EditionFull extends EditionMeta {
   grading_context: string;
 }
 
+/** The one edition anyone can open without a link or an account (the demo). */
+export const DEMO_EDITION_N = Number(process.env.DEMO_EDITION_N || 1);
+
 export const EDITIONS_DIR = process.env.EDITIONS_DIR || path.join(process.cwd(), "editions");
 
 export function pad3(n: number): string {
