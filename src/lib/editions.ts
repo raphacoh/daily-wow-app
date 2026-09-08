@@ -265,7 +265,7 @@ export interface RuntimeBootstrap {
 const SKELETON_STYLE = `:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}`;
 
 /** Same wrapping the release routine does, plus the RUNTIME script before the fragment. */
-export function wrapEdition(fragment: string, runtime: RuntimeBootstrap | null, lang = "he", dir = "rtl"): string {
+export function wrapEdition(fragment: string, runtime: RuntimeBootstrap | null, lang = "he", dir = "rtl", opts: { index?: boolean; prepend?: string } = {}): string {
   const head: string[] = [];
   let body = fragment;
   body = body.replace(/<title>[\s\S]*?<\/title>\s*/i, (m) => { head.push(m.trim()); return ""; });
@@ -273,9 +273,10 @@ export function wrapEdition(fragment: string, runtime: RuntimeBootstrap | null, 
   const rt = runtime ? `<script>window.RUNTIME=${JSON.stringify(runtime).replace(/</g, "\\u003c")};</script>\n` : "";
   return (
     `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-    `<meta name="robots" content="noindex"><style>${SKELETON_STYLE}</style>` +
+    (opts.index ? `<meta name="description" content="שיעור אחד ביום, מהורים לילדים. חינם.">` : `<meta name="robots" content="noindex">`) +
+    `<style>${SKELETON_STYLE}</style>` +
     head.join("") +
-    `</head><body>${rt}${body}</body></html>`
+    `</head><body>${rt}${opts.prepend ?? ""}${body}</body></html>`
   );
 }
 
