@@ -59,18 +59,20 @@ export function visitorStrip(parent: { name: string } | null = null): string {
   return `<style>
 :root{--rw-h:0px}
 #rw-strip{position:fixed;inset-inline:0;bottom:0;z-index:40;background:#1B1B1B;color:#FAF8F3;font-family:Rubik,"Noto Sans Hebrew",Arial,sans-serif;font-size:14px;line-height:1.4;direction:rtl;box-shadow:0 -6px 24px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
-#rw-strip .in{max-width:760px;margin:0 auto;padding:8px 12px 10px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
-#rw-strip .t{grid-column:1;min-width:0}
-#rw-strip .t b{font-weight:500}
-#rw-strip .x{grid-column:2;grid-row:1;background:transparent;border:0;color:inherit;font-size:24px;line-height:1;cursor:pointer;padding:2px 6px;opacity:.8;align-self:start}
-#rw-strip .acts{grid-column:1 / -1;display:flex;align-items:center;gap:14px}
+#rw-strip .in{max-width:760px;margin:0 auto;padding:10px 12px 10px;display:grid;grid-template-columns:1fr auto;gap:8px 10px;align-items:center}
+#rw-strip .cta{grid-column:1 / -1;display:block;background:#FAF8F3;color:#1B1B1B;text-decoration:none;border-radius:999px;padding:14px 18px;font-weight:700;font-size:17px;text-align:center;box-shadow:0 0 0 3px rgba(250,248,243,.18);animation:rw-pulse 2.4s ease-in-out 3}
+@keyframes rw-pulse{0%,100%{box-shadow:0 0 0 3px rgba(250,248,243,.18)}50%{box-shadow:0 0 0 8px rgba(250,248,243,.06)}}
+@media (prefers-reduced-motion:reduce){#rw-strip .cta{animation:none}}
+#rw-strip .t{grid-column:1;min-width:0;color:#D9D5CB}
+#rw-strip .t b{font-weight:500;color:#FAF8F3}
+#rw-strip .x{grid-column:2;grid-row:2;background:transparent;border:0;color:inherit;font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;opacity:.8}
 #rw-strip a{color:inherit}
-#rw-strip .cta{flex:1;background:#FAF8F3;color:#1B1B1B;text-decoration:none;border-radius:999px;padding:9px 14px;font-weight:500;text-align:center;white-space:nowrap}
-#rw-strip .more{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 2px;white-space:nowrap}
-#rw-strip .links{display:none;grid-column:1 / -1;gap:6px 18px;flex-wrap:wrap;padding:2px 0 2px;font-size:14px;opacity:.9}
+#rw-strip .acts{grid-column:1 / -1;display:flex;align-items:center;gap:16px;font-size:13.5px;opacity:.9}
+#rw-strip .more{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:2px 0;white-space:nowrap}
+#rw-strip .links{display:none;grid-column:1 / -1;gap:6px 18px;flex-wrap:wrap;padding:2px 0 2px;font-size:13.5px;opacity:.9}
 #rw-strip.open .links{display:flex}
 #rw-strip[hidden]{display:none}
-@media (min-width:640px){#rw-strip{font-size:15px}#rw-strip .in{grid-template-columns:1fr auto auto auto auto;padding:10px 20px}#rw-strip .acts{display:contents}#rw-strip .cta{flex:none;grid-column:2;grid-row:1}#rw-strip button.more{grid-column:3;grid-row:1}#rw-strip a.more{grid-column:4;grid-row:1}#rw-strip .x{grid-column:5}}
+@media (min-width:640px){#rw-strip{font-size:15px}#rw-strip .in{grid-template-columns:auto 1fr auto auto;padding:12px 20px;align-items:center}#rw-strip .cta{grid-column:1;grid-row:1;padding:12px 26px;font-size:16px}#rw-strip .t{grid-column:2;grid-row:1}#rw-strip .acts{grid-column:3;grid-row:1;display:flex}#rw-strip .x{grid-column:4;grid-row:1}}
 /* keep the lesson's own floating pieces above the strip, and leave room at the end of the page */
 body.rw-on{padding-bottom:var(--rw-h)}
 body.rw-on .fab{bottom:calc(18px + var(--rw-h))}
@@ -79,12 +81,13 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
 </style>
 <div id="rw-strip" role="region" aria-label="שורשים וכנפיים" hidden>
   <div class="in">
-    <span class="t"><b>שורשים וכנפיים</b> · ${parent ? `שלום ${esc(parent.name || "")}. זה השיעור של היום.` : "שיעור כזה מגיע למייל כל בוקר. חינם."}</span>
+    <a class="cta" href="${parent ? "/home" : "/join"}">${parent ? "הלוח שלי" : "לקבל את השיעור למייל, חינם"}</a>
+    <span class="t"><b>שורשים וכנפיים</b> · ${parent ? `שלום ${esc(parent.name || "")}. זה השיעור של היום.` : "שיעור כזה מגיע למייל כל בוקר. בלי תשלום, בלי פרסומות."}</span>
     <button class="x" type="button" aria-label="סגירה">×</button>
     <div class="acts">
-      <a class="cta" href="${parent ? "/home" : "/join"}">${parent ? "הלוח שלי" : "לקבל את השיעור למייל"}</a>
       <button class="more" type="button" aria-expanded="false">עוד</button>
       ${parent ? "" : '<a class="more" href="/signin">כניסה</a>'}
+      <button class="more" type="button" data-share>שיתוף</button>
     </div>
     <nav class="links" aria-label="עוד">${links}</nav>
   </div>
@@ -96,7 +99,8 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
   var off=false; try{ off = localStorage.getItem('rw-strip')==='off'; }catch(e){}
   show(!off);
   el.querySelector('.x').addEventListener('click', function(){ try{ localStorage.setItem('rw-strip','off'); }catch(e){} show(false); });
-  el.querySelector('.more').addEventListener('click', function(b){ var o=el.classList.toggle('open'); this.setAttribute('aria-expanded', o?'true':'false'); size(); });
+  el.querySelector('button.more').addEventListener('click', function(b){ var o=el.classList.toggle('open'); this.setAttribute('aria-expanded', o?'true':'false'); size(); });
+  el.querySelector('[data-share]').addEventListener('click', function(){ var url='https://rootsandwings-edu.com/', text='שורשים וכנפיים: שיעור אחד ביום לילדים, מהורים, חינם. נסו את השיעור של היום:'; if(navigator.share){ navigator.share({title:'שורשים וכנפיים', text:text, url:url}).catch(function(){}); return; } try{ navigator.clipboard && navigator.clipboard.writeText(url); }catch(e){} window.open('https://wa.me/?text='+encodeURIComponent(text+' '+url), '_blank', 'noopener'); });
   if(window.ResizeObserver){ new ResizeObserver(size).observe(el); } window.addEventListener('resize', size);
   /* out of the way while typing (mobile keyboards), and never over the chat panel */
   var hiddenForTyping=false, chatOpen=false;
