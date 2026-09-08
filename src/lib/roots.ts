@@ -7,7 +7,7 @@ export type RootId = (typeof ROOT_IDS)[number];
 
 export const ROOTS: Record<RootId, { name: string; glyph: string; aliases: string[] }> = {
   math: { name: "מתמטיקה", glyph: "∑", aliases: ["מתמטיקה", "חשבון", "גאומטריה", "גיאומטריה", "מספרים", "הסתברות", "סטטיסטיקה", "maths", "math", "mathematics"] },
-  physics: { name: "פיזיקה", glyph: "⚡", aliases: ["פיזיקה", "פיסיקה", "אור", "קול", "כוחות", "אנרגיה", "חשמל", "מגנטיות", "תנועה", "physics"] },
+  physics: { name: "פיזיקה", glyph: "⚡", aliases: ["פיזיקה", "פיסיקה", "אור", "קול", "מוזיקה", "צליל", "כוחות", "אנרגיה", "חשמל", "מגנטיות", "תנועה", "physics"] },
   chemistry: { name: "כימיה", glyph: "⚗", aliases: ["כימיה", "חומרים", "מולקולות", "אטומים", "chemistry"] },
   biology: { name: "ביולוגיה", glyph: "❀", aliases: ["ביולוגיה", "טבע", "בעלי חיים", "חיות", "צמחים", "גוף האדם", "רפואה", "אבולוציה", "תאים", "biology", "nature"] },
   engineering: { name: "הנדסה וטכנולוגיה", glyph: "⚙", aliases: ["הנדסה", "טכנולוגיה", "מכונות", "המצאות", "מחשבים", "תקשורת", "בנייה", "רובוטיקה", "engineering", "technology"] },
