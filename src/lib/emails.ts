@@ -95,6 +95,15 @@ function normaliseTo(to: Recipients): string[] {
 const EDITOR_FIRST = APP.editorName.trim().split(/\s+/)[0] || APP.editorName;
 
 const LIBRARY_URL = `${APP.url}/library`;
+/** The library scoped to one kid: same token as the personal link, so older editions open as that kid. */
+function libraryFor(link: string): string {
+  try {
+    const k = new URL(link).searchParams.get("k");
+    return k ? `${LIBRARY_URL}?k=${encodeURIComponent(k)}` : LIBRARY_URL;
+  } catch {
+    return LIBRARY_URL;
+  }
+}
 const OPEN_BOOKS_URL = `${APP.url}/open-books`;
 const HOME_URL = `${APP.url}/home`;
 
@@ -371,6 +380,9 @@ export function welcomeMail({ to, parentName, kids, editionTitle, editionN }: We
     p(`בינתיים, הגיליון של היום מחכה: ${esc(editionTitle)}.`),
     kidButtons,
     p(
+      `וגם כל הגיליונות שיצאו לפני שהצטרפתם פתוחים: ${kids.map((k) => `<a href="${esc(libraryFor(k.link))}" style="${A}">הספרייה של ${esc(k.name)}</a>`).join(" · ")}. הנקודות נספרות, הרצף לא.`,
+    ),
+    p(
       `על הסיסמה: בסוף המבחן הילד או הילדה מקבלים סיסמה סודית, ואומרים לכם אותה בעל פה. מה שאתם עושים עם הסיסמה — זמן מסך, ממתק, סתם ד"ש טוב — זה כבר לגמרי שלכם.`,
     ),
     p(`אפשר לשנות רמה לכל ילד בכל רגע, בלוח הבקרה: <a href="${esc(HOME_URL)}" style="${A}">${esc(HOME_URL)}</a>`),
@@ -380,6 +392,7 @@ export function welcomeMail({ to, parentName, kids, editionTitle, editionN }: We
     hello(parentName),
     `נרשמתם ל${APP.name}. מחר בסביבות 11:00 יגיע לכאן גיליון חדש, ואחריו עוד אחד כל יום — שיעור קצר אחד, שאני עובר עליו בעצמי לפני שהוא נשלח.`,
     `בינתיים, הגיליון של היום מחכה: ${editionTitle}.`,
+    ...kids.map((k) => `הספרייה של ${k.name} (כל הגיליונות הקודמים): ${libraryFor(k.link)}`),
     kids.map((k) => `לשיעור של ${k.name} (גיליון #${editionN}): ${k.link}`).join("\n"),
     `על הסיסמה: בסוף המבחן הילד או הילדה מקבלים סיסמה סודית, ואומרים לכם אותה בעל פה. מה שאתם עושים עם הסיסמה — זמן מסך, ממתק, סתם ד"ש טוב — זה כבר לגמרי שלכם.`,
     `אפשר לשנות רמה לכל ילד בכל רגע, בלוח הבקרה: ${HOME_URL}`,
@@ -450,7 +463,7 @@ export function dailyMail({
     kidBlocks,
     p(`המשימה של היום: כ־${ltr(25)} דקות, ובסוף — הסיסמה הסודית.`),
     small(
-      `פספסתם יום? הכול נשאר פתוח ב<a href="${esc(LIBRARY_URL)}" style="${A}">ספרייה</a>, אפשר להשלים מתי שנוח.`,
+      `פספסתם יום? הכול נשאר פתוח בספרייה, אפשר להשלים מתי שנוח: ${kids.map((k) => `<a href="${esc(libraryFor(k.link))}" style="${A}">${esc(k.name)}</a>`).join(" · ")}.`,
     ),
   ]
     .filter(Boolean)
@@ -464,7 +477,7 @@ export function dailyMail({
       .map((k) => `${k.name} — ${streakLine(k.streak, k.feminine)}\nלשיעור של ${k.name}: ${k.link}`)
       .join("\n\n"),
     "המשימה של היום: כ־25 דקות, ובסוף — הסיסמה הסודית.",
-    `פספסתם יום? הכול נשאר פתוח בספרייה, אפשר להשלים מתי שנוח: ${LIBRARY_URL}`,
+    `פספסתם יום? הכול נשאר פתוח בספרייה, אפשר להשלים מתי שנוח: ${kids.map((k) => `${k.name}: ${libraryFor(k.link)}`).join(" · ")}`,
   ]);
 
   return {

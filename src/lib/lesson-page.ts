@@ -28,6 +28,7 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
     if (kid && !kid.paused) {
       rt.kidToken = opts.token;
       rt.profile = await profileFor(kid);
+      rt.library = `/library?k=${encodeURIComponent(opts.token)}`;
     }
   }
   const dir = edition.language === "en" || edition.language === "fr" ? "ltr" : "rtl";

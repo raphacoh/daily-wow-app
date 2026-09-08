@@ -174,6 +174,10 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     if (sup !== "younger") errors.push("support → younger mapping: " + sup);
     await page.close();
 
+    // 4b. the library scoped by the kid's token links every edition as that kid
+    const lib = await fetch(BASE + "/library?k=" + encodeURIComponent(links["אמה"].split("k=")[1])).then((r) => r.text());
+    if (!/\/l\/1\?k=/.test(lib) || !/הגיליונות של אמה/.test(lib)) errors.push("library: not scoped to the kid's token");
+
     // 5. the completion is in the database with the right stats (via the dev inspect route)
     const r = await fetch(BASE + "/api/dev/inspect", { method: "POST" }).then((x) => x.json());
     console.log("db:", JSON.stringify(r));

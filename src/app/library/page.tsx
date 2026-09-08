@@ -10,7 +10,7 @@ import { APP } from "@/lib/config";
 import { listEditions } from "@/lib/editions";
 import { currentParent } from "@/lib/auth";
 import { db, hasDb } from "@/lib/db";
-import { kidLink, type KidRow } from "@/lib/kids";
+import { kidByToken, kidLink, type KidRow } from "@/lib/kids";
 import { heDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "כל הגיליונות", description: "כל גיליון של שורשים וכנפיים, מהחדש לישן. אפשר להשלים כל אחד מהם מתי שרוצים." };
@@ -36,20 +36,24 @@ function safeKidLink(kid: KidRow, n: number): string | null {
   }
 }
 
-export default async function Library() {
-  const [editions, kids] = await Promise.all([listEditions(), myKids()]);
+export default async function Library({ searchParams }: { searchParams: Promise<{ k?: string }> }) {
+  const { k } = await searchParams;
+  // a kid's personal token (from the emails) scopes the page to that kid, no sign-in needed
+  const tokenKid = k && hasDb() ? await kidByToken(k).catch(() => null) : null;
+  const [editions, kids] = await Promise.all([listEditions(), tokenKid ? Promise.resolve([tokenKid as KidRow]) : myKids()]);
+  const linkFor = (kid: KidRow, n: number) => (tokenKid && k ? `/l/${n}?k=${encodeURIComponent(k)}` : safeKidLink(kid, n));
 
   return (
     <main className="page">
       <h1>{t("library.title")}</h1>
-      <p className="lede cap">{t("library.intro")}</p>
+      <p className="lede cap">{tokenKid ? t("library.forKid", { name: tokenKid.name }) : t("library.intro")}</p>
 
       {editions.length === 0 ? (
         <p className="note">{t("library.empty")}</p>
       ) : (
         <div className="grid">
           {editions.map((e, i) => {
-            const links = kids.map((k) => ({ name: k.name, href: safeKidLink(k, e.n) })).filter((x) => x.href);
+            const links = kids.map((kid) => ({ name: kid.name, href: linkFor(kid, e.n) })).filter((x) => x.href);
             return (
               <article className="step" key={e.n}>
                 <div className="n num" aria-label={`גיליון מספר ${e.n}`}>
