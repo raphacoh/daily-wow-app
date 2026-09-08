@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["pg", "@electric-sql/pglite"],
+  // the local editions folder is the content store when no database is configured — ship it with every function
+  outputFileTracingIncludes: { "/**": ["./editions/**/*", "./supabase/migrations/*.sql"] },
   async headers() {
     return [
       {
