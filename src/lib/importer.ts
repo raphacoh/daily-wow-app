@@ -42,7 +42,9 @@ export async function importFamilies(manifest: FamilyManifest): Promise<{ create
   const created: { email: string; kids: { name: string; link: string }[] }[] = [];
   const existed: string[] = [];
   for (const f of manifest.families) {
-    const r = await registerFamily({ parentName: f.parentName, email: f.email, consent: true, kids: f.kids });
+    // a parent who already exists (e.g. signed in before adding kids) gets the kids added to their own row
+    const ex = await db().query<{ id: string }>("select id from parents where email = $1 and deleted_at is null", [f.email.trim().toLowerCase()]);
+    const r = await registerFamily({ parentName: f.parentName, email: f.email, consent: true, kids: f.kids }, ex.rows[0] ? { parentId: ex.rows[0].id } : {});
     if (r.existed) {
       existed.push(f.email);
       continue;
