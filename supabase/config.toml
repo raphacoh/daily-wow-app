@@ -11,15 +11,8 @@ enable_confirmations = false
 otp_expiry = 900
 
 
-# Resend as the auth SMTP sender (the API key comes from the environment at push time, never from this file).
-[auth.email.smtp]
-enabled = true
-host = "smtp.resend.com"
-port = 465
-user = "resend"
-pass = "env(RESEND_API_KEY)"
-admin_email = "hello@haggl.ai"
-sender_name = "שורשים וכנפיים"
+# SMTP (Resend) is set in the Supabase dashboard → Authentication → SMTP Settings; the key never lives in a file.
+
 # Links go straight to our callback with a token hash, so they work from any browser or mail app (no PKCE cookie needed).
 [auth.email.template.magic_link]
 subject = "הקישור לכניסה — שורשים וכנפיים"

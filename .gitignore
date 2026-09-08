@@ -13,3 +13,4 @@ kit/template/shots
 kit/template/_test.html
 .pglite
 .pglite*
+supabase/.env
