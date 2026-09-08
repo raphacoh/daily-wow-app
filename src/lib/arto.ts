@@ -9,7 +9,6 @@ import { localDate, nextLocalMidnight } from "./progress";
 import { signSession, verifySession, type ArtoSession } from "./tokens";
 import { kidById, kidByToken, type KidRow, type ParentRow } from "./kids";
 import { getEdition } from "./editions";
-import { notifyCapHit } from "./notify";
 
 export type Scope = "lesson" | "adjacent" | "off";
 
@@ -267,7 +266,7 @@ async function consumeForSession(s: ArtoSession & { off_count: number }, kid: (K
   }
   const c = await consumeMessage(a.key, day, a.cap);
   if (!c.ok) {
-    if (kid && !a.subscribed) notifyCapHit(kid, day, a.cap).catch(() => {});
+    // no automatic email here: the kid decides whether to ask the parents (POST /api/kid/ask-parent)
     return { ok: false, error: "cap", status: 429, resets_at, subscribed: a.subscribed, cap: a.cap, demo: !kid };
   }
   await db().query("update arto_sessions set messages = messages + 1 where id = $1", [s.sid]);

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { kidByToken, recordCompletion } from "@/lib/kids";
 import { hasDb } from "@/lib/db";
 import { queueCompletionNotice } from "@/lib/notify";
@@ -40,8 +40,8 @@ export async function POST(req: Request) {
   if (!r.ok) return NextResponse.json({ error: r.error }, { status: 409 });
 
   if (r.improved || r.first_time) {
-    // fire-and-forget; never delays the kid's results screen
-    queueCompletionNotice(kid, edition_n, r).catch(() => {});
+    // after the response is sent, but the function stays alive until it finishes (serverless-safe)
+    after(() => queueCompletionNotice(kid, edition_n, r).catch((e) => console.error("[complete] notice", e)));
   }
   return NextResponse.json(
     { ok: true, stats: r.stats, xp_awarded: r.xp_awarded, late: r.late, new_badges: r.new_badges, first_time: r.first_time, improved: r.improved, password: (await isComplete(kid.id, edition_n)) ? r.password : null },

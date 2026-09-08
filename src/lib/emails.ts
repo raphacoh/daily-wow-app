@@ -672,12 +672,13 @@ export interface CapNoticeArgs {
 }
 
 export function capNoticeMail({ to, kidName, feminine, cap, billingUrl, askedByKid }: CapNoticeArgs): Mail {
-  const wants = feminine ? "רוצה" : "רוצה";
-  const title = askedByKid ? `${kidName} ${wants} שתפעילו את ארטו` : `${kidName} רצה לשאול את ארטו עוד`;
+  const wanted = feminine ? "רצתה" : "רצה";
+  const pressed = feminine ? "לחצה" : "לחץ";
+  const title = askedByKid ? `${kidName} רוצה שתפעילו את ארטו` : `${kidName} ${wanted} לשאול את ארטו עוד`;
   const verb = feminine ? "שאלה" : "שאל";
-  const opener = askedByKid ? `${kidName} לחץ/ה על "שלחו להורים בקשה" בתוך השיעור.` : "";
-  const sentence = `${opener} ${kidName} ${verb} היום את ${cap} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${kidName}: 10 ₪ לחודש, בדיוק מה שהטוקנים עולים לי, עד 30 שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
-  const sentenceHtml = `${esc(opener)} ${esc(kidName)} ${esc(verb)} היום את ${ltr(cap)} השאלות שארטו עונה עליהן בחינם, ורצה לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${esc(kidName)}: ${ltr("10 ₪")} לחודש, בדיוק מה שהטוקנים עולים לי, עד ${ltr(30)} שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
+  const opener = askedByKid ? `${kidName} ${pressed} על "שלחו להורים בקשה" בתוך השיעור.` : "";
+  const sentence = `${opener} ${kidName} ${verb} היום את ${cap} השאלות שארטו עונה עליהן בחינם, ו${wanted} לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${kidName}: 10 ₪ לחודש, בדיוק מה שהטוקנים עולים לי, עד 30 שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
+  const sentenceHtml = `${esc(opener)} ${esc(kidName)} ${esc(verb)} היום את ${ltr(cap)} השאלות שארטו עונה עליהן בחינם, ו${esc(wanted)} לשאול עוד. אם תרצו, אפשר להפעיל את ארטו ל${esc(kidName)}: ${ltr("10 ₪")} לחודש, בדיוק מה שהטוקנים עולים לי, עד ${ltr(30)} שאלות ביום. המספרים פתוחים. ואם לא, גם בסדר גמור: השיעור עצמו תמיד חינם.`.trim();
   const steps = `שלושה צעדים: לוחצים על הכפתור, מאשרים את הכניסה במייל שיגיע, ומשלמים. ארטו נדלק מיד.`;
   const bodyHtml = [p(sentenceHtml), button(billingUrl, `להפעיל את ארטו ל${kidName}`), small(esc(steps))].join("\n");
   const text = textBody(title, [sentence, `להפעיל: ${billingUrl}`, steps]);

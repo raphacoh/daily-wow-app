@@ -19,20 +19,27 @@ describe("free cap → one parent notice; demo → per-session gate", () => {
     setMailer(async (m) => { sent.push(m); return { id: "m" + sent.length }; });
   });
 
-  it("emails the parent once when the 4th message is refused, never the kid", async () => {
+  it("refuses the 4th message without emailing; the kid's request emails the parent once, never the kid", async () => {
     const s = await openSession(token, 1);
     if ("error" in s) throw new Error(s.error);
     for (let i = 0; i < 3; i++) expect((await chat(s.token, [{ role: "user", content: "שאלה " + i }])).ok).toBe(true);
     const r = await chat(s.token, [{ role: "user", content: "רביעית" }]);
     expect(r).toMatchObject({ ok: false, error: "cap", status: 429, subscribed: false, cap: 3, demo: false });
     await new Promise((r) => setTimeout(r, 50));
+    expect(sent.length).toBe(0); // the cap itself sends nothing: the kid decides
+    const { notifyCapHit } = await import("@/lib/notify");
+    const { kidByToken } = await import("@/lib/kids");
+    const kid = (await kidByToken(token))!;
+    const first = await notifyCapHit(kid, "2026-09-08", 3, true);
+    expect(first.sent).toBe(true);
     expect(sent.length).toBe(1);
     expect(sent[0].to).toEqual(["mum@example.com"]);
     expect(sent[0].subject).toContain("יואב");
+    expect(sent[0].subject).toContain("שתפעילו");
     expect(sent[0].html).toContain("/billing?kid=");
-    // a second refusal the same day sends nothing more
-    await chat(s.token, [{ role: "user", content: "חמישית" }]);
-    await new Promise((r) => setTimeout(r, 50));
+    // asking again the same day sends nothing more
+    const again = await notifyCapHit(kid, "2026-09-08", 3, true);
+    expect(again.sent).toBe(false);
     expect(sent.length).toBe(1);
     const rows = await db.query("select count(*)::int as n from sends where kind = 'cap'");
     expect((rows.rows[0] as { n: number }).n).toBe(1);
@@ -50,6 +57,6 @@ describe("free cap → one parent notice; demo → per-session gate", () => {
     expect((await chat(b.token, [{ role: "user", content: "q" }])).ok).toBe(true);
     const pool = await db.query("select messages from arto_counters where key = 'demo'");
     expect((pool.rows[0] as { messages: number }).messages).toBe(4);
-    expect(sent.length).toBe(1); // no parent to notify in the demo
+    expect(sent.length).toBe(1); // still only the one from the previous test: no parent to notify in the demo
   });
 });
