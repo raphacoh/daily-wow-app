@@ -13,5 +13,6 @@ export async function POST() {
      from kids k left join kid_stats s on s.kid_id = k.id where k.deleted_at is null order by k.created_at`,
   );
   const sends = await db().query("select kind, count(*)::int as n from sends group by kind");
-  return NextResponse.json({ kids: kids.rows, sends: sends.rows });
+  const parents = await db().query("select email, name, (select count(*)::int from kids k where k.parent_id = p.id and k.deleted_at is null) as kids from parents p order by created_at");
+  return NextResponse.json({ kids: kids.rows, sends: sends.rows, parents: parents.rows });
 }

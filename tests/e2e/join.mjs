@@ -102,7 +102,7 @@ const setRange = async (page, selector, value) => page.$eval(selector, (el, v) =
     const noa = r.kids.find((k) => k.name === "ליה"), adam = r.kids.find((k) => k.name === "אדם" && k.level === "advanced");
     if (!noa || noa.level !== "standard") errors.push("kid 1 not stored: " + JSON.stringify(noa));
     if (!adam) errors.push("kid 2 not stored");
-    console.log("kids:", JSON.stringify(r.kids.map((k) => [k.name, k.level])));
+    console.log("kids:", JSON.stringify(r.kids.map((k) => [k.name, k.level])), "parents:", JSON.stringify(r.parents));
     await browser.close();
   } catch (e) {
     errors.push("fatal: " + (e && e.stack || e));

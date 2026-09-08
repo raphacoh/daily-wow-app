@@ -260,5 +260,6 @@
   "join.w.needAge": "בן/בת כמה?",
   "join.w.needYourName": "איך קוראים לכם?",
   "join.w.needConsent": "צריך לאשר את תנאי הפרטיות.",
-  "join.w.needGrade": "באיזו כיתה?"
+  "join.w.needGrade": "באיזו כיתה?",
+  "billing.notOnShort": "עוד לא פעיל: התשלומים יחוברו בקרוב. בינתיים ארטו עונה על 3 שאלות ביום, עליי."
 }

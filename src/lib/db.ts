@@ -13,10 +13,14 @@ export interface Db extends Queryable {
   tx<T>(fn: (q: Queryable) => Promise<T>): Promise<T>;
 }
 
-let current: Db | null = null;
+// One instance per process, shared across bundles (Next dev builds route handlers and server actions as separate
+// module graphs; an embedded PGlite opened twice on the same folder would not see each other's writes).
+const g = globalThis as unknown as { __rwDb?: Db | null };
+let current: Db | null = g.__rwDb ?? null;
 
 export function setDb(db: Db | null) {
   current = db;
+  g.__rwDb = db;
 }
 
 export function hasDb(): boolean {
@@ -31,7 +35,8 @@ export function db(): Db {
   }
   // `pglite://./.pglite` = an embedded Postgres in a local folder: the whole app runs without Docker or a
   // Supabase project (dev, demos, tests). Anything else is a real Postgres connection string.
-  current = url.startsWith("pglite:") ? pgliteFileDb(url.replace(/^pglite:\/\/?/, "")) : pgDb(url);
+  current = g.__rwDb ?? (url.startsWith("pglite:") ? pgliteFileDb(url.replace(/^pglite:\/\/?/, "")) : pgDb(url));
+  g.__rwDb = current;
   return current;
 }
 

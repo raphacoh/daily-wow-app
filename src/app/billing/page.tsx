@@ -66,6 +66,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <button className="btn" type="submit" disabled={!configured}>
                   {t("billing.activate", { name: kid.name })}
                 </button>
+                {!configured ? <p className="small" style={{ marginTop: 8 }}>{t("billing.notOnShort")}</p> : null}
               </form>
             )}
 
