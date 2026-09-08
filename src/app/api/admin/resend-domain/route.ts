@@ -38,6 +38,13 @@ export async function POST(req: Request) {
     if (k.error) return NextResponse.json({ error: k.error.message }, { status: 502 });
     return NextResponse.json({ token: k.data?.token ?? null, id: k.data?.id ?? null });
   }
+  if (b.action === "revoke-key") {
+    const id = String((b as { id?: string }).id ?? "");
+    if (!id) return NextResponse.json({ error: "bad_id" }, { status: 400 });
+    const r = await resend.apiKeys.remove(id);
+    if (r.error) return NextResponse.json({ error: r.error.message }, { status: 502 });
+    return NextResponse.json({ revoked: id });
+  }
   const list = await resend.domains.list();
   const existing = ((list.data as unknown as { data?: { id: string; name: string; status: string }[] } | null)?.data ?? []).find((d) => d.name === name);
   const action = b.action ?? (existing ? "get" : "create");
