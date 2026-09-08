@@ -31,7 +31,10 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
     }
   }
   const dir = edition.language === "en" || edition.language === "fr" ? "ltr" : "rtl";
-  const body = wrapEdition(edition.html, rt, edition.language || "he", dir, {
+  // The daily secret never ships in the page: a kid gets it from the server with the completion, a demo
+  // visitor gets a demo password (the real one would otherwise be readable from the source).
+  const html = edition.html.replace(/const PW_ENC = '[^']*';/, `const PW_ENC = '${rt.kidToken ? "" : encodePw("הדגמה")}';`);
+  const body = wrapEdition(html, rt, edition.language || "he", dir, {
     index: !!opts.index,
     prepend: opts.banner && !rt.kidToken ? visitorStrip(opts.parent ?? null) : "",
   });
@@ -111,6 +114,11 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
 
 function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
+}
+
+/** The engine's PW_ENC: base64 of the reversed UTF-8 string. */
+export function encodePw(pw: string): string {
+  return Buffer.from(pw.split("").reverse().join(""), "utf8").toString("base64");
 }
 
 export function notFoundPage(msg: string): string {

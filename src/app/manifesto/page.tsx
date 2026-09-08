@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { t } from "@/i18n";
 import { APP, X_HANDLE, X_URL } from "@/lib/config";
 import { nums } from "@/lib/format";
 import { XIcon } from "@/lib/icons";
 
-export const metadata: Metadata = { title: "מניפסט" };
+export const metadata: Metadata = { title: "מניפסט", description: t("meta.manifesto"), openGraph: { title: "מניפסט", description: t("meta.manifesto") } };
 export const dynamic = "force-static";
 
 export default function Manifesto() {

@@ -116,6 +116,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
     if (!k.feminine) e[`kids.${i}.feminine`] = t("join.w.needGender");
     if (!k.grade || !k.age) e[`kids.${i}.grade`] = t("join.w.needGrade");
     if (k.email && !EMAIL_RE.test(k.email.trim())) e[`kids.${i}.email`] = t("join.w.badEmail");
+    if ((k.extraEmail || k.extraName) && !EMAIL_RE.test(k.extraEmail.trim())) e[`kids.${i}.extra`] = t("join.w.badEmail");
     setLocal(e);
     return Object.keys(e).length === 0;
   }
@@ -205,7 +206,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
             </div>
             <p className="wiz-hint">{levels.find((l) => l.value === k.level)?.blurb}</p>
 
-            <details className="sheet">
+            <details className="sheet" open={!!(err(`kids.${i}.email`) || err(`kids.${i}.extra`))}>
               <summary>{t("join.w.optional")}</summary>
               <div className="field">
                 <label>{t("join.kidEmail")}</label>
@@ -217,6 +218,7 @@ export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
                 <label>{t("join.extraAdult")}</label>
                 <input placeholder={t("join.extraName")} value={k.extraName} onChange={(e) => patch(i, { extraName: e.target.value })} />
                 <input type="email" inputMode="email" dir="ltr" placeholder={t("join.extraEmail")} value={k.extraEmail} onChange={(e) => patch(i, { extraEmail: e.target.value })} />
+                {err(`kids.${i}.extra`) ? <span className="wiz-err">{err(`kids.${i}.extra`)}</span> : null}
               </div>
             </details>
 

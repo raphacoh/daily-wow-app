@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: { default: APP.name, template: `%s · ${APP.name}` },
   description: "שיעור אחד ביום, מהורים לילדים. פתוח, חינמי, קהילתי.",
   robots: { index: true, follow: true },
+  metadataBase: new URL(APP.url),
+  openGraph: { type: "website", siteName: APP.name, locale: "he_IL", title: APP.name, description: "שיעור אחד ביום, מהורים לילדים. פתוח, חינמי, קהילתי." },
+  twitter: { card: "summary_large_image", site: X_HANDLE },
+  icons: { icon: "/icon.svg" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#FAF8F3", interactiveWidget: "resizes-content" };
 

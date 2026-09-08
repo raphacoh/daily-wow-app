@@ -4,7 +4,7 @@ import SignInForm from "./SignInForm";
 import { currentParent } from "@/lib/auth";
 import { t } from "@/i18n";
 
-export const metadata: Metadata = { title: t("signin.title") };
+export const metadata: Metadata = { title: t("signin.title"), description: t("meta.signin"), robots: { index: false } };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   let parent = null;

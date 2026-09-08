@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { t } from "@/i18n";
 import { nums } from "@/lib/format";
 
-export const metadata: Metadata = { title: "שאלות" };
+export const metadata: Metadata = { title: "שאלות", description: t("meta.faq"), openGraph: { title: "שאלות", description: t("meta.faq") } };
 export const dynamic = "force-static";
 
 export default function Faq() {

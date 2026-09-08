@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { t } from "@/i18n";
 import { APP, DEMO_URL } from "@/lib/config";
 
-export const metadata: Metadata = { title: "פתוח" };
+export const metadata: Metadata = { title: "פתוח", description: t("meta.open"), openGraph: { title: "פתוח", description: t("meta.open") } };
 export const dynamic = "force-static";
 
 const REPOS = [
@@ -28,7 +29,7 @@ export default function Open() {
           <b>
             <a href={DEMO_URL} rel="noopener">שיעור הדגמה</a>
           </b>
-          <small>הגיליון הראשון, כמו שהוא יוצא מהערכה. סיסמת כניסה: demo.</small>
+          <small>הגיליון הראשון, כמו שהוא יוצא מהערכה הפתוחה (הדף הראשי כאן הוא ההדגמה המלאה, בלי סיסמה). סיסמת הכניסה לערכה: demo.</small>
         </li>
         <li>
           <b>

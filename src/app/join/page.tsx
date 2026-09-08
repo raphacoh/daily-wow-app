@@ -4,7 +4,7 @@ import { gradeForAge } from "@/lib/family";
 import { GRADES, LEVELS_UI, type Level } from "@/lib/kids";
 import { t } from "@/i18n";
 
-export const metadata: Metadata = { title: t("join.title"), robots: { index: true, follow: true } };
+export const metadata: Metadata = { title: t("join.title"), description: t("meta.join"), robots: { index: true, follow: true } };
 
 const AGES = [7, 8, 9, 10, 11, 12, 13];
 const MAX_KIDS = 6;

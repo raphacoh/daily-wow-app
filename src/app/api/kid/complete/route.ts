@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { kidByToken, recordCompletion } from "@/lib/kids";
 import { hasDb } from "@/lib/db";
 import { queueCompletionNotice } from "@/lib/notify";
+import { db } from "@/lib/db";
+
+/** the vault opens only when every part of the test is done — same rule server-side */
+async function isComplete(kidId: string, n: number): Promise<boolean> {
+  const r = await db().query<{ complete: boolean }>("select complete from completions where kid_id = $1 and edition_n = $2", [kidId, n]);
+  return !!r.rows[0]?.complete;
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +44,7 @@ export async function POST(req: Request) {
     queueCompletionNotice(kid, edition_n, r).catch(() => {});
   }
   return NextResponse.json(
-    { ok: true, stats: r.stats, xp_awarded: r.xp_awarded, late: r.late, new_badges: r.new_badges, first_time: r.first_time, improved: r.improved },
+    { ok: true, stats: r.stats, xp_awarded: r.xp_awarded, late: r.late, new_badges: r.new_badges, first_time: r.first_time, improved: r.improved, password: (await isComplete(kid.id, edition_n)) ? r.password : null },
     { headers: { "cache-control": "no-store" } },
   );
 }

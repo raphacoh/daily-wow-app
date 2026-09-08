@@ -133,7 +133,8 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     let page = await newPage();
     const demo = await playLesson(page, { pickId: "guest_f" });
     console.log("demo:", JSON.stringify(demo));
-    if (!demo.pw) errors.push("demo: vault did not open");
+    if (demo.pw !== "הדגמה") errors.push("demo: vault should show the demo password, got " + demo.pw);
+    if (await page.evaluate(() => document.documentElement.outerHTML.includes("15DXmNeRINec16kg15zXpteU"))) errors.push("demo: the real PW_ENC is in the page source");
     if (demo.runtime !== "demo") errors.push("demo: runtime flag missing");
     if (demo.scrollW > demo.vw) errors.push("demo: horizontal overflow");
     await page.close();
@@ -145,7 +146,8 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     if (!/\/l\/1\?k=/.test(url)) errors.push("today redirect failed: " + url);
     const kid = await playLesson(page, { expectNoPicker: true, url });
     console.log("kid:", JSON.stringify(kid));
-    if (!kid.pw) errors.push("kid: vault did not open");
+    if (kid.pw !== "הצל של בטא") errors.push("kid: vault should show the server password, got " + kid.pw);
+    if (await page.evaluate(() => /const PW_ENC = '[^']+'/.test(document.documentElement.outerHTML))) errors.push("kid: a PW_ENC value is in the page source");
     if (kid.runtime !== "app") errors.push("kid: runtime flag");
     if (kid.track !== "older" || kid.push !== "ontrack") errors.push("kid: level mapping " + kid.track + "/" + kid.push);
     if (!/אמה/.test(kid.who)) errors.push("kid: name not shown");

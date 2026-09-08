@@ -70,14 +70,20 @@ export async function consumeMessage(key: string, day: string, cap: number, q: Q
 
 /* ---------- sessions ---------- */
 
-export async function openSession(kidToken: string, editionN: number, now = new Date()): Promise<{ token: string; remaining: number; cap: number; subscribed: boolean; demo: boolean } | { error: string; status: number }> {
+export async function openSession(kidToken: string, editionN: number, now = new Date(), visitor: string | null = null): Promise<{ token: string; remaining: number; cap: number; subscribed: boolean; demo: boolean } | { error: string; status: number }> {
   const kid = kidToken ? await kidByToken(kidToken) : null;
   if (kidToken && !kid) return { error: "bad_kid", status: 404 };
   if (kid?.paused) return { error: "paused", status: 403 };
   const edition = await getEdition(editionN);
   if (!edition) return { error: "bad_edition", status: 404 };
   const a = await allowanceFor(kid, now);
-  const r = await db().query<{ id: string }>("insert into arto_sessions (key, edition_n, expires_at) values ($1, $2, $3) returning id", [a.key, editionN, new Date(now.getTime() + 5 * 3600e3)]);
+  if (!kid && visitor) {
+    // one visitor's share of the demo pool per day, so nobody can drain it for everyone
+    const perVisitor = await getNumber("demo_per_visitor_per_day");
+    const used = await db().query<{ messages: number }>("select messages from arto_counters where key = $1 and day = $2", ["demov:" + visitor, localDate(now, a.timezone)]);
+    if ((used.rows[0]?.messages ?? 0) >= perVisitor) return { error: "cap", status: 429 };
+  }
+  const r = await db().query<{ id: string }>("insert into arto_sessions (key, edition_n, expires_at, visitor) values ($1, $2, $3, $4) returning id", [a.key, editionN, new Date(now.getTime() + 5 * 3600e3), visitor]);
   const sid = String(r.rows[0].id);
   const token = await signSession({ sid, key: a.key, edition_n: editionN, kid_id: kid?.id ?? null });
   if (!kid) {
@@ -252,8 +258,12 @@ async function consumeForSession(s: ArtoSession & { off_count: number }, kid: (K
   const resets_at = nextLocalMidnight(now, a.timezone).toISOString();
   if (!kid) {
     const per = await getNumber("demo_messages_per_session");
-    const sess = await db().query<{ messages: number }>("select messages from arto_sessions where id = $1", [s.sid]);
+    const sess = await db().query<{ messages: number; visitor: string | null }>("select messages, visitor from arto_sessions where id = $1", [s.sid]);
     if ((sess.rows[0]?.messages ?? 0) >= per) return { ok: false, error: "cap", status: 429, resets_at, subscribed: false, cap: per, demo: true };
+    if (sess.rows[0]?.visitor) {
+      const v = await consumeMessage("demov:" + sess.rows[0].visitor, day, await getNumber("demo_per_visitor_per_day"));
+      if (!v.ok) return { ok: false, error: "cap", status: 429, resets_at, subscribed: false, cap: per, demo: true };
+    }
   }
   const c = await consumeMessage(a.key, day, a.cap);
   if (!c.ok) {

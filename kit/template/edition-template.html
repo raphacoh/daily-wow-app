@@ -134,7 +134,7 @@ body[data-push=ontrack] span[data-push=ontrack]{display:inline!important}
 body[data-push=ontrack] .challenge [data-level=standard]{display:none!important}
 body[data-runtime] .tracks{display:none} body[data-runtime=demo] .tracks{display:grid}
 .demo-level{margin:14px 0 0;display:grid;gap:12px;font-size:.95rem;color:var(--muted)} .demo-level label{display:grid;gap:4px} .demo-level label>span:first-child{color:var(--ink)} .demo-level input[type=range]{width:100%;accent-color:var(--ink);direction:rtl} .demo-level .ticks{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:0 4px} .demo-level .ticks i{font-style:normal}
-body[data-runtime=app] #mailBtn{display:none}
+body[data-runtime] #mailBtn{display:none}   /* the app emails the parent itself; no placeholder address on demo pages either */
 .challenge{border:2px dashed var(--shadow);background:var(--shadow-soft)}
 .challenge h3{color:var(--shadow)}
 .trackpill{display:inline-block;font-size:.85rem;padding:2px 10px;border-radius:999px;margin-bottom:8px}
@@ -1195,7 +1195,8 @@ function finish(){
   if(complete){
     vault.classList.add('open'); vaultLock.textContent='🔓';
     vaultTitle.textContent='הסיסמה הסודית של היום היא:';
-    vaultBody.innerHTML='<div class="pw">'+esc(decodePw())+'</div><p class="small" style="margin:0">'+G('ספר','ספרי')+' אותה לאבא או לאמא — הם יודעים מה היא פותחת. הסיסמה מתחלפת כל יום.</p>';
+    /* in the app the secret never travels in the page: it arrives with the server's answer to the completion */
+    vaultBody.innerHTML='<div class="pw">'+((RT&&RT.kidToken)?'…':esc(decodePw()))+'</div><p class="small" style="margin:0">'+G('ספר','ספרי')+' אותה לאבא או לאמא — הם יודעים מה היא פותחת. הסיסמה מתחלפת כל יום.</p>';
   } else {
     vault.classList.remove('open'); vaultLock.textContent='🔒';
     vaultTitle.textContent='הסיסמה הסודית של היום עדיין נעולה';
@@ -1266,10 +1267,11 @@ function reportCompletion(){
   const g=S.game||{}, r=S.result;
   const body={ token:RT.kidToken, edition_n:EDITION.n, score:r.total, max:r.max, complete:!!g.complete, late:LATE, challenge:!!S.challenge, client_at:new Date().toISOString() };
   if(RT.profile && RT.profile.keep_explanations && S.explainText) body.answers={ explain:S.explainText };
-  postCompletion(body).then(({ok,j})=>{ if(ok && j && j.stats) applyServerStats(j); }).catch(()=>{ const q=cqLoad(); q.push(body); cqSave(q); const el=document.getElementById('rtStatus'); if(el){ el.hidden=false; el.textContent='התוצאה נשמרה במכשיר ותישלח כשיהיה חיבור.'; } });
+  postCompletion(body).then(({ok,j})=>{ if(ok && j && j.stats) applyServerStats(j); }).catch(()=>{ const q=cqLoad(); q.push(body); cqSave(q); const el=document.getElementById('rtStatus'); if(el){ el.hidden=false; el.textContent='התוצאה נשמרה במכשיר ותישלח כשיהיה חיבור.'; } const pwEl=document.querySelector('.vault .pw'); if(pwEl && pwEl.textContent==='…') pwEl.textContent='הסיסמה תופיע כשיהיה חיבור'; });
 }
 function applyServerStats(j){   // the server's truth wins on the results screen (streak derived from completions, XP awarded once)
   const st=j.stats, lv=levelFor(st.xp,F());
+  const pwEl=document.querySelector('.vault .pw'); if(pwEl && j.password) pwEl.textContent=j.password;
   if(typeof j.xp_awarded==='number' && j.xp_awarded>=0) document.getElementById('xpToday').textContent='+'+j.xp_awarded;
   const span = lv.next? (lv.next-LEVELS[lv.i][0]) : 1, into = lv.next? (st.xp-LEVELS[lv.i][0]) : 1;
   xpBar.style.width=Math.round(into/span*100)+'%';

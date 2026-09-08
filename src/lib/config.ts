@@ -9,6 +9,7 @@ const DEFAULTS: Record<string, string> = {
   free_messages_per_day: "3",
   demo_pool_per_day: "30",
   demo_messages_per_session: "3",
+  demo_per_visitor_per_day: "6",
   model: "claude-sonnet-5",
   send_time: "11:05",
   magic_links_per_family_per_day: "20",
