@@ -93,9 +93,12 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
   el.querySelector('.more').addEventListener('click', function(b){ var o=el.classList.toggle('open'); this.setAttribute('aria-expanded', o?'true':'false'); size(); });
   if(window.ResizeObserver){ new ResizeObserver(size).observe(el); } window.addEventListener('resize', size);
   /* out of the way while typing (mobile keyboards), and never over the chat panel */
-  var hiddenForTyping=false;
-  document.addEventListener('focusin', function(e){ if(e.target.matches('input,textarea') && !el.hidden){ hiddenForTyping=true; el.style.transform='translateY(110%)'; body.classList.remove('rw-on'); } });
-  document.addEventListener('focusout', function(){ setTimeout(function(){ if(hiddenForTyping && !(document.activeElement && document.activeElement.matches('input,textarea'))){ hiddenForTyping=false; el.style.transform=''; size(); } },150); });
+  var hiddenForTyping=false, chatOpen=false;
+  function apply(){ if(el.hidden) return; var away = hiddenForTyping || chatOpen; el.style.transform = away ? 'translateY(110%)' : ''; if(away){ body.classList.remove('rw-on'); } else { size(); } }
+  document.addEventListener('focusin', function(e){ if(e.target.matches('input,textarea') && !e.target.closest('#chat')){ hiddenForTyping=true; apply(); } });
+  document.addEventListener('focusout', function(){ setTimeout(function(){ if(hiddenForTyping && !(document.activeElement && document.activeElement.matches('input,textarea'))){ hiddenForTyping=false; apply(); } },150); });
+  var chatEl=document.getElementById('chat');
+  if(chatEl && window.MutationObserver){ new MutationObserver(function(){ var o=chatEl.classList.contains('open'); if(o!==chatOpen){ chatOpen=o; apply(); } }).observe(chatEl,{attributes:true,attributeFilter:['class']}); }
 })();</script>
 `;
 }

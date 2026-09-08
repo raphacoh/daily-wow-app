@@ -1,11 +1,11 @@
 "use client";
 /**
- * The registration form (PRD §5.2). Kid cards are client state so "+ עוד ילד/ה" costs no round trip;
- * every field is controlled so a validation round trip never loses what the parent typed.
- *
- * The level/grade tables live in server-only modules, so the page passes them in as plain data.
+ * Registration as a short wizard (PRD §5.2, redesigned): the parent's email on one screen, then each kid
+ * on their own screen, then a last screen with the parent's name + consent, then done.
+ * Client state only; the final screen submits everything to the same server action through hidden fields,
+ * so the server contract (`parentName, email, consent, kid_i_*`) is unchanged.
  */
-import { useActionState, useId, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { register, type JoinState } from "./actions";
 import { t } from "@/i18n";
 
@@ -18,7 +18,6 @@ export interface LevelOption {
 export interface JoinFormProps {
   levels: LevelOption[];
   grades: string[];
-  /** age (7–13) → the grade to pre-fill, from `gradeForAge` */
   gradeByAge: Record<string, string>;
   ages: number[];
   maxKids: number;
@@ -30,202 +29,252 @@ interface KidState {
   feminine: "" | "0" | "1";
   age: string;
   grade: string;
-  gradeTouched: boolean;
   level: string;
   email: string;
   extraName: string;
   extraEmail: string;
 }
 
+type Step = { kind: "email" } | { kind: "kid"; i: number } | { kind: "final" };
+
 const JOIN_INITIAL: JoinState = { status: "idle", errors: {} };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 let nextKey = 1;
 function blankKid(level: string): KidState {
-  return { key: nextKey++, name: "", feminine: "", age: "", grade: "", gradeTouched: false, level, email: "", extraName: "", extraEmail: "" };
+  return { key: nextKey++, name: "", feminine: "", age: "10", grade: "ה", level, email: "", extraName: "", extraEmail: "" };
 }
 
-export default function JoinForm({ levels, grades, gradeByAge, ages, maxKids }: JoinFormProps) {
+export default function JoinForm({ levels, grades, maxKids }: JoinFormProps) {
   const defaultLevel = levels.some((l) => l.value === "standard") ? "standard" : levels[0]?.value ?? "";
   const [state, formAction, pending] = useActionState<JoinState, FormData>(register, JOIN_INITIAL);
-  const [parentName, setParentName] = useState("");
   const [email, setEmail] = useState("");
+  const [parentName, setParentName] = useState("");
   const [consent, setConsent] = useState(false);
-  const [kids, setKids] = useState<KidState[]>(() => [blankKid(levels.some((l) => l.value === "standard") ? "standard" : levels[0]?.value ?? "")]);
-  const uid = useId();
+  const [kids, setKids] = useState<KidState[]>(() => [blankKid(defaultLevel)]);
+  const [step, setStep] = useState<Step>({ kind: "email" });
+  const [local, setLocal] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
+  const firstField = useRef<HTMLInputElement>(null);
+
+  // focus the first field of every screen
+  useEffect(() => {
+    const id = setTimeout(() => firstField.current?.focus(), 60);
+    return () => clearTimeout(id);
+  }, [step]);
+
+  // a server-side validation error sends the parent back to the screen that owns it
+  useEffect(() => {
+    if (state.status !== "error") return;
+    const keys = Object.keys(state.errors);
+    if (!keys.length) return;
+    const kidErr = keys.map((k) => /^kids\.(\d+)\./.exec(k)).find(Boolean);
+    if (keys.includes("email")) setStep({ kind: "email" });
+    else if (kidErr) setStep({ kind: "kid", i: Number(kidErr[1]) });
+    else setStep({ kind: "final" });
+  }, [state]);
 
   const patch = (i: number, p: Partial<KidState>) => setKids((ks) => ks.map((k, j) => (j === i ? { ...k, ...p } : k)));
-  const err = (field: string) => state.errors[field];
+  const serverErr = (field: string) => state.errors[field];
+  const err = (field: string) => local[field] ?? serverErr(field);
 
   if (state.status === "done") {
     return (
-      <div className="panel">
-        <h2>{t("join.doneTitle")}</h2>
-        <p>{t("join.done", { email: state.email ?? "" })}</p>
+      <section className="wiz">
+        <Progress n={kids.length + 2} at={kids.length + 2} />
+        <h1 className="wiz-h">{t("join.doneTitle")}</h1>
+        <p className="wiz-p">{t("join.done", { email: state.email ?? "" })}</p>
         {state.note ? <p className="msg info">{state.note}</p> : null}
-        <div className="controls">
+        <div className="wiz-acts col">
           {(state.kids ?? []).map((k) => (
-            <a className="btn" key={k.link} href={k.link}>
+            <a className="btn block" key={k.link} href={k.link}>
               {t("join.openFor", { name: k.name })}
             </a>
           ))}
         </div>
         <p className="small">{t("join.doneNote")}</p>
-      </div>
+      </section>
     );
   }
 
+  const stepIndex = step.kind === "email" ? 0 : step.kind === "kid" ? step.i + 1 : kids.length + 1;
+  const total = kids.length + 2;
+
+  function nextFromEmail() {
+    if (!EMAIL_RE.test(email.trim())) return setLocal({ email: t("join.w.badEmail") });
+    setLocal({});
+    setStep({ kind: "kid", i: 0 });
+  }
+  function kidValid(i: number): boolean {
+    const k = kids[i];
+    const e: Record<string, string> = {};
+    if (!k.name.trim()) e[`kids.${i}.name`] = t("join.w.needName");
+    if (!k.feminine) e[`kids.${i}.feminine`] = t("join.w.needGender");
+    if (!k.grade || !k.age) e[`kids.${i}.grade`] = t("join.w.needGrade");
+    if (k.email && !EMAIL_RE.test(k.email.trim())) e[`kids.${i}.email`] = t("join.w.badEmail");
+    setLocal(e);
+    return Object.keys(e).length === 0;
+  }
+  function addKid(i: number) {
+    if (!kidValid(i)) return;
+    if (kids.length >= maxKids) return setStep({ kind: "final" });
+    setKids((ks) => [...ks, blankKid(defaultLevel)]);
+    setStep({ kind: "kid", i: i + 1 });
+  }
+  function finishKids(i: number) {
+    if (!kidValid(i)) return;
+    setStep({ kind: "final" });
+  }
+  function removeKid(i: number) {
+    if (kids.length === 1) return;
+    setKids((ks) => ks.filter((_, j) => j !== i));
+    setStep({ kind: "kid", i: Math.max(0, i - 1) });
+  }
+  function back() {
+    setLocal({});
+    if (step.kind === "kid") setStep(step.i === 0 ? { kind: "email" } : { kind: "kid", i: step.i - 1 });
+    else if (step.kind === "final") setStep({ kind: "kid", i: kids.length - 1 });
+  }
+  function submitAll() {
+    const e: Record<string, string> = {};
+    if (!parentName.trim()) e.parentName = t("join.w.needYourName");
+    if (!consent) e.consent = t("join.w.needConsent");
+    setLocal(e);
+    if (Object.keys(e).length) return;
+    formRef.current?.requestSubmit();
+  }
+  const onEnter = (fn: () => void) => (ev: React.KeyboardEvent) => {
+    if (ev.key === "Enter" && (ev.target as HTMLElement).tagName !== "TEXTAREA") {
+      ev.preventDefault();
+      fn();
+    }
+  };
+
   return (
-    <form action={formAction} noValidate>
-      {state.message ? <p className={`msg ${state.status === "exists" ? "info" : "bad"}`}>{state.message}</p> : null}
+    <section className="wiz" key={`${step.kind}-${step.kind === "kid" ? step.i : ""}`}>
+      <Progress n={total} at={stepIndex + 1} />
+      {state.message && step.kind === "final" ? <p className={`msg ${state.status === "exists" ? "info" : "bad"}`}>{state.message}</p> : null}
 
-      <section className="panel">
-        <h2>{t("join.parent")}</h2>
-
-        <div className="field">
-          <label htmlFor={`${uid}-pname`}>{t("join.parentName")}</label>
-          <input id={`${uid}-pname`} name="parentName" autoComplete="given-name" value={parentName} onChange={(e) => setParentName(e.target.value)} />
-          {err("parentName") ? <span className="msg bad">{err("parentName")}</span> : null}
+      {step.kind === "email" ? (
+        <div className="wiz-screen">
+          <h1 className="wiz-h">{t("join.w.emailH")}</h1>
+          <p className="wiz-p">{t("join.w.emailP")}</p>
+          <input ref={firstField} className="wiz-in" type="email" inputMode="email" autoComplete="email" dir="ltr" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={onEnter(nextFromEmail)} aria-label={t("join.parentEmail")} />
+          {err("email") ? <p className="wiz-err">{err("email")}</p> : null}
+          <div className="wiz-acts">
+            <button type="button" className="btn" onClick={nextFromEmail}>{t("join.w.next")}</button>
+          </div>
+          <p className="small">{t("join.w.emailNote")}</p>
         </div>
+      ) : null}
 
-        <div className="field">
-          <label htmlFor={`${uid}-pmail`}>{t("join.parentEmail")}</label>
-          <input id={`${uid}-pmail`} name="email" type="email" inputMode="email" autoComplete="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <span className="hint">{t("join.parentEmailHint")}</span>
-          {err("email") ? <span className="msg bad">{err("email")}</span> : null}
-        </div>
+      {step.kind === "kid" ? (() => {
+        const i = step.i;
+        const k = kids[i];
+        return (
+          <div className="wiz-screen">
+            <h1 className="wiz-h">{i === 0 ? t("join.w.kidH") : t("join.w.kidHMore")}</h1>
+            <p className="wiz-p">{t("join.w.kidP")}</p>
 
-        <div className="field inline">
-          <input id={`${uid}-consent`} name="consent" type="checkbox" value="1" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-          <label htmlFor={`${uid}-consent`}>
-            {t("join.consent")} (<a href="/privacy">{t("join.privacyLink")}</a>)
+            <label className="wiz-label">{t("join.kidName")}</label>
+            <input ref={firstField} className="wiz-in" value={k.name} onChange={(e) => patch(i, { name: e.target.value })} onKeyDown={onEnter(() => finishKids(i))} autoComplete="off" />
+            {err(`kids.${i}.name`) ? <p className="wiz-err">{err(`kids.${i}.name`)}</p> : null}
+
+            <label className="wiz-label">{t("join.gender")} <span className="wiz-hint">{t("join.genderHint")}</span></label>
+            <div className="chips" role="radiogroup" aria-label={t("join.gender")}>
+              <button type="button" className={"chip" + (k.feminine === "0" ? " on" : "")} aria-pressed={k.feminine === "0"} onClick={() => patch(i, { feminine: "0" })}>{t("join.boy")}</button>
+              <button type="button" className={"chip" + (k.feminine === "1" ? " on" : "")} aria-pressed={k.feminine === "1"} onClick={() => patch(i, { feminine: "1" })}>{t("join.girl")}</button>
+            </div>
+            {err(`kids.${i}.feminine`) ? <p className="wiz-err">{err(`kids.${i}.feminine`)}</p> : null}
+
+            <label className="wiz-label" htmlFor={`grade-${k.key}`}>{t("join.grade")} <b className="wiz-val">{k.grade || "—"}</b></label>
+            <div className="slider">
+              <input id={`grade-${k.key}`} type="range" min={0} max={grades.length - 1} step={1} value={k.grade ? Math.max(0, grades.indexOf(k.grade)) : 3} onChange={(e) => { const gi = Number(e.target.value); patch(i, { grade: grades[gi], age: String(7 + gi) }); }} />
+              <div className="ticks" aria-hidden="true">{grades.map((g) => <i key={g}>{g}</i>)}</div>
+            </div>
+            {err(`kids.${i}.age`) || err(`kids.${i}.grade`) ? <p className="wiz-err">{err(`kids.${i}.age`) || err(`kids.${i}.grade`)}</p> : null}
+
+            <label className="wiz-label" htmlFor={`lvl-${k.key}`}>{t("join.level")} <b className="wiz-val">{levels.find((l) => l.value === k.level)?.label}</b></label>
+            <div className="slider">
+              <input id={`lvl-${k.key}`} type="range" min={0} max={levels.length - 1} step={1} value={Math.max(0, levels.findIndex((l) => l.value === k.level))} onChange={(e) => patch(i, { level: levels[Number(e.target.value)]?.value ?? defaultLevel })} />
+              <div className="ticks" aria-hidden="true">{levels.map((l) => <i key={l.value}>{l.label}</i>)}</div>
+            </div>
+            <p className="wiz-hint">{levels.find((l) => l.value === k.level)?.blurb}</p>
+
+            <details className="sheet">
+              <summary>{t("join.w.optional")}</summary>
+              <div className="field">
+                <label>{t("join.kidEmail")}</label>
+                <input type="email" inputMode="email" dir="ltr" value={k.email} onChange={(e) => patch(i, { email: e.target.value })} />
+                <span className="hint">{t("join.kidEmailHint")}</span>
+                {err(`kids.${i}.email`) ? <span className="wiz-err">{err(`kids.${i}.email`)}</span> : null}
+              </div>
+              <div className="field">
+                <label>{t("join.extraAdult")}</label>
+                <input placeholder={t("join.extraName")} value={k.extraName} onChange={(e) => patch(i, { extraName: e.target.value })} />
+                <input type="email" inputMode="email" dir="ltr" placeholder={t("join.extraEmail")} value={k.extraEmail} onChange={(e) => patch(i, { extraEmail: e.target.value })} />
+              </div>
+            </details>
+
+            <div className="wiz-acts">
+              <button type="button" className="btn" onClick={() => finishKids(i)}>{t("join.w.kidDone")}</button>
+              {kids.length < maxKids ? <button type="button" className="btn ghost" onClick={() => addKid(i)}>{t("join.w.kidMore")}</button> : null}
+            </div>
+            <p className="wiz-nav">
+              <button type="button" className="lnk" onClick={back}>{t("join.w.back")}</button>
+              {kids.length > 1 ? <button type="button" className="lnk" onClick={() => removeKid(i)}>{t("join.removeKid")}</button> : null}
+            </p>
+          </div>
+        );
+      })() : null}
+
+      {step.kind === "final" ? (
+        <div className="wiz-screen">
+          <h1 className="wiz-h">{t("join.w.finalH")}</h1>
+          <p className="wiz-p">{t("join.w.finalP", { kids: kids.map((k) => k.name.trim()).filter(Boolean).join(", "), email })}</p>
+          <label className="wiz-label">{t("join.parentName")}</label>
+          <input ref={firstField} className="wiz-in" autoComplete="given-name" value={parentName} onChange={(e) => setParentName(e.target.value)} onKeyDown={onEnter(submitAll)} />
+          {err("parentName") ? <p className="wiz-err">{err("parentName")}</p> : null}
+          <label className="wiz-consent">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+            <span>{t("join.consent")} (<a href="/privacy" target="_blank" rel="noopener">{t("join.privacyLink")}</a>)</span>
           </label>
+          {err("consent") ? <p className="wiz-err">{err("consent")}</p> : null}
+          <div className="wiz-acts">
+            <button type="button" className="btn" onClick={submitAll} disabled={pending}>{pending ? t("join.submitting") : t("join.w.submit")}</button>
+          </div>
+          <p className="wiz-nav"><button type="button" className="lnk" onClick={back}>{t("join.w.back")}</button></p>
         </div>
-        {err("consent") ? <p className="msg bad">{err("consent")}</p> : null}
-      </section>
+      ) : null}
 
-      <h2>{t("join.kids")}</h2>
-      {err("kids") ? <p className="msg bad">{err("kids")}</p> : null}
+      {/* the real submission: everything collected, as the server action expects it */}
+      <form ref={formRef} action={formAction} hidden aria-hidden="true">
+        <input type="hidden" name="email" value={email.trim()} />
+        <input type="hidden" name="parentName" value={parentName.trim()} />
+        {consent ? <input type="hidden" name="consent" value="1" /> : null}
+        {kids.map((k, i) => (
+          <span key={k.key}>
+            <input type="hidden" name={`kid_${i}_name`} value={k.name.trim()} />
+            <input type="hidden" name={`kid_${i}_feminine`} value={k.feminine} />
+            <input type="hidden" name={`kid_${i}_age`} value={k.age} />
+            <input type="hidden" name={`kid_${i}_grade`} value={k.grade} />
+            <input type="hidden" name={`kid_${i}_level`} value={k.level} />
+            <input type="hidden" name={`kid_${i}_email`} value={k.email.trim()} />
+            <input type="hidden" name={`kid_${i}_extraName`} value={k.extraName.trim()} />
+            <input type="hidden" name={`kid_${i}_extraEmail`} value={k.extraEmail.trim()} />
+          </span>
+        ))}
+      </form>
+    </section>
+  );
+}
 
-      {kids.map((kid, i) => (
-        <section className="kidcard" key={kid.key}>
-          <h3>
-            {t("join.kidN", { n: i + 1 })}
-            {kids.length > 1 ? (
-              <button type="button" className="rm" onClick={() => setKids((ks) => ks.filter((_, j) => j !== i))}>
-                {t("join.removeKid")}
-              </button>
-            ) : null}
-          </h3>
-
-          <div className="field">
-            <label htmlFor={`${uid}-n${kid.key}`}>{t("join.kidName")}</label>
-            <input id={`${uid}-n${kid.key}`} name={`kid_${i}_name`} value={kid.name} onChange={(e) => patch(i, { name: e.target.value })} />
-            {err(`kids.${i}.name`) ? <span className="msg bad">{err(`kids.${i}.name`)}</span> : null}
-          </div>
-
-          <fieldset className="field" style={{ border: 0, margin: "12px 0", padding: 0 }}>
-            <legend style={{ fontWeight: 700, fontSize: ".98rem", padding: 0 }}>{t("join.gender")}</legend>
-            <div className="seg">
-              <label>
-                <input type="radio" name={`kid_${i}_feminine`} value="0" checked={kid.feminine === "0"} onChange={() => patch(i, { feminine: "0" })} />
-                {t("join.boy")}
-              </label>
-              <label>
-                <input type="radio" name={`kid_${i}_feminine`} value="1" checked={kid.feminine === "1"} onChange={() => patch(i, { feminine: "1" })} />
-                {t("join.girl")}
-              </label>
-            </div>
-            <span className="hint">{t("join.genderHint")}</span>
-            {err(`kids.${i}.feminine`) ? <span className="msg bad">{err(`kids.${i}.feminine`)}</span> : null}
-          </fieldset>
-
-          <div className="field">
-            <label htmlFor={`${uid}-a${kid.key}`}>{t("join.age")}</label>
-            <select
-              id={`${uid}-a${kid.key}`}
-              name={`kid_${i}_age`}
-              value={kid.age}
-              onChange={(e) => {
-                const age = e.target.value;
-                patch(i, { age, ...(kid.gradeTouched ? {} : { grade: gradeByAge[age] ?? "" }) });
-              }}
-            >
-              <option value="">—</option>
-              {ages.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-            {err(`kids.${i}.age`) ? <span className="msg bad">{err(`kids.${i}.age`)}</span> : null}
-          </div>
-
-          <div className="field">
-            <label htmlFor={`${uid}-g${kid.key}`}>{t("join.grade")}</label>
-            <select id={`${uid}-g${kid.key}`} name={`kid_${i}_grade`} value={kid.grade} onChange={(e) => patch(i, { grade: e.target.value, gradeTouched: true })}>
-              <option value="">—</option>
-              {grades.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
-            <span className="hint">{t("join.gradeHint")}</span>
-            {err(`kids.${i}.grade`) ? <span className="msg bad">{err(`kids.${i}.grade`)}</span> : null}
-          </div>
-
-          <fieldset className="field" style={{ border: 0, margin: "12px 0", padding: 0 }}>
-            <legend style={{ fontWeight: 700, fontSize: ".98rem", padding: 0 }}>{t("join.level")}</legend>
-            <div className="levels">
-              {levels.map((l) => (
-                <label key={l.value}>
-                  <input type="radio" name={`kid_${i}_level`} value={l.value} checked={kid.level === l.value} onChange={() => patch(i, { level: l.value })} />
-                  <span>
-                    <b>{l.label}</b>
-                    <small>{l.blurb}</small>
-                  </span>
-                </label>
-              ))}
-            </div>
-            {err(`kids.${i}.level`) ? <span className="msg bad">{err(`kids.${i}.level`)}</span> : null}
-          </fieldset>
-
-          <div className="field">
-            <label htmlFor={`${uid}-e${kid.key}`}>{t("join.kidEmail")}</label>
-            <input id={`${uid}-e${kid.key}`} name={`kid_${i}_email`} type="email" inputMode="email" dir="ltr" value={kid.email} onChange={(e) => patch(i, { email: e.target.value })} />
-            <span className="hint">{t("join.kidEmailHint")}</span>
-            {err(`kids.${i}.email`) ? <span className="msg bad">{err(`kids.${i}.email`)}</span> : null}
-          </div>
-
-          <details className="sheet" open={!!kid.extraName || !!kid.extraEmail || !!err(`kids.${i}.extra`)}>
-            <summary>{t("join.extraAdultShort")}</summary>
-            <p className="small">{t("join.extraAdult")}</p>
-            <div className="field">
-              <label htmlFor={`${uid}-xn${kid.key}`}>{t("join.extraName")}</label>
-              <input id={`${uid}-xn${kid.key}`} name={`kid_${i}_extraName`} value={kid.extraName} onChange={(e) => patch(i, { extraName: e.target.value })} />
-            </div>
-            <div className="field">
-              <label htmlFor={`${uid}-xe${kid.key}`}>{t("join.extraEmail")}</label>
-              <input id={`${uid}-xe${kid.key}`} name={`kid_${i}_extraEmail`} type="email" inputMode="email" dir="ltr" value={kid.extraEmail} onChange={(e) => patch(i, { extraEmail: e.target.value })} />
-            </div>
-            {err(`kids.${i}.extra`) ? <p className="msg bad">{err(`kids.${i}.extra`)}</p> : null}
-          </details>
-        </section>
+function Progress({ n, at }: { n: number; at: number }) {
+  return (
+    <div className="wiz-prog" aria-label={`שלב ${at} מתוך ${n}`}>
+      {Array.from({ length: n }, (_, i) => (
+        <i key={i} className={i < at ? "on" : ""} />
       ))}
-
-      <div className="controls">
-        {kids.length < maxKids ? (
-          <button type="button" className="btn ghost" onClick={() => setKids((ks) => [...ks, blankKid(defaultLevel)])}>
-            {t("join.addKid")}
-          </button>
-        ) : (
-          <span className="small">{t("join.maxKids", { max: maxKids })}</span>
-        )}
-      </div>
-
-      <button className="btn block" type="submit" disabled={pending}>
-        {pending ? t("join.submitting") : t("join.submit")}
-      </button>
-    </form>
+    </div>
   );
 }

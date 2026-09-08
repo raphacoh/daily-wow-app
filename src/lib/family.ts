@@ -44,7 +44,7 @@ export function validateKid(k: KidInput, prefix = "kid"): FieldError[] {
   if (typeof k.feminine !== "boolean") errs.push({ field: `${prefix}.feminine`, message: "בן או בת?" });
   if (!Number.isInteger(k.age) || k.age < 7 || k.age > 13) errs.push({ field: `${prefix}.age`, message: "גיל בין 7 ל-13." });
   if (!(GRADES as readonly string[]).includes(k.grade)) errs.push({ field: `${prefix}.grade`, message: "כיתה ב–ח." });
-  if (!(k.level in LEVELS_UI)) errs.push({ field: `${prefix}.level`, message: "רמה לא מוכרת." });
+  if (!(k.level in LEVELS_UI) && k.level !== "on_track") errs.push({ field: `${prefix}.level`, message: "רמה לא מוכרת." });
   if (k.email && !isEmail(k.email)) errs.push({ field: `${prefix}.email`, message: "המייל של הילד/ה לא תקין." });
   if (k.extra && (k.extra.email || k.extra.name) && !isEmail(k.extra.email)) errs.push({ field: `${prefix}.extra`, message: "המייל של המבוגר הנוסף לא תקין." });
   return errs;
@@ -194,7 +194,7 @@ export async function assertOwnsKid(parentId: string, kidId: string, q: Queryabl
 }
 
 export async function setKidLevel(parentId: string, kidId: string, level: Level): Promise<void> {
-  if (!(level in LEVELS_UI)) throw new Error("bad_level");
+  if (!(level in LEVELS_UI) && level !== "on_track") throw new Error("bad_level");
   await assertOwnsKid(parentId, kidId);
   await db().query("update kids set level = $2 where id = $1", [kidId, level]);
 }

@@ -6,12 +6,15 @@ import { decryptToken, encryptToken, hashToken, looksLikeToken, newLinkToken } f
 import { badgesFor, computeStreak, levelFor, localDate, xpFor } from "./progress";
 
 export type Level = "support" | "standard" | "on_track" | "advanced";
-export const LEVELS_UI: Record<Level, { label: string; blurb: string }> = {
+/** The three levels parents choose from. `on_track` still exists in the database (legacy) and behaves like `standard`. */
+export const LEVELS_UI: Record<Exclude<Level, "on_track">, { label: string; blurb: string }> = {
   support: { label: "צריך/ה עזרה", blurb: "קורא/ת לאט, הולך/ת לאיבוד בטקסטים ארוכים, צריך/ה צעדים קונקרטיים." },
-  standard: { label: "רגיל", blurb: "מסתדר/ת יפה בבית הספר." },
-  on_track: { label: "על המסלול", blurb: "תלמיד/ה חזק/ה, אוהב/ת אתגר קטן." },
-  advanced: { label: "מתקדם/ת", blurb: "מחונן/ת או משתעמם/ת מהקצב הרגיל — לדחוף." },
+  standard: { label: "רגיל", blurb: "מסתדר/ת יפה בבית הספר. מקבל/ת שאלת המשך אחרי כל תשובה, והאתגר מומלץ." },
+  advanced: { label: "מתקדם/ת", blurb: "מחונן/ת או משתעמם/ת מהקצב הרגיל — לדחוף: המשימות הקשות, ההסבר המלא." },
 };
+export function normLevel(l: string | null | undefined): Exclude<Level, "on_track"> {
+  return l === "support" || l === "advanced" ? l : "standard";
+}
 export const GRADES = ["ב", "ג", "ד", "ה", "ו", "ז", "ח"] as const;
 
 export interface KidRow {

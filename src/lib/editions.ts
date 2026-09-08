@@ -272,7 +272,7 @@ export function wrapEdition(fragment: string, runtime: RuntimeBootstrap | null, 
   body = body.replace(/<link\b[^>]*>\s*/gi, (m) => { head.push(m.trim()); return ""; });
   const rt = runtime ? `<script>window.RUNTIME=${JSON.stringify(runtime).replace(/</g, "\\u003c")};</script>\n` : "";
   return (
-    `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
+    `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-content">` +
     (opts.index ? `<meta name="description" content="שיעור אחד ביום, מהורים לילדים. חינם.">` : `<meta name="robots" content="noindex">`) +
     `<style>${SKELETON_STYLE}</style>` +
     head.join("") +

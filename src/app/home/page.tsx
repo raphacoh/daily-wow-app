@@ -9,7 +9,7 @@ import { NotSignedIn, requireParent } from "@/lib/auth";
 import { hasDb } from "@/lib/db";
 import { APP } from "@/lib/config";
 import { dashboardFor, kidLink, type Dashboard, type DashboardKid } from "@/lib/family";
-import { GRADES, LEVELS_UI, type Level } from "@/lib/kids";
+import { GRADES, LEVELS_UI, type Level, normLevel } from "@/lib/kids";
 import { LEVELS, levelFor } from "@/lib/progress";
 import { t } from "@/i18n";
 import { addAdult, deleteAccount, dropAdult, dropKid, newLink, saveAccount, saveKid, saveLevel, setPaused, suggestTopic } from "./actions";
@@ -160,12 +160,12 @@ function KidCard({ k, todayDate }: { k: DashboardKid; todayDate: string | null }
 
       <details className="sheet">
         <summary>
-          {t("home.level")}: {LEVELS_UI[kid.level].label}
+          {t("home.level")}: {LEVELS_UI[normLevel(kid.level)].label}
         </summary>
         <form action={saveLevel}>
           <input type="hidden" name="kid" value={kid.id} />
           <div className="levels">
-            {(Object.keys(LEVELS_UI) as Level[]).map((lvl) => (
+            {(Object.keys(LEVELS_UI) as (keyof typeof LEVELS_UI)[]).map((lvl) => (
               <label key={lvl}>
                 <input type="radio" name="level" value={lvl} defaultChecked={kid.level === lvl} />
                 <span>

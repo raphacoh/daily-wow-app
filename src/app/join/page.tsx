@@ -11,13 +11,11 @@ const MAX_KIDS = 6;
 
 export default function JoinPage() {
   // The level/grade tables come from server-only modules; hand the form plain data instead of the modules.
-  const levels: LevelOption[] = (Object.keys(LEVELS_UI) as Level[]).map((value) => ({ value, ...LEVELS_UI[value] }));
+  const levels: LevelOption[] = (Object.keys(LEVELS_UI) as (keyof typeof LEVELS_UI)[]).map((value) => ({ value, ...LEVELS_UI[value] }));
   const gradeByAge = Object.fromEntries(AGES.map((a) => [String(a), gradeForAge(a)]));
 
   return (
     <main className="page">
-      <h1>{t("join.title")}</h1>
-      <p className="lede">{t("join.lede")}</p>
       <JoinForm levels={levels} grades={[...GRADES]} gradeByAge={gradeByAge} ages={AGES} maxKids={MAX_KIDS} />
     </main>
   );

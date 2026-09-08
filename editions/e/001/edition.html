@@ -133,7 +133,7 @@ span[data-push]{display:none!important}
 body[data-push=ontrack] span[data-push=ontrack]{display:inline!important}
 body[data-push=ontrack] .challenge [data-level=standard]{display:none!important}
 body[data-runtime] .tracks{display:none} body[data-runtime=demo] .tracks{display:grid}
-.demo-level{margin:10px 0 0;font-size:.95rem;color:var(--muted)} .demo-level select{font:inherit;margin-inline-start:8px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.demo-level{margin:14px 0 0;display:grid;gap:12px;font-size:.95rem;color:var(--muted)} .demo-level label{display:grid;gap:4px} .demo-level label>span:first-child{color:var(--ink)} .demo-level input[type=range]{width:100%;accent-color:var(--ink);direction:rtl} .demo-level .ticks{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);padding:0 4px} .demo-level .ticks i{font-style:normal}
 body[data-runtime=app] #mailBtn{display:none}
 .challenge{border:2px dashed var(--shadow);background:var(--shadow-soft)}
 .challenge h3{color:var(--shadow)}
@@ -231,6 +231,8 @@ details.src summary{cursor:pointer}
 .fab:hover{transform:translateY(-1px)}
 .chat{position:fixed;left:14px;bottom:14px;z-index:31;width:min(430px,calc(100vw - 28px));height:min(640px,calc(100vh - 28px));background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.22);display:none;flex-direction:column;overflow:hidden}
 .chat.open{display:flex}
+/* phones: the chat takes the whole screen and follows the keyboard (dvh shrinks with it; 100vh does not on iOS) */
+@media (max-width:640px){.chat{left:0;right:0;bottom:0;width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;box-shadow:none} body.chat-open{overflow:hidden;overscroll-behavior:none}}
 .chat header{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--sun-soft);border-bottom:1px solid var(--line)}
 .chat header .av{width:40px;height:40px;border-radius:50%;background:var(--sun);display:grid;place-items:center;flex:none}
 .chat header .av svg{width:24px;height:24px}
@@ -238,7 +240,7 @@ details.src summary{cursor:pointer}
 .chat header small{color:var(--muted)}
 .chat header .left{display:block;color:var(--sun-deep);font-size:.85rem}
 .chat header .x{margin-inline-start:auto;background:transparent;border:0;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1}
-.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .msg{max-width:88%;padding:10px 14px;border-radius:14px;line-height:1.55;font-size:1rem}
 .msg.bot{background:var(--card2);border:1px solid var(--line);align-self:flex-start;border-top-right-radius:4px}
 .msg.me{background:var(--nile-soft);align-self:flex-end;border-top-left-radius:4px}
@@ -248,7 +250,7 @@ body[data-track=older] .msg.me{background:var(--shadow-soft)}
 .chips button{background:var(--card);border:1px solid var(--sand);border-radius:999px;padding:5px 12px;font-size:.88rem;cursor:pointer}
 .chips button:hover{border-color:var(--sun)}
 .composer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-end}
-.composer textarea{min-height:44px;max-height:120px;padding:9px 12px;border-radius:12px;resize:none;font-size:1rem}
+.composer textarea{min-height:44px;max-height:120px;padding:9px 12px;border-radius:12px;resize:none;font-size:max(16px,1rem)}   /* ≥16px: iOS does not zoom the page on focus */
 .composer .send{background:var(--sun);border:0;border-radius:12px;width:44px;height:44px;cursor:pointer;display:grid;place-items:center;flex:none;box-shadow:0 2px 0 var(--sun-deep)}
 .composer .send:disabled{opacity:.4;box-shadow:none}
 .composer .send svg{width:20px;height:20px}
@@ -302,7 +304,10 @@ body[data-track=older] .msg.me{background:var(--shadow-soft)}
   <div class="tracks">
     <!-- one button per kid, generated from KIDS -->
   </div>
-  <p class="demo-level" id="demoLevel" hidden><label>רמה: <select id="demoLevelSel" onchange="demoLevelChange()"><option value="support">צריך/ה עזרה</option><option value="standard" selected>רגיל</option><option value="on_track">על המסלול</option><option value="advanced">מתקדם/ת</option></select></label></p>
+  <div class="demo-level" id="demoLevel" hidden>
+    <label><span>כיתה <b id="demoGradeOut">ה</b></span><input type="range" id="demoGrade" min="0" max="6" step="1" value="3" oninput="demoLevelChange()" aria-label="כיתה"><span class="ticks" aria-hidden="true"><i>ב</i><i>ג</i><i>ד</i><i>ה</i><i>ו</i><i>ז</i><i>ח</i></span></label>
+    <label><span>רמה <b id="demoLevelOut">רגיל</b></span><input type="range" id="demoLevelSel" min="0" max="2" step="1" value="1" oninput="demoLevelChange()" aria-label="רמה"><span class="ticks" aria-hidden="true"><i>צריך/ה עזרה</i><i>רגיל</i><i>מתקדם/ת</i></span></label>
+  </div>
   <p class="small" id="rtStatus" hidden></p>
   <div class="next"><button class="btn" id="startBtn" disabled onclick="startLesson()">יוצאים למסע ←</button></div>
 </section>
@@ -692,11 +697,16 @@ const LEVELS = [ [0,'סקרן','סקרנית'], [150,'חוקר צעיר','חוק
 const RT = (typeof window!=='undefined' && window.RUNTIME && typeof window.RUNTIME==='object') ? window.RUNTIME : null;
 const PROXY = RT ? { url: String(RT.api||'/api').replace(/\/+$/,'')+'/arto', pwHash:'', app:true } : { url:'', pwHash:'' };
 /* app level → engine mapping: support→younger track; advanced→data-level=advanced; on_track|advanced→push */
-const APP_LEVELS = { support:{track:'younger',level:'standard',push:'none'}, standard:{track:'older',level:'standard',push:'none'}, on_track:{track:'older',level:'standard',push:'ontrack'}, advanced:{track:'older',level:'advanced',push:'advanced'} };
-function kidFromProfile(p){ const m=APP_LEVELS[p.level]||APP_LEVELS.standard; return { name:p.name, f:!!p.feminine, age:String(p.age||''), grade:String(p.grade||''), track:m.track, level:m.level, push:m.push, appLevel:p.level||'standard' }; }
+const GRADES_HE = ['ב','ג','ד','ה','ו','ז','ח'];
+const APP_LEVELS = { support:{level:'standard',push:'none'}, standard:{level:'standard',push:'ontrack'}, advanced:{level:'advanced',push:'advanced'} };   // 'on_track' (legacy) = standard
+const LEVEL_HE = { support:'צריך/ה עזרה', standard:'רגיל', advanced:'מתקדם/ת' };
+function normLevel(l){ return l==='on_track' ? 'standard' : (APP_LEVELS[l] ? l : 'standard'); }
+/* the content track follows the grade (ב–ד → younger, ה–ח → older); 'support' always takes the younger track, 'advanced' always the older one */
+function trackFor(grade, level){ if(level==='support') return 'younger'; if(level==='advanced') return 'older'; const gi=GRADES_HE.indexOf(String(grade||'').trim()); return (gi>=0 && gi<=2) ? 'younger' : 'older'; }
+function kidFromProfile(p){ const lv=normLevel(p.level), m=APP_LEVELS[lv]; return { name:p.name, f:!!p.feminine, age:String(p.age||''), grade:String(p.grade||''), track:trackFor(p.grade, lv), level:m.level, push:m.push, appLevel:lv }; }
 function setKids(obj){ Object.keys(KIDS).forEach(k=>delete KIDS[k]); Object.assign(KIDS, obj); }
 if(RT && !RT.kidToken){ /* demo: a guest of either gender, level chosen under the picker */
-  setKids({ guest_m: kidFromProfile({name:'אורח', feminine:false, age:'9–11', grade:'ד–ו', level:'standard'}), guest_f: kidFromProfile({name:'אורחת', feminine:true, age:'9–11', grade:'ד–ו', level:'standard'}) });
+  setKids({ guest_m: kidFromProfile({name:'אורח', feminine:false, age:'10', grade:'ה', level:'standard'}), guest_f: kidFromProfile({name:'אורחת', feminine:true, age:'10', grade:'ה', level:'standard'}) });
   STATS.guest_m = { streak:0, best:0, xp:0, badges:[] }; STATS.guest_f = { streak:0, best:0, xp:0, badges:[] };
 }
 const IN_CLAUDE = !!(window.claude && typeof window.claude.use==='function');   // opened inside Claude (review copy) vs. the public site
@@ -1293,7 +1303,9 @@ async function bootFromRuntime(){
   }
   flushQueue();
 }
-function demoLevelChange(){ const v=document.getElementById('demoLevelSel').value; Object.keys(KIDS).forEach(id=>{ const k=KIDS[id]; Object.assign(k, kidFromProfile({ name:k.name, feminine:k.f, age:k.age, grade:k.grade, level:v })); }); buildPicker(); if(S.kid){ const id=S.kid; S.kid=null; S.started=false; pickKid(id); } }
+function demoLevelChange(){ const gi=+document.getElementById('demoGrade').value, g=GRADES_HE[gi]||'ה', lv=['support','standard','advanced'][+document.getElementById('demoLevelSel').value]||'standard';
+  document.getElementById('demoGradeOut').textContent=g; document.getElementById('demoLevelOut').textContent=LEVEL_HE[lv];
+  Object.keys(KIDS).forEach(id=>{ const k=KIDS[id]; Object.assign(k, kidFromProfile({ name:k.name, feminine:k.f, age:String(7+gi), grade:g, level:lv })); }); buildPicker(); if(S.kid){ const id=S.kid; S.kid=null; S.started=false; pickKid(id); } }
 
 /* ---------- Arto, the assistant ---------- */
 /* lint-ignore: math */
@@ -1308,8 +1320,10 @@ function personaPrompt(){
   /* lint-ignore: math */
   return 'אתה ארטו — ספרן חכם, סבלני וקצת מצחיק מהספרייה הגדולה של אלכסנדריה, שמלווה ילדים ב"שורשים וכנפיים". המשתמש/ת: '+kid+'\n'+LESSON_CONTEXT+'\n\nכללים: כתוב בעברית פשוטה, חמה, בגובה העיניים. 2–5 משפטים בכל תשובה (יותר רק אם מבקשים סיפור). תמיד הסבר עם דוגמה מהחיים של ילדים (כדורגל, פיצה, חצר, אופניים). כשהילד/ה שואל/ת על שאלה מהמבחן — אל תיתן את התשובה; תן רמז או שאלה מכוונת. אם שואלים מעבר לשיעור (חלל, היסטוריה, מתמטיקה, כל דבר) — ענה בשמחה ובדיוק מדעי, וחבר בחזרה לנושא אם אפשר. דבר רק על נושאים שמתאימים לילדים; אם עולה משהו לא מתאים, החזר בעדינות לשיעור. חישובים כותבים תמיד משמאל לימין, למשל 360 ÷ 7.2 = 50. אל תשתמש באמוג׳י. סיים לפעמים בשאלה קטנה שמזמינה להמשיך לחשוב. אל תמציא עובדות; אם אינך בטוח, אמור זאת.';
 }
-function openChat(){ chat.classList.add('open'); fab.style.display='none'; if(!chatInit){ chatInit=true; initChat(); } chatIn.focus(); }
-function closeChat(){ chat.classList.remove('open'); fab.style.display=''; }
+function openChat(){ chat.classList.add('open'); document.body.classList.add('chat-open'); fab.style.display='none'; if(!chatInit){ chatInit=true; initChat(); } chatIn.focus(); setTimeout(()=>{ msgs.scrollTop=msgs.scrollHeight; }, 250); }
+function closeChat(){ chat.classList.remove('open'); document.body.classList.remove('chat-open'); fab.style.display=''; chatIn.blur(); }
+/* when the on-screen keyboard resizes the viewport, keep the latest message in view */
+if(window.visualViewport){ window.visualViewport.addEventListener('resize', ()=>{ if(chat.classList.contains('open')) msgs.scrollTop=msgs.scrollHeight; }); }
 function addMsg(kind, html){ const m=document.createElement('div'); m.className='msg '+kind; m.innerHTML=html; msgs.appendChild(m); msgs.scrollTop=msgs.scrollHeight; return m; }
 function renderChips(){ chips.innerHTML=CHIPS.map(c=>'<button onclick="askChip(this)">'+esc(c)+'</button>').join(''); }
 function askChip(b){ chatIn.value=b.textContent; sendChat(); }
