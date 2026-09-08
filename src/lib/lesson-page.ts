@@ -49,7 +49,6 @@ export function visitorStrip(parent: { name: string } | null = null): string {
     ["/open", "פתוח"],
     ["/library", "כל הגיליונות"],
     [X_URL, "X"],
-    ...(parent ? [] : [["/signin", "כניסה"]]),
   ]
     .map(([href, label]) => `<a href="${href}"${href.startsWith("http") ? ' rel="me noopener"' : ""}>${label}</a>`)
     .join("");
@@ -63,11 +62,11 @@ export function visitorStrip(parent: { name: string } | null = null): string {
 #rw-strip .acts{grid-column:1 / -1;display:flex;align-items:center;gap:14px}
 #rw-strip a{color:inherit}
 #rw-strip .cta{flex:1;background:#FAF8F3;color:#1B1B1B;text-decoration:none;border-radius:999px;padding:9px 14px;font-weight:500;text-align:center;white-space:nowrap}
-#rw-strip .more{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 2px}
+#rw-strip .more{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 2px;white-space:nowrap}
 #rw-strip .links{display:none;grid-column:1 / -1;gap:6px 18px;flex-wrap:wrap;padding:2px 0 2px;font-size:14px;opacity:.9}
 #rw-strip.open .links{display:flex}
 #rw-strip[hidden]{display:none}
-@media (min-width:640px){#rw-strip{font-size:15px}#rw-strip .in{grid-template-columns:1fr auto auto auto;padding:10px 20px}#rw-strip .acts{display:contents}#rw-strip .cta{flex:none;grid-column:2;grid-row:1}#rw-strip .more{grid-column:3;grid-row:1}#rw-strip .x{grid-column:4}}
+@media (min-width:640px){#rw-strip{font-size:15px}#rw-strip .in{grid-template-columns:1fr auto auto auto auto;padding:10px 20px}#rw-strip .acts{display:contents}#rw-strip .cta{flex:none;grid-column:2;grid-row:1}#rw-strip button.more{grid-column:3;grid-row:1}#rw-strip a.more{grid-column:4;grid-row:1}#rw-strip .x{grid-column:5}}
 /* keep the lesson's own floating pieces above the strip, and leave room at the end of the page */
 body.rw-on{padding-bottom:var(--rw-h)}
 body.rw-on .fab{bottom:calc(18px + var(--rw-h))}
@@ -81,6 +80,7 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
     <div class="acts">
       <a class="cta" href="${parent ? "/home" : "/join"}">${parent ? "הלוח שלי" : "לקבל את השיעור למייל"}</a>
       <button class="more" type="button" aria-expanded="false">עוד</button>
+      ${parent ? "" : '<a class="more" href="/signin">כניסה</a>'}
     </div>
     <nav class="links" aria-label="עוד">${links}</nav>
   </div>
