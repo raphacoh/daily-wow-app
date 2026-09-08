@@ -138,9 +138,9 @@ describe("openSession", () => {
     const s = await openSession("", N);
     if ("error" in s) throw new Error(s.error);
     expect(s.demo).toBe(true);
-    expect(s.cap).toBe(30);
+    expect(s.cap).toBe(3); // per visitor session, inside the shared daily pool of 30
     expect(s.subscribed).toBe(false);
-    expect(s.remaining).toBe(30);
+    expect(s.remaining).toBe(3);
   });
 
   it("refuses a staged (unreleased) edition", async () => {

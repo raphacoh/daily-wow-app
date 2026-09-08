@@ -9,6 +9,7 @@ import { localDate, nextLocalMidnight } from "./progress";
 import { signSession, verifySession, type ArtoSession } from "./tokens";
 import { kidById, kidByToken, type KidRow, type ParentRow } from "./kids";
 import { getEdition } from "./editions";
+import { notifyCapHit } from "./notify";
 
 export type Scope = "lesson" | "adjacent" | "off";
 
@@ -79,7 +80,11 @@ export async function openSession(kidToken: string, editionN: number, now = new 
   const r = await db().query<{ id: string }>("insert into arto_sessions (key, edition_n, expires_at) values ($1, $2, $3) returning id", [a.key, editionN, new Date(now.getTime() + 5 * 3600e3)]);
   const sid = String(r.rows[0].id);
   const token = await signSession({ sid, key: a.key, edition_n: editionN, kid_id: kid?.id ?? null });
-  return { token, remaining: a.remaining, cap: a.cap, subscribed: a.subscribed, demo: !kid };
+  if (!kid) {
+    const per = await getNumber("demo_messages_per_session");
+    return { token, remaining: Math.min(a.remaining, per), cap: per, subscribed: false, demo: true };
+  }
+  return { token, remaining: a.remaining, cap: a.cap, subscribed: a.subscribed, demo: false };
 }
 
 export async function resolveSession(token: string): Promise<(ArtoSession & { off_count: number }) | null> {
@@ -237,9 +242,31 @@ function cleanTurns(input: unknown): ChatTurn[] {
   return out;
 }
 
+type CapOutcome = { ok: false; error: "cap"; status: 429; resets_at: string; subscribed: boolean; cap: number; demo?: boolean };
+
+/**
+ * Consume one message for this session, or return the `cap` outcome. Demo visitors are limited per session
+ * (a few questions each) inside the shared daily pool; a free kid who hits the cap triggers one notice to the parent.
+ */
+async function consumeForSession(s: ArtoSession & { off_count: number }, kid: (KidRow & { parent: ParentRow }) | null, a: Allowance, day: string, now: Date): Promise<CapOutcome | null> {
+  const resets_at = nextLocalMidnight(now, a.timezone).toISOString();
+  if (!kid) {
+    const per = await getNumber("demo_messages_per_session");
+    const sess = await db().query<{ messages: number }>("select messages from arto_sessions where id = $1", [s.sid]);
+    if ((sess.rows[0]?.messages ?? 0) >= per) return { ok: false, error: "cap", status: 429, resets_at, subscribed: false, cap: per, demo: true };
+  }
+  const c = await consumeMessage(a.key, day, a.cap);
+  if (!c.ok) {
+    if (kid && !a.subscribed) notifyCapHit(kid, day, a.cap).catch(() => {});
+    return { ok: false, error: "cap", status: 429, resets_at, subscribed: a.subscribed, cap: a.cap, demo: !kid };
+  }
+  await db().query("update arto_sessions set messages = messages + 1 where id = $1", [s.sid]);
+  return null;
+}
+
 export type ChatOutcome =
   | { ok: true; text: string; scope: Scope; remaining: number; cap: number; subscribed: boolean }
-  | { ok: false; error: "cap" | "off_closed" | "bad_messages" | "session_expired" | "bad_edition" | "upstream_error" | "api_key_not_configured"; status: number; resets_at?: string; subscribed?: boolean; cap?: number };
+  | { ok: false; error: "cap" | "off_closed" | "bad_messages" | "session_expired" | "bad_edition" | "upstream_error" | "api_key_not_configured"; status: number; resets_at?: string; subscribed?: boolean; cap?: number; demo?: boolean };
 
 export async function chat(sessionToken: string, rawMessages: unknown, now = new Date()): Promise<ChatOutcome> {
   const s = await resolveSession(sessionToken);
@@ -252,8 +279,9 @@ export async function chat(sessionToken: string, rawMessages: unknown, now = new
   const a = await allowanceFor(kid, now);
   if (s.off_count >= 3) return { ok: false, error: "off_closed", status: 429, subscribed: a.subscribed, cap: a.cap };
   const day = localDate(now, a.timezone);
-  const c = await consumeMessage(a.key, day, a.cap);
-  if (!c.ok) return { ok: false, error: "cap", status: 429, resets_at: nextLocalMidnight(now, a.timezone).toISOString(), subscribed: a.subscribed, cap: a.cap };
+  const gate = await consumeForSession(s, kid, a, day, now);
+  if (gate) return gate;
+  const c = { used: a.used + 1 };
 
   const model = await getConfig("model");
   let r: { text: string; input_tokens: number; output_tokens: number };
@@ -279,7 +307,7 @@ export async function chat(sessionToken: string, rawMessages: unknown, now = new
 
 export type GradeOutcome =
   | { ok: true; stars: number; praise: string; missing: string[]; tip: string; remaining: number; cap: number; subscribed: boolean }
-  | { ok: false; error: "cap" | "bad_input" | "session_expired" | "bad_edition" | "upstream_error" | "api_key_not_configured"; status: number; resets_at?: string; subscribed?: boolean; cap?: number };
+  | { ok: false; error: "cap" | "bad_input" | "session_expired" | "bad_edition" | "upstream_error" | "api_key_not_configured"; status: number; resets_at?: string; subscribed?: boolean; cap?: number; demo?: boolean };
 
 export async function grade(sessionToken: string, explanation: unknown, now = new Date()): Promise<GradeOutcome> {
   const s = await resolveSession(sessionToken);
@@ -291,8 +319,9 @@ export async function grade(sessionToken: string, explanation: unknown, now = ne
   if (!edition) return { ok: false, error: "bad_edition", status: 404 };
   const a = await allowanceFor(kid, now);
   const day = localDate(now, a.timezone);
-  const c = await consumeMessage(a.key, day, a.cap);
-  if (!c.ok) return { ok: false, error: "cap", status: 429, resets_at: nextLocalMidnight(now, a.timezone).toISOString(), subscribed: a.subscribed, cap: a.cap };
+  const gate = await consumeForSession(s, kid, a, day, now);
+  if (gate) return gate;
+  const c = { used: a.used + 1 };
   const model = await getConfig("model");
   let r: { text: string; input_tokens: number; output_tokens: number };
   try {

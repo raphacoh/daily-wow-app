@@ -78,6 +78,32 @@ export async function POST(req: Request) {
       const s = await client.webhooks.retrieveSecret(w.id);
       return NextResponse.json({ webhook_id: w.id, url, secret: s.secret });
     }
+    if (b.action === "simulate") {
+      // drive the real webhook state machine with a synthetic event (signature path is unit-tested separately)
+      const { applyWebhook } = await import("@/lib/billing");
+      const x = b as { type?: string; kid_id?: string; subscription_id?: string; next_billing_date?: string; cancel_at_next_billing_date?: boolean; status?: string };
+      const ev = {
+        id: "qa-" + crypto.randomUUID(),
+        business_id: "qa",
+        type: x.type ?? "subscription.active",
+        timestamp: new Date().toISOString(),
+        data: {
+          payload_type: "Subscription",
+          subscription_id: x.subscription_id ?? "sub_qa_" + Date.now(),
+          status: x.status ?? (x.type?.startsWith("subscription.") ? x.type.split(".")[1] : "active"),
+          next_billing_date: x.next_billing_date ?? new Date(Date.now() + 30 * 86400e3).toISOString(),
+          previous_billing_date: new Date().toISOString(),
+          customer: { customer_id: "cus_qa", email: "qa@example.com", name: "QA" },
+          metadata: { kid_id: x.kid_id ?? "", parent_id: "" },
+          product_id: process.env.DODO_PRODUCT_ID ?? "",
+          cancelled_at: null,
+          cancel_at_next_billing_date: !!x.cancel_at_next_billing_date,
+          quantity: 1,
+        },
+      };
+      const r = await applyWebhook(ev as never);
+      return NextResponse.json({ applied: r ?? true, event: ev.type });
+    }
     if (b.action === "checkout-test") {
       // creates a checkout session for the editor (nothing is charged unless someone completes it)
       const c = await client.checkoutSessions.create({

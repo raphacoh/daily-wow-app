@@ -100,6 +100,8 @@ export interface DashboardKid {
   liveStreak: number;
   levelName: string;
   entitled: boolean;
+  /** the free assistant cap was reached today (only meaningful when not entitled) */
+  capHitToday: boolean;
   subscription: { status: string; current_period_end: string | null; cancel_at_period_end: boolean; provider_customer_id: string | null } | null;
   freeUntil: string | null;
   link: string | null; // the personal link for today's edition
@@ -160,6 +162,7 @@ export async function dashboardFor(parent: ParentRow, appUrl: string, now = new 
       liveStreak: live,
       levelName: levelFor(stats.xp, kid.feminine).name,
       entitled: await isEntitled(kid.id, now),
+      capHitToday: ((await q.query<{ messages: number }>("select messages from arto_counters where key = $1 and day = $2", [kid.id, today])).rows[0]?.messages ?? 0) >= (await getNumber("free_messages_per_day")),
       subscription: sub ? { status: sub.status, current_period_end: sub.current_period_end ? new Date(sub.current_period_end).toISOString() : null, cancel_at_period_end: sub.cancel_at_period_end, provider_customer_id: sub.provider_customer_id } : null,
       freeUntil: kid.free_assistant_until ? new Date(kid.free_assistant_until).toISOString() : null,
       link: kidLink(kid, appUrl, todayEd ? todayEd.n : "today"),

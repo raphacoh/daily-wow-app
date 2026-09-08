@@ -234,6 +234,8 @@ function KidCard({ k, todayDate }: { k: DashboardKid; todayDate: string | null }
             {t("home.artoOn")}
             {k.subscription?.current_period_end || k.freeUntil ? ` · ${t("home.until", { date: longDate((k.subscription?.current_period_end ?? k.freeUntil)!.slice(0, 10)) })}` : ""}
           </>
+        ) : k.capHitToday ? (
+          <a href={`/billing?kid=${k.kid.id}`}><b>{t("home.artoCapHit", { name: k.kid.name })}</b></a>
         ) : (
           <a href="/billing">{t("home.artoOff")}</a>
         )}

@@ -8,8 +8,10 @@ import { pgliteDb, setDb, type Db } from "@/lib/db";
 
 export async function freshDb(): Promise<{ db: Db; pg: PGlite }> {
   const pg = new PGlite();
-  const sql = await fs.readFile(path.join(process.cwd(), "supabase/migrations/20260908000000_init.sql"), "utf8");
-  await pg.exec(sql);
+  // every migration, in order — the same set production runs
+  const dir = path.join(process.cwd(), "supabase/migrations");
+  const files = (await fs.readdir(dir)).filter((f) => f.endsWith(".sql")).sort();
+  for (const f of files) await pg.exec(await fs.readFile(path.join(dir, f), "utf8"));
   const db = pgliteDb(pg as never);
   setDb(db);
   return { db, pg };
