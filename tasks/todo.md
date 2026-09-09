@@ -85,3 +85,23 @@ runs in "not configured" mode locally, and is covered by unit tests with fakes.
 - Pre-existing e2e breakage fixed on the way: the dev seed dated the highest edition as today, so `/l/today` went to edition 2 (legacy single track) — the seed now dates the demo edition today and the test walks `/l/1` explicitly.
 - Not done in P0 by design: weekly email additions (§10), admin alias/skills UI (§9), anything needing per-item events.
 - Not committed (not asked).
+
+## Landing by role (2026-09-09)
+Signed-in users should not land on the visitor demo. Parents land on the dashboard and can open any
+lesson there in demo mode; kids land on today's lesson and reach everything else from a menu.
+
+- [x] `src/lib/kidSession.ts`: httpOnly cookie `rw_kid` (the kid's link token), read/set/clear, safe outside a request scope
+- [x] `/l/[n]`: remember a valid `?k=` in the cookie; use the cookie when there is no `?k=` and no signed-in parent; clear a stale cookie
+- [x] `/`: signed-in parent → `/home`; remembered kid → today's lesson; everyone else → the demo page as today
+- [x] `/library`: same cookie fallback (kid links without the token in the URL)
+- [x] Kid menu in the lesson page (button in the edition topbar, not a banner): today, my collection, all editions, parents' page, sign out
+- [x] `POST /auth/signout/kid`: forget the kid on this device
+- [x] Dashboard: open any edition in demo mode (today's card + history links) and a link to the library
+- [x] Tests for the routing rules
+
+## Review (2026-09-09, landing by role)
+- Unit: 185 tests, 14 files pass; 6 new in `tests/unit/landing.test.ts` (next/headers and currentParent mocked). `tests/unit/analytics.test.ts` fails on `main` too — `daily()` is date-relative and the fixture is dated 2026-09-08.
+- Build clean, typecheck clean, e2e clean (demo + kid + advanced, drawer 15 trees / 2 cards / 3 badges).
+- Verified by hand against the dev server: personal link sets `rw_kid`, `/` redirects to today's lesson (`cache-control: private, no-store`), `/l/2` without `?k=` runs in kid mode, `/library` shows "לגיליון של אמה" with token-free links, `POST /auth/signout/kid` clears the cookie and `/` is the visitor demo again, a stale token is dropped on the way through.
+- Decisions worth remembering: a signed-in parent always outranks the cookie (otherwise "open for Dana" from the dashboard would turn the parent into the kid, and previews would write to the kid's account); a paused kid keeps the device (only a token that belongs to nobody is dropped); the kid menu is appended into the edition's own `.topbar-in` and only floats when an edition has no top bar.
+- Not verified in the browser: the parent dashboard (no Supabase keys locally, so `/home` redirects to `/signin`). Covered by typecheck and build only.

@@ -9,17 +9,17 @@ import { t } from "@/i18n";
 import { APP } from "@/lib/config";
 import { listEditions } from "@/lib/editions";
 import { currentParent } from "@/lib/auth";
+import { rememberedKidToken } from "@/lib/kidSession";
 import { db, hasDb } from "@/lib/db";
-import { kidByToken, kidLink, type KidRow } from "@/lib/kids";
+import { kidByToken, kidLink, type KidRow, type ParentRow } from "@/lib/kids";
 import { DEMO_EDITION_N } from "@/lib/editions";
 import { heDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "כל הגיליונות", description: "כל גיליון של שורשים וכנפיים, מהחדש לישן. אפשר להשלים כל אחד מהם מתי שרוצים." };
 
 /** The signed-in parent's kids, or none. Never let a signed-out visitor (or a missing DB) break the page. */
-async function myKids(): Promise<KidRow[]> {
+async function myKids(parent: ParentRow | null): Promise<KidRow[]> {
   try {
-    const parent = await currentParent();
     if (!parent || !hasDb()) return [];
     const r = await db().query<KidRow>("select * from kids where parent_id = $1 and deleted_at is null", [parent.id]);
     return r.rows;
@@ -38,12 +38,17 @@ function safeKidLink(kid: KidRow, n: number): string | null {
 }
 
 export default async function Library({ searchParams }: { searchParams: Promise<{ k?: string }> }) {
-  const { k } = await searchParams;
-  // a kid's personal token (from the emails) scopes the page to that kid, no sign-in needed
+  const { k: fromLink } = await searchParams;
+  // a kid's personal token (from the emails, or remembered on their device) scopes the page to that kid,
+  // no sign-in needed. A signed-in parent is a parent, never the kid.
+  const parent = await currentParent().catch(() => null);
+  const remembered = fromLink || parent ? "" : await rememberedKidToken();
+  const k = fromLink || remembered;
   const tokenKid = k && hasDb() ? await kidByToken(k).catch(() => null) : null;
-  const [editions, kids] = await Promise.all([listEditions(), tokenKid ? Promise.resolve([tokenKid as KidRow]) : myKids()]);
-  const signedIn = !!tokenKid || !!(await currentParent().catch(() => null));
-  const linkFor = (kid: KidRow, n: number) => (tokenKid && k ? `/l/${n}?k=${encodeURIComponent(k)}` : safeKidLink(kid, n));
+  const [editions, kids] = await Promise.all([listEditions(), tokenKid ? Promise.resolve([tokenKid as KidRow]) : myKids(parent)]);
+  const signedIn = !!tokenKid || !!parent;
+  // the remembered kid needs no token in the URL — one less thing to share by accident
+  const linkFor = (kid: KidRow, n: number) => (tokenKid ? (fromLink ? `/l/${n}?k=${encodeURIComponent(fromLink)}` : `/l/${n}`) : safeKidLink(kid, n));
 
   return (
     <main className="page">

@@ -18,18 +18,27 @@ export interface LessonRenderOptions {
   parent?: { name: string } | null;
 }
 
-export async function renderLesson(n: number, opts: LessonRenderOptions = {}): Promise<{ status: number; body: string }> {
+export interface LessonRender {
+  status: number;
+  body: string;
+  /** the token resolved to a live kid: the caller uses it to remember (or forget) the device */
+  kid: boolean;
+}
+
+export async function renderLesson(n: number, opts: LessonRenderOptions = {}): Promise<LessonRender> {
   const edition = await getEdition(n);
-  if (!edition) return { status: 404, body: notFoundPage("הגיליון הזה עוד לא יצא.") };
+  if (!edition) return { status: 404, body: notFoundPage("הגיליון הזה עוד לא יצא."), kid: false };
   const rt: RuntimeBootstrap = {
     api: "/api",
     kidToken: "",
     edition: { n: edition.n, code: edition.code, date: edition.date, title: edition.title },
     library: "/library",
   };
+  let kidName = "";
   if (opts.token && hasDb()) {
     const kid = await kidByToken(opts.token);
     if (kid && !kid.paused) {
+      kidName = kid.name;
       rt.kidToken = opts.token;
       rt.profile = await profileFor(kid);
       rt.library = `/library?k=${encodeURIComponent(opts.token)}`;
@@ -44,9 +53,11 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
   const body = wrapEdition(html, rt, edition.language || "he", dir, {
     index: !!opts.index,
     // the gamification runtime is the app's, not the edition's: it evolves on deploy and works on old editions too
-    prepend: `<script src="/wow-runtime.js?v=${WOW_RUNTIME_VERSION}"></script>` + (opts.banner && !rt.kidToken ? visitorStrip(opts.parent ?? null) : ""),
+    prepend:
+      `<script src="/wow-runtime.js?v=${WOW_RUNTIME_VERSION}"></script>` +
+      (rt.kidToken ? kidMenu(kidName) : opts.banner ? visitorStrip(opts.parent ?? null) : ""),
   });
-  return { status: 200, body };
+  return { status: 200, body, kid: !!rt.kidToken };
 }
 
 /**
@@ -120,6 +131,60 @@ body.rw-on .toast{bottom:calc(var(--rw-h) + 20px)}
   var beaconed={}; function beacon(name){ if(beaconed[name]) return; beaconed[name]=1; var payload=JSON.stringify({name:name, n:(window.RUNTIME&&window.RUNTIME.edition&&window.RUNTIME.edition.n)||null}); try{ if(navigator.sendBeacon) navigator.sendBeacon('/api/e', new Blob([payload],{type:'application/json'})); else fetch('/api/e',{method:'POST',headers:{'content-type':'application/json'},body:payload,keepalive:true}); }catch(e){} }
   function watchLesson(){ var sb=document.getElementById('startBtn'); if(sb) sb.addEventListener('click', function(){ beacon('demo_start'); }); var v=document.getElementById('vault'); if(v && window.MutationObserver){ new MutationObserver(function(){ if(v.classList.contains('open')) beacon('demo_complete'); }).observe(v,{attributes:true,attributeFilter:['class']}); } }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', watchLesson); else watchLesson();
+})();</script>
+`;
+}
+
+/**
+ * The kid's menu. A kid is already "inside" the lesson, so everything else (the collection, the other
+ * editions, the parents' page) hides behind one button in the edition's own top bar — never a banner
+ * across the lesson. Self-contained, and it borrows the edition's palette variables so it belongs.
+ */
+export function kidMenu(name: string): string {
+  const items = [
+    ["/l/today", "השיעור של היום"],
+    ["/library", "כל הגיליונות"],
+    ["/home", "הדף של ההורים"],
+  ]
+    .map(([href, label]) => `<a role="menuitem" href="${href}">${label}</a>`)
+    .join("");
+  return `<style>
+#rw-menu{position:relative;z-index:30}
+#rw-menu:not(.set){visibility:hidden;position:absolute;top:0;inset-inline-start:0}
+#rw-menu .b{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:38px;height:38px;border-radius:999px;border:1px solid var(--line,#e3dfd5);background:var(--card,#fff);color:var(--ink,#1b1b1b);cursor:pointer;font-size:17px;line-height:1;flex:none}
+#rw-menu .p{position:fixed;top:58px;inset-inline-end:12px;z-index:70;min-width:230px;max-width:min(88vw,300px);background:var(--card,#fff);color:var(--ink,#1b1b1b);border:1px solid var(--line,#e3dfd5);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:8px;direction:rtl;text-align:right;font-size:16px}
+#rw-menu .p[hidden]{display:none}
+#rw-menu .p .who{padding:6px 12px 8px;font-size:.9rem;color:var(--muted,#6b6b66)}
+#rw-menu .p a,#rw-menu .p button.i{display:block;width:100%;box-sizing:border-box;text-align:right;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;text-decoration:none;cursor:pointer}
+#rw-menu .p a:hover,#rw-menu .p button.i:hover,#rw-menu .p a:focus-visible,#rw-menu .p button.i:focus-visible{background:var(--card2,#f6f3ec)}
+#rw-menu .p hr{border:0;border-top:1px solid var(--line,#e3dfd5);margin:6px 8px}
+#rw-menu .p .out{color:var(--muted,#6b6b66);font-size:.9rem}
+#rw-menu .veil{position:fixed;inset:0;z-index:69}
+#rw-menu .veil[hidden]{display:none}
+#rw-menu.float{position:fixed;top:10px;inset-inline-end:10px}
+</style>
+<div id="rw-menu">
+  <button class="b" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="rw-menu-p" aria-label="תפריט">☰</button>
+  <div class="veil" hidden></div>
+  <div class="p" id="rw-menu-p" role="menu" hidden>
+    <p class="who">${name ? `שלום ${esc(name)}` : "שורשים וכנפיים"}</p>
+    <button class="i" type="button" role="menuitem" data-collection>האוסף שלי</button>
+    ${items}
+    <hr>
+    <form method="post" action="/auth/signout/kid"><button class="i out" type="submit" role="menuitem">זה לא אני — יציאה</button></form>
+  </div>
+</div>
+<script>(function(){
+  var el=document.getElementById('rw-menu'), btn=el.querySelector('.b'), panel=el.querySelector('.p'), veil=el.querySelector('.veil');
+  function open(v){ panel.hidden=!v; veil.hidden=!v; btn.setAttribute('aria-expanded', v?'true':'false'); if(v){ var f=panel.querySelector('a,button'); f && f.focus(); } }
+  btn.addEventListener('click', function(){ open(panel.hidden); });
+  veil.addEventListener('click', function(){ open(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !panel.hidden){ open(false); btn.focus(); } });
+  var coll=panel.querySelector('[data-collection]');
+  coll.addEventListener('click', function(){ open(false); if(window.WOW && window.WOW.open) window.WOW.open(); else location.href='/library'; });
+  /* live inside the edition's own top bar; float in the corner only if this edition has none */
+  function place(){ var bar=document.querySelector('.topbar-in'); if(bar){ bar.appendChild(el); } else { el.classList.add('float'); } el.classList.add('set'); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', place); else place();
 })();</script>
 `;
 }

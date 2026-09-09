@@ -127,6 +127,12 @@ function TodayCard({ dash }: { dash: Dashboard }) {
               </div>
             ))}
           </div>
+          <p className="controls">
+            <a className="btn ghost small" href={`/l/${today.n}`}>
+              {t("home.preview")}
+            </a>
+          </p>
+          <p className="small">{t("home.previewHint")}</p>
         </>
       ) : (
         <p className="cap">{t("home.noEdition")}</p>
@@ -428,11 +434,11 @@ function History({ history, kids, todayN, doneToday }: { history: Dashboard["his
             <tbody>
               {history.map((h) => {
                 const isToday = h.edition.n === todayN;
-                const first = kids[0] ? kidLink(kids[0].kid, APP.url, h.edition.n) : null;
                 return (
                   <tr key={h.edition.n}>
                     <td>
-                      <a href={first ?? `/l/${h.edition.n}`}>{h.edition.title}</a>
+                      {/* the parent's own click opens the lesson in demo mode; the kid columns keep the personal links */}
+                      <a href={`/l/${h.edition.n}`}>{h.edition.title}</a>
                       <br />
                       <span className="small">{num(shortDate(h.edition.date))}</span>
                     </td>
@@ -473,6 +479,11 @@ function History({ history, kids, todayN, doneToday }: { history: Dashboard["his
       ) : (
         <p className="cap">{t("home.noHistory")}</p>
       )}
+      <p className="controls">
+        <a className="btn ghost small" href="/library">
+          {t("home.allEditions")}
+        </a>
+      </p>
     </section>
   );
 }
