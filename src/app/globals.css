@@ -63,6 +63,7 @@ footer.site a{color:var(--muted)}
 .small{font-size:.92rem;color:var(--muted)}
 .eyebrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
 .tag{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:.85rem;color:var(--muted)}
+.tag.ghost{background:transparent;border-style:dashed}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);border-radius:999px;padding:11px 22px;font-weight:500;font-size:1rem;cursor:pointer;text-decoration:none}
 .btn:hover{opacity:.9}
 .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}

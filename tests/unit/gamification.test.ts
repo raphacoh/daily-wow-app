@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { deriveProgress, medalFor, rebuildProgress, type Facts } from "@/lib/gamification";
+import { PROGRESS_V, deriveProgress, medalFor, progressFor, rebuildProgress, type Facts } from "@/lib/gamification";
 import { computeStreakDetail } from "@/lib/progress";
 import { rootForTopic, rootWeightsFor, splitXp } from "@/lib/roots";
 import { freshDb, seedEdition, seedParent } from "./setup";
@@ -96,6 +96,25 @@ describe("deriveProgress", () => {
     expect(p.shields).toBe(0); // the shield from day 7 was spent on day 8
     expect(p.shields_used).toBe(1);
   });
+  it("keeps every grade, medal or not, and hangs the score on the card", () => {
+    const p = deriveProgress(
+      facts({
+        editions: [ed(1), ed(2), ed(3), ed(4)],
+        // 1: gold; 2: left half-done, so no medal and no card; 3: silver, graded three stars
+        completions: [done(1, { score: 11, max: 11 }), done(2, { score: 4, max: 11, complete: false }), done(3, { score: 8, max: 11 })],
+        grades: { 3: 3 },
+      }),
+    );
+    expect(p.results.map((r) => r.n)).toEqual([3, 2, 1]);
+    expect(p.results.find((r) => r.n === 2)).toMatchObject({ score: 4, max: 11, pct: 36, complete: false, medal: null });
+    expect(p.results.find((r) => r.n === 3)).toMatchObject({ score: 8, max: 11, pct: 73, medal: "silver", stars: 3 });
+    // the album still holds only the medals, but each card now carries the grade behind it
+    expect(p.cards.map((c) => c.n)).toEqual([3, 1]);
+    expect(p.cards[0]).toMatchObject({ score: 8, max: 11, pct: 73 });
+    expect(p.cards[1]).toMatchObject({ score: 11, max: 11, pct: 100 });
+    // an edition that was never opened has no grade at all
+    expect(p.results.some((r) => r.n === 4)).toBe(false);
+  });
   it("is deterministic regardless of input order", () => {
     const a = facts({ editions: [ed(1), ed(2), ed(3)], completions: [done(3), done(1), done(2)] });
     const b = facts({ editions: [ed(3), ed(1), ed(2)], completions: [done(1), done(2), done(3)] });
@@ -124,6 +143,17 @@ describe("rebuildProgress on the database", () => {
     expect(JSON.stringify(again)).toBe(JSON.stringify(r.ok ? r.progress : null));
     const row = await db.query<{ data: unknown }>("select data from kid_progress where kid_id = $1", [kid.id]);
     expect(row.rows.length).toBe(1);
+  });
+  it("rebuilds a document written by an older rules version instead of returning it", async () => {
+    const kid = (await kidByToken(token))!;
+    // an old document: the shape a previous deploy wrote, with no grades in it at all
+    await db.query("update kid_progress set data = $2::jsonb where kid_id = $1", [kid.id, JSON.stringify({ v: 1, cards: [], results: undefined })]);
+    const p = await progressFor(kid.id);
+    expect(p?.v).toBe(PROGRESS_V);
+    expect(p?.results.map((r) => r.n)).toEqual([1]);
+    expect(p?.results[0]).toMatchObject({ score: 11, max: 11, medal: "gold" });
+    const stored = await db.query<{ data: { v: number } }>("select data from kid_progress where kid_id = $1", [kid.id]);
+    expect(stored.rows[0].data.v).toBe(PROGRESS_V);
   });
 });
 

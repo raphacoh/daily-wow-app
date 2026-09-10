@@ -4,7 +4,8 @@ const dir = __dirname; fs.mkdirSync(dir + '/shots', { recursive: true });
 const frag = fs.readFileSync(dir + '/edition-template.html', 'utf8');
 fs.writeFileSync(dir + '/_test.html', `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style></head><body>${frag}</body></html>`);
 (async () => {
-  const browser = await chromium.launch();
+  // Playwright's own download, or a chromium already on the machine (E2E_CHROMIUM)
+  const browser = await chromium.launch(process.env.E2E_CHROMIUM ? { executablePath: process.env.E2E_CHROMIUM } : {});
   const errors = [];
   for (const [track, vw] of [['older', 1100], ['younger', 390]]) {
     const page = await browser.newPage({ viewport: { width: vw, height: 900 } });

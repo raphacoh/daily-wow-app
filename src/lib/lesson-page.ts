@@ -9,7 +9,7 @@ import { hasDb } from "./db";
 import { APP, X_URL } from "./config";
 
 /** bump when public/wow-runtime.js changes (cache-busting) */
-export const WOW_RUNTIME_VERSION = "3";
+export const WOW_RUNTIME_VERSION = "4";
 
 export interface LessonRenderOptions {
   token?: string;

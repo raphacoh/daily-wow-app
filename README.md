@@ -46,6 +46,8 @@ Sign-in needs a Supabase project (`NEXT_PUBLIC_SUPABASE_URL/ANON_KEY`); emails n
 ```bash
 npm test            # vitest: progress rules, completions/streaks, assistant caps and scope, billing webhooks, jobs, admin, join, dashboard — all on PGlite
 npm run test:e2e    # Playwright: edition 1 completed on a phone viewport as a demo visitor and as three real kids (all four levels), completion in the DB
+npm run test:e2e:resume   # Playwright: half a lesson, leave the page, come back — every answer still there; the header bar and the grades
+#   E2E_CHROMIUM=/path/to/chrome runs the Playwright suites against a browser already on the machine
 node kit/template/check.js && node kit/template/lint.js kit/template/edition-template.html   # the kit's own checks
 ```
 
@@ -66,6 +68,8 @@ Vercel Hobby/Pro; Supabase free → Pro at ~500 families; Resend free → paid a
 
 - Kids never register, never sign in, never see a price. A kid touches one thing: the lesson page, from a personal link.
 - Streak, XP and badges are **derived from the completions table** (`src/lib/progress.ts`, `src/lib/kids.ts`); no job ever mutates a counter, so nothing can drift.
+- Every grade the kid ever got is theirs to see: `progress.results` carries one row per edition they answered, medal or not, and it shows in the lesson header, the collection drawer and the library.
+- Leaving the lesson never costs the work. `public/wow-runtime.js` records the kid's own clicks and field values and replays them on the next load, so the engine's handlers rebuild the exact state (`docs/gamification-spec.md` §8.7). It lives in the app, not in an edition, so it works on editions that shipped months ago.
 - The assistant's system prompt never leaves the server; every reply carries a scope tag; off-topic replies are replaced by a bridge line and audited on `/admin`.
 - No third-party scripts, no analytics SDK, no trackers. The only external calls from the lesson page are to this app's own API.
 - Hebrew first: every formula in `<span class="math">`, gendered strings from the kid's profile, `kit/template/lint.js` enforces it.

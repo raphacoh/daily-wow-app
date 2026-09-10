@@ -180,9 +180,37 @@ export interface Card {
   hero: string | null;
   fact: string | null;
   roots: RootId[];
+  /** the grade behind the medal — a card without its score hides exactly what the kid wants to see */
+  score: number;
+  max: number;
+  pct: number;
+}
+/**
+ * The shape version of the stored progress document. Bump it whenever the derived shape changes: a stored
+ * document from an older version is rebuilt on the next read, so no kid is left with a half-filled album.
+ */
+export const PROGRESS_V = 2;
+
+/** What the kid scored on one edition — every completion, medal or not (a partial day still has a grade). */
+export interface Result {
+  n: number;
+  title: string;
+  date: string;
+  score: number;
+  max: number;
+  pct: number;
+  complete: boolean;
+  challenge: boolean;
+  late: boolean;
+  /** stars ארטו gave the explain-it-back answer, when it was graded */
+  stars: number | null;
+  medal: Medal | null;
+  xp: number;
+  /** ISO of the first completion */
+  at: string;
 }
 export interface Progress {
-  v: 1;
+  v: 2;
   streak: number;
   shields: number;
   shields_used: number;
@@ -190,6 +218,8 @@ export interface Progress {
   roots: Record<RootId, { xp: number; stage: number; stage_name: string; next: number | null }>;
   medals: Record<number, Medal>;
   cards: Card[];
+  /** every edition this kid answered, newest first — the report card, medal or not */
+  results: Result[];
   /** released editions without a card, newest first — the album's silhouettes */
   missing: { n: number; title: string; date: string }[];
   badges: Badge[];
@@ -505,6 +535,7 @@ export function deriveProgress(f: Facts): Progress {
   for (const m of Object.values(medals)) counts[m]++;
 
   const sd = computeStreakDetail(releasedDates, onTime, f.today);
+  const pctOf = (c: FactCompletion) => (c.max > 0 ? Math.round((c.score / c.max) * 100) : 0);
   const cards: Card[] = completions
     .filter((c) => medals[c.edition_n])
     .map((c) => {
@@ -512,7 +543,29 @@ export function deriveProgress(f: Facts): Progress {
       const meta = e.wow_meta && typeof e.wow_meta === "object" ? (e.wow_meta as { hero?: { name?: unknown; fact?: unknown } }) : {};
       const hero = meta.hero && typeof meta.hero.name === "string" ? meta.hero.name.slice(0, 60) : null;
       const fact = meta.hero && typeof meta.hero.fact === "string" ? meta.hero.fact.slice(0, 120) : firstSentence(e.teaser);
-      return { n: e.n, title: e.title, date: e.date, medal: medals[c.edition_n], hero, fact, roots: Object.keys(rootWeightsFor(e.topics, e.wow_meta, f.aliases)) as RootId[] };
+      return { n: e.n, title: e.title, date: e.date, medal: medals[c.edition_n], hero, fact, roots: Object.keys(rootWeightsFor(e.topics, e.wow_meta, f.aliases)) as RootId[], score: c.score, max: c.max, pct: pctOf(c) };
+    })
+    .sort((a, b) => b.n - a.n);
+  // the report card: every edition the kid answered, whether or not it earned a medal. A day that was left
+  // half-done still has a grade, and that grade is the thing they come back to look for.
+  const results: Result[] = completions
+    .map((c) => {
+      const e = byN.get(c.edition_n)!;
+      return {
+        n: e.n,
+        title: e.title,
+        date: e.date,
+        score: c.score,
+        max: c.max,
+        pct: pctOf(c),
+        complete: c.complete,
+        challenge: c.challenge,
+        late: c.late,
+        stars: f.grades[c.edition_n] ?? null,
+        medal: medals[c.edition_n] ?? null,
+        xp: c.xp_awarded,
+        at: c.completed_at,
+      };
     })
     .sort((a, b) => b.n - a.n);
   const missing = editions
@@ -532,7 +585,7 @@ export function deriveProgress(f: Facts): Progress {
 
   const skills = Object.fromEntries([...skillAcc].map(([slug, a]) => [slug, { name: f.skillRegistry?.[slug]?.name_he || slug.replace(/-/g, " "), touched: a.touched, first_try: a.first_try, editions: a.editions.size, mastered: a.first_try >= 3 && a.editions.size >= 2 }]));
 
-  return { v: 1, streak: sd.streak, shields: sd.shields, shields_used: sd.shieldsUsed, xp, roots, medals, cards, missing, badges, counts, wings, feathers_by_edition: feathersByEdition, journey, skills };
+  return { v: PROGRESS_V, streak: sd.streak, shields: sd.shields, shields_used: sd.shieldsUsed, xp, roots, medals, cards, results, missing, badges, counts, wings, feathers_by_edition: feathersByEdition, journey, skills };
 }
 
 /* ---------- database ---------- */
@@ -590,10 +643,22 @@ export async function rebuildProgress(kid: { id: string; feminine: boolean; leve
   return p;
 }
 
+/**
+ * The kid's stored progress document. A document written by an older rules version — or none at all — is
+ * rebuilt here and written back, so every reader (the lesson header, the album, the dashboard) sees the
+ * current shape without waiting for the kid's next completion.
+ */
 export async function progressFor(kidId: string, q: Queryable = db()): Promise<Progress | null> {
   const r = await q.query<{ data: Progress }>("select data from kid_progress where kid_id = $1", [kidId]);
   const d = r.rows[0]?.data;
-  return d && (d as Progress).v === 1 ? (d as Progress) : null;
+  if (d && (d as Progress).v === PROGRESS_V) return d as Progress;
+  const k = await q.query<{ id: string; feminine: boolean; level: string; timezone: string | null }>(
+    "select k.id, k.feminine, k.level, p.timezone from kids k join parents p on p.id = k.parent_id where k.id = $1 and k.deleted_at is null",
+    [kidId],
+  );
+  const kid = k.rows[0];
+  if (!kid) return null;
+  return await rebuildProgress(kid, kid.timezone || "Asia/Jerusalem", new Date(), q);
 }
 
 /** Rebuild every kid (admin repair tool, and after a rules change). */
@@ -614,6 +679,10 @@ export function progressSummary(p: Progress | null, editionN: number) {
     cards: p.cards.length,
     badges: p.badges.length,
     medal: p.medals[editionN] ?? null,
+    /** what this kid already scored on this very edition, so a second visit can say so out loud */
+    result: (p.results ?? []).find((r) => r.n === editionN) ?? null,
+    /** the last few grades, for the header bar — the whole report card lives behind /api/kid/progress */
+    recent: (p.results ?? []).slice(0, 5).map((r) => ({ n: r.n, title: r.title, date: r.date, score: r.score, max: r.max, pct: r.pct, medal: r.medal, complete: r.complete })),
     roots: Object.fromEntries(Object.entries(p.roots).map(([id, r]) => [id, r.stage])),
     wings: Object.fromEntries(Object.entries(p.wings ?? {}).map(([id, w]) => [id, w.level])),
     journey: p.journey ?? null,

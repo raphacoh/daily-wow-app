@@ -14,6 +14,7 @@ import { db, hasDb } from "@/lib/db";
 import { kidByToken, kidLink, type KidRow, type ParentRow } from "@/lib/kids";
 import { DEMO_EDITION_N } from "@/lib/editions";
 import { heDate } from "@/lib/format";
+import { MEDAL_NAMES, progressFor, type Result } from "@/lib/gamification";
 
 export const metadata: Metadata = { title: "כל הגיליונות", description: "כל גיליון של שורשים וכנפיים, מהחדש לישן. אפשר להשלים כל אחד מהם מתי שרוצים." };
 
@@ -47,6 +48,9 @@ export default async function Library({ searchParams }: { searchParams: Promise<
   const tokenKid = k && hasDb() ? await kidByToken(k).catch(() => null) : null;
   const [editions, kids] = await Promise.all([listEditions(), tokenKid ? Promise.resolve([tokenKid as KidRow]) : myKids(parent)]);
   const signedIn = !!tokenKid || !!parent;
+  // A kid reading their own library wants one thing above all: what did I get last time? The grade of every
+  // edition they answered travels with the list, medal or not.
+  const grades = await gradesFor(tokenKid);
   // the remembered kid needs no token in the URL — one less thing to share by accident
   const linkFor = (kid: KidRow, n: number) => (tokenKid ? (fromLink ? `/l/${n}?k=${encodeURIComponent(fromLink)}` : `/l/${n}`) : safeKidLink(kid, n));
 
@@ -70,6 +74,7 @@ export default async function Library({ searchParams }: { searchParams: Promise<
                 <p className="cap">{heDate(e.date)}</p>
                 <div className="eyebrow">
                   {i === 0 ? <span className="tag">{t("library.latest")}</span> : null}
+                  {tokenKid ? <Grade result={grades[e.n] ?? null} /> : null}
                   {e.topics.map((topic) => (
                     <span className="tag" key={topic}>
                       {topic}
@@ -103,6 +108,29 @@ export default async function Library({ searchParams }: { searchParams: Promise<
 
       <p className="note">{t("library.lede")}</p>
     </main>
+  );
+}
+
+/** The kid's grade per edition, keyed by edition number. Never let a missing document break the page. */
+async function gradesFor(kid: KidRow | null): Promise<Record<number, Result>> {
+  try {
+    if (!kid || !hasDb()) return {};
+    const p = await progressFor(kid.id);
+    return Object.fromEntries((p?.results ?? []).map((r) => [r.n, r]));
+  } catch {
+    return {};
+  }
+}
+
+/** One edition's grade, as the kid sees it in the list: the medal, then the score behind it. */
+function Grade({ result }: { result: Result | null }) {
+  if (!result) return <span className="tag ghost">{t("library.noGrade")}</span>;
+  return (
+    <span className="tag">
+      {result.medal ? `${MEDAL_NAMES[result.medal]} · ` : ""}
+      {t("library.grade", { score: result.score, max: result.max })}
+      {result.complete ? "" : ` · ${t("library.partial")}`}
+    </span>
   );
 }
 
