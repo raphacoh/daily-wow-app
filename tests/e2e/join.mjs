@@ -8,6 +8,12 @@ import { chromium, devices } from "playwright";
 import { spawn } from "node:child_process";
 import { rmSync } from "node:fs";
 
+/** Playwright's own download, or a chromium already on the machine (E2E_CHROMIUM). */
+function launchOpts(o = {}) {
+  return process.env.E2E_CHROMIUM ? { ...o, executablePath: process.env.E2E_CHROMIUM } : o;
+}
+
+
 const PORT = 3124;
 const BASE = `http://localhost:${PORT}`;
 let server = null;
@@ -17,6 +23,7 @@ async function startServer() {
   server = spawn("npx", ["next", "dev", "-p", String(PORT)], {
     env: { ...process.env, DATABASE_URL: "pglite://./.pglite-e2e-join", DEV_SEED: "1", NEXT_PUBLIC_APP_URL: BASE, SESSION_SECRET: "e2e-secret" },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: true, // next dev spawns its own server child; kill the whole group or the port stays taken
   });
   server.stderr.on("data", (d) => process.stderr.write(d));
   for (let i = 0; i < 120; i++) {
@@ -36,11 +43,11 @@ const setRange = async (page, selector, value) => page.$eval(selector, (el, v) =
   try {
     await startServer();
     await fetch(BASE + "/api/dev/seed", { method: "POST" }); // editions
-    const browser = await chromium.launch();
+    const browser = await chromium.launch(launchOpts());
     const ctx = await browser.newContext({ ...devices["iPhone 13"] });
     const page = await ctx.newPage();
     page.on("pageerror", (e) => errors.push("page: " + e.message));
-    page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon|status of 502/.test(m.text())) errors.push("console: " + m.text()); });
+    page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon|status of 502/.test(m.text() + " " + (m.location()?.url || ""))) errors.push("console: " + m.text()); });
 
     await page.goto(BASE + "/join", { waitUntil: "domcontentloaded" });
     // no auto-focus on touch: the keyboard must not pop before the parent taps
@@ -107,7 +114,7 @@ const setRange = async (page, selector, value) => page.$eval(selector, (el, v) =
   } catch (e) {
     errors.push("fatal: " + (e && e.stack || e));
   } finally {
-    if (server) server.kill("SIGTERM");
+    if (server) { try { process.kill(-server.pid, "SIGKILL"); } catch { server.kill("SIGKILL"); } }
   }
   console.log("JOIN E2E ERRORS:", errors.length ? errors : "none");
   process.exit(errors.length ? 1 : 0);

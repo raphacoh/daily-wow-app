@@ -9,6 +9,12 @@ import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { rmSync } from "node:fs";
 
+/** Playwright's own download, or a chromium already on the machine (E2E_CHROMIUM). */
+function launchOpts(o = {}) {
+  return process.env.E2E_CHROMIUM ? { ...o, executablePath: process.env.E2E_CHROMIUM } : o;
+}
+
+
 const PORT = 3123;
 const BASE = process.env.E2E_BASE || `http://localhost:${PORT}`;
 let server = null;
@@ -18,6 +24,7 @@ async function startServer() {
   server = spawn("npx", ["next", "dev", "-p", String(PORT)], {
     env: { ...process.env, DATABASE_URL: "pglite://./.pglite-e2e", DEV_SEED: "1", NEXT_PUBLIC_APP_URL: BASE, SESSION_SECRET: "e2e-secret" },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: true, // next dev spawns its own server child; kill the whole group or the port stays taken
   });
   server.stdout.on("data", (d) => process.env.E2E_VERBOSE && process.stdout.write(d));
   server.stderr.on("data", (d) => process.stderr.write(d));
@@ -122,11 +129,11 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     const links = Object.fromEntries(family.kids.map((k) => [k.name, k.link]));
     console.log("seeded kids:", Object.keys(links).join(", "));
 
-    const browser = await chromium.launch();
+    const browser = await chromium.launch(launchOpts());
     const newPage = async () => {
       const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
       page.on("pageerror", (e) => errors.push("page: " + e.message));
-      page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon|status of 502/.test(m.text())) errors.push("console: " + m.text()); });
+      page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon|status of 502/.test(m.text() + " " + (m.location()?.url || ""))) errors.push("console: " + m.text()); });
       // the assistant answers 502 api_key_not_configured without ANTHROPIC_API_KEY — the page must fall back to the rubric; anything else ≥ 500 is a bug
       page.on("response", (r) => { if (r.status() >= 500 && !/\/api\/arto\//.test(r.url())) errors.push("http " + r.status() + " " + r.url()); });
       return page;
@@ -219,7 +226,7 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
   } catch (e) {
     errors.push("fatal: " + (e && e.stack || e));
   } finally {
-    if (server) server.kill("SIGTERM");
+    if (server) { try { process.kill(-server.pid, "SIGKILL"); } catch { server.kill("SIGKILL"); } }
   }
   console.log("E2E ERRORS:", errors.length ? errors : "none");
   process.exit(errors.length ? 1 : 0);

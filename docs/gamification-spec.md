@@ -121,11 +121,13 @@ Wings are deliberately *not* comparable across kids and never shown to other fam
 | זהב | `complete` and `score ≥ 90 %` and explain stars = 3 | rubric stars accepted (the score is self-reported too) |
 | יהלום | זהב and `challenge` | a standard-level kid who opens the optional challenge can get it |
 
+Every completion also lands in `progress.results` — the kid's report card, one row per edition they answered, medal or not, with score, percent, explain stars, late flag and completion flag. A day left half-done still has a grade, and that grade is what kids come back to look for: it is shown in the drawer ("הציונים שלי"), next to every edition in the library, and in the lesson's header bar for the edition being read.
+
 Medals upgrade on any later attempt (`recordCompletion` already handles `improved`). The results screen always states the next rung: "עוד שאלה אחת נכונה לכסף" / "פתרו את האתגר ליהלום". This is the retry loop: the app already accepts re-submissions, but nothing invites them today.
 
 ### 4.2 Cards
 
-Completing an edition (bronze or better) earns its card: title, hero, one fact, date, root colours, medal foil. Tier 2 supplies `hero` and `fact`; Tier 0 falls back to `title` + `summary`'s Hebrew teaser first sentence. The album is a grid, newest first, with a **"missing card"** silhouette for every released edition the kid has not completed, deep-linked to `/l/N?k=…` (late completion allowed, XP but no streak, exactly as today). The album turns the library into a collection.
+Completing an edition (bronze or better) earns its card: title, hero, one fact, date, root colours, medal foil, and the grade behind the medal (`score`/`max`). Tier 2 supplies `hero` and `fact`; Tier 0 falls back to `title` + `summary`'s Hebrew teaser first sentence. The album is a grid, newest first, with a **"missing card"** silhouette for every released edition the kid has not completed, deep-linked to `/l/N?k=…` (late completion allowed, XP but no streak, exactly as today). The album turns the library into a collection.
 
 Foil: bronze plain · silver sheen · gold foil · diamond animated foil (CSS only, honours `prefers-reduced-motion`).
 
@@ -297,6 +299,8 @@ Today `src/lib/lesson-page.ts` prepends `window.RUNTIME = {…}` before the frag
 - `WOW.mount()`: renders the progress block on the results screen from the server's `progress` object returned by `/api/kid/complete` (falls back to the local preview when offline). Order, top to bottom: today's medal and next rung → roots that grew (chips with +XP, stage-up animation) → feathers by wing → today's card flip → notices ("מאתמול: מעטים הצליחו") → journey progress → button "השורשים והכנפיים שלי".
 - The drawer "השורשים והכנפיים שלי" (full-screen sheet inside the lesson page, since a kid never leaves the lesson page): grove of 8 trees, wings radar, medal shelf with retry links, card album with missing-card silhouettes, badge case with hidden silhouettes, this week's journey. Data from `GET /api/kid/progress?k=…`.
 - Also mounted on the hero step as a one-line strip ("רצף 4 · מגן 1 · היום: קלף חדש מחכה") so the reward is visible before the work, not only after.
+- A **header bar** inside the edition's own sticky top bar (`.wow-hdr`): streak, shield, cards, badges, and this edition's grade when there is one, all in chips, the whole row a button that opens the drawer. A kid who never opens a menu still sees that a collection exists — the strip only appears on the hero step, and the drawer only if you go looking for it.
+- **Resume** (see §8.7): the lesson survives leaving the page.
 
 ### 8.2 API
 
@@ -342,6 +346,26 @@ Same posture as today, stated plainly: the score is self-reported, so medals and
 ### 8.6 Privacy
 
 New data about a child: per-item correctness, attempts, timestamps, skills, assistant question counts (already kept). No free text beyond what exists. All of it is exported by `/home/export` and deleted with the account. Aggregates across kids are computed only with n ≥ 8 and never expose a name. Add one line to `/privacy`.
+
+### 8.7 Resume — leaving the lesson does not cost the work
+
+A lesson is 25 minutes on one page. A kid who taps a link, switches apps, or lets the phone sleep comes back to a reload, and the engine's state (`S`) starts empty: the answers, the feedback and the position in the lesson are gone.
+
+The engine rebuilds its own DOM from its own handlers (`renderQ`, `buildOrder`, `buildTest` and friends attach `onclick` **properties**), so a serialized copy of the page cannot be restored — the buttons would come back dead. The runtime therefore records **what the kid did**, not what the page looked like:
+
+- Every click on a `button` / `summary` / `[onclick]` inside the lesson, as a selector anchored on an id or on the lesson root and built from the stable attributes the engine already uses (`data-i`, `data-id`, `data-n`, `data-pick`, `data-wow`), so a reshuffled ordering task still resolves.
+- Every field value (`input` / `change`), the field keeping its place in the sequence while only its value moves.
+- Never the assistant, the menus, the entrance gate, or the runtime's own chrome: replaying a question to ארטו would spend the day's quota on words the kid already read.
+
+Stored in `localStorage['wow-resume:<edition code>:<token prefix>']` for 30 days (older keys are swept on load). On the next load, once the engine has booted (the profile has arrived and the start button is live), the gestures are replayed against the live page, one per tick, waiting up to five seconds in total for a target that an `await` has not written yet. The handlers produce exactly what they produced the first time — the same feedback, the same score, the same canvases — and none of this knows what any particular edition looks like.
+
+Three things a resume must never do, and does not:
+
+- **Count an answer twice.** `WOW.emit` is muted for the duration (`toast` too), so nothing reaches `/api/kid/events`. The completion POST is left alone: it is idempotent per (kid, edition), and it is what brings the day's password back into the vault.
+- **Spend the day's ארטו questions.** Grading the explain-it-back answer consumes an allowance unit, so the successful grade is saved with the log and served back from the runtime's own `fetch` wrapper during a replay. With none saved, the replayed call fails softly and the page falls back to its own self-check rubric — which is what the kid saw the first time anyway.
+- **Bounce.** The edition's own "להתחיל מחדש" button reloads the page; recording it would make every load restart for ever. A click whose `onclick` reloads or navigates clears the log instead of joining it, and `window.restart` is wrapped so the log goes wherever the engine's own key goes.
+
+A note offers "להתחיל מחדש" of its own, which clears both.
 
 ---
 

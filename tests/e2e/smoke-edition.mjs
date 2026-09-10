@@ -9,6 +9,12 @@ import { chromium } from "playwright";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
+/** Playwright's own download, or a chromium already on the machine (E2E_CHROMIUM). */
+function launchOpts(o = {}) {
+  return process.env.E2E_CHROMIUM ? { ...o, executablePath: process.env.E2E_CHROMIUM } : o;
+}
+
+
 const file = process.argv[2];
 const frag = readFileSync(file, "utf8");
 const rt = { api: "/api", kidToken: "", edition: { n: 2, code: "WOW-002", date: "2026-09-08", title: "x" }, library: "/library" };
@@ -17,10 +23,10 @@ const out = path.resolve("tests/e2e/_smoke.html");
 writeFileSync(out, doc);
 
 const errors = [];
-const browser = await chromium.launch();
+const browser = await chromium.launch(launchOpts());
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on("pageerror", (e) => errors.push("page: " + e.message));
-page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon/.test(m.text())) errors.push("console: " + m.text()); });
+page.on("console", (m) => { if (m.type() === "error" && !/net::ERR_|fonts\.g|favicon/.test(m.text() + " " + (m.location()?.url || ""))) errors.push("console: " + m.text()); });
 await page.goto("file://" + out);
 await page.waitForTimeout(800);
 const state = await page.evaluate(() => ({
