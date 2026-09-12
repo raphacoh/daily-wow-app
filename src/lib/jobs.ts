@@ -25,7 +25,7 @@ import { APP, getConfig, getNumber } from "./config";
 import { getEdition, listEditions } from "./editions";
 import { kidLink, liveStreak, statsFor, type KidRow, type ParentRow } from "./kids";
 import { localDate } from "./progress";
-import { dailyMail, sendBatch, sendMail, streakRiskMail, weeklyMail, type Mail, type WeekDay } from "./emails";
+import { dailyMail, noEditionMail, sendBatch, sendMail, streakRiskMail, weeklyMail, type Mail, type WeekDay } from "./emails";
 import { MEDAL_NAMES, progressFor } from "./gamification";
 import { purgeOffPrompts } from "./arto";
 
@@ -215,6 +215,37 @@ export async function todaysEdition(now: Date): Promise<number | null> {
   const recent = await listEditions({ limit: 10 });
   const hit = recent.find((e) => String(e.date).slice(0, 10) === today);
   return hit ? hit.n : null;
+}
+
+/**
+ * The send job passed its send-time gate and found no released edition for today. Record the miss and
+ * tell the editor once — the two daily crons both reach this branch, and a second mail adds nothing.
+ *
+ * Reported as its own `job` name so it stands out in the admin history, and so the "did we already say
+ * this today?" check needs no JSON predicate in SQL.
+ */
+export async function reportNoEditionToday(now: Date, localDateStr: string, localTimeStr: string): Promise<{ notified: boolean }> {
+  const prior = await db()
+    .query<{ detail: string | null }>("select detail from job_runs where job = 'no-edition' order by started_at desc limit 5")
+    .catch(() => ({ rows: [] as { detail: string | null }[] }));
+  const saidAlready = prior.rows.some((r) => {
+    try {
+      return (JSON.parse(r.detail ?? "{}") as { date?: string }).date === localDateStr;
+    } catch {
+      return false;
+    }
+  });
+  if (saidAlready) return { notified: false };
+
+  const errors: string[] = [];
+  try {
+    await sendMail(noEditionMail({ to: [APP.editorEmail], date: localDateStr, localTime: localTimeStr }));
+  } catch (e) {
+    // The alert failing must never fail the job — the job_run below is the durable record either way.
+    errors.push(`no_edition_mail: ${msg(e)}`);
+  }
+  await recordRun("no-edition", false, { date: localDateStr, local_time: localTimeStr, timezone: APP.timezone, errors }, now);
+  return { notified: errors.length === 0 };
 }
 
 function teaserFor(e: { teaser: string; title: string }): string {

@@ -237,9 +237,28 @@ describe("scheduled jobs", () => {
       expect(mails).toHaveLength(before + 1);
     });
 
-    it("reports no_edition_today when nothing is released for today", async () => {
+    it("reports no_edition_today when nothing is released for today, and tells the editor once", async () => {
+      const before = mails.length;
       const res = await sendDailyRoute(new Request(url("?now=2026-09-20T09:00:00Z"), { headers: auth }));
-      expect(await res.json()).toMatchObject({ sent: 0, reason: "no_edition_today" });
+      expect(await res.json()).toMatchObject({ sent: 0, reason: "no_edition_today", date: "2026-09-20", editor_notified: true });
+
+      // the editor hears about it, nobody else does
+      expect(mails).toHaveLength(before + 1);
+      const alert = mails[mails.length - 1];
+      expect(alert.to).toEqual(["raphco@gmail.com"]);
+      expect(alert.subject).toContain("2026-09-20");
+      const runs = await db.query<{ n: number }>("select count(*)::int as n from job_runs where job = 'no-edition'");
+      expect(runs.rows[0].n).toBe(1);
+
+      // the second cron of the same day reaches the same branch and must stay quiet
+      const again = await sendDailyRoute(new Request(url("?now=2026-09-20T10:00:00Z"), { headers: auth }));
+      expect(await again.json()).toMatchObject({ reason: "no_edition_today", editor_notified: false });
+      expect(mails).toHaveLength(before + 1);
+
+      // a different day is a different miss, and is worth saying again
+      const next = await sendDailyRoute(new Request(url("?now=2026-09-21T09:00:00Z"), { headers: auth }));
+      expect(await next.json()).toMatchObject({ date: "2026-09-21", editor_notified: true });
+      expect(mails).toHaveLength(before + 2);
     });
   });
 });

@@ -632,6 +632,35 @@ export function weeklyMail({ to, parentName, weekLabel, kids, editorLine }: Week
 }
 
 /* ------------------------------------------------------------------ *
+ * 4b. No edition today — the only mail the app sends to the editor
+ * ------------------------------------------------------------------ */
+
+export interface NoEditionArgs {
+  to: Recipients;
+  /** the date, in the editor's timezone, that has no released edition */
+  date: string;
+  /** the local time the send job gave up */
+  localTime: string;
+}
+
+/**
+ * The send job ran and found nothing to send. Silence here is indistinguishable from a quiet morning,
+ * which is how a failed nightly build cost a whole day before anyone noticed — so the app says it out loud.
+ */
+export function noEditionMail({ to, date, localTime }: NoEditionArgs): Mail {
+  const title = "אין גיליון להיום";
+  const sentence = `שעת השליחה (${localTime}) עברה ו-${date} עדיין בלי גיליון משוחרר, אז אף משפחה לא קיבלה מייל היום.`;
+  const sentenceHtml = `שעת השליחה (${ltr(localTime)}) עברה ו-${ltr(date)} עדיין בלי גיליון משוחרר, אז אף משפחה לא קיבלה מייל היום.`;
+  const why = "בדרך כלל זה אומר שהבנייה הלילית לא הגיעה לסוף, או שהגיליון של היום נשאר staged או held.";
+  const what = "בדף העורך אפשר לראות את הסטטוס ולשחרר ידנית. אם זה יום HOLD מכוון, אין מה לעשות — הרצף של אף ילד לא נפגע מיום בלי גיליון.";
+
+  const bodyHtml = [p(sentenceHtml), p(esc(why)), button(`${APP.url}/admin`, "לדף העורך"), small(esc(what))].join("\n");
+  const text = textBody(title, [sentence, why, `לדף העורך: ${APP.url}/admin`, what]);
+
+  return { to: normaliseTo(to), subject: `${APP.name} — אין גיליון ל-${date}`, html: layout({ title, bodyHtml }), text, replyTo: APP.editorEmail };
+}
+
+/* ------------------------------------------------------------------ *
  * 5. Streak at risk — one line, no guilt
  * ------------------------------------------------------------------ */
 

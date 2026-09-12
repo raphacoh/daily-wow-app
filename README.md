@@ -10,6 +10,7 @@ This app **wraps** the kit's page engine, it does not replace it: every edition 
 02:00  nightly builder (Claude routine)  →  POST /api/admin/editions   (staged, reviewer verdict, review URL)
 11:00  release routine (Claude routine)  →  push to the editions repo, POST /api/admin/editions/N/release
 11:05  Vercel cron → /api/jobs/send-daily →  one email per family, one personal link per kid  (/l/N?k=…)
+       …and if nothing is released for today, one mail to the editor instead of silence (job `no-edition`)
        kid opens the link → the page loads their profile → learns → POST /api/kid/complete → vault opens
        parent sees the completion on /home (and gets the ✓ email with the day's password)
 ```
@@ -58,7 +59,7 @@ node kit/template/check.js && node kit/template/lint.js kit/template/edition-tem
 3. Resend: verify the sending domain (DKIM/SPF/DMARC), set `EMAIL_FROM` on it. Free tier ≈ 100 mails/day → paid at ~80 families (`RESEND_DAILY_LIMIT`, the admin page warns at 80 %).
 4. Dodo Payments: one recurring product "ארטו — העוזר של שורשים וכנפיים", ₪10 (or USD-equivalent shown as ≈ ₪10), webhook → `https://<app>/api/webhooks/dodo`.
 5. Editor account: sign in once, then `update parents set is_editor = true where email = '…'`. Import the founding families with `POST /api/admin/import` (bearer `EDITOR_API_KEY`, body `{ "editions": true, "families": { … } }` — see `src/lib/importer.ts`).
-6. Routines: paste the updated prompts from `kit/prompts/` with `{{APP_URL}}` and `{{EDITOR_API_KEY}}` filled in.
+6. Routines: `cp scripts/prompt-values.example.json scripts/prompt-values.json`, fill it in, then `npm run prompts` and paste `build/prompts/*.md` into the routines. The bearer key is left as `{{EDITOR_API_KEY}}` for you to paste by hand; `npm run prompts -- --with-key` fills it from the environment instead. The running prompts are only ever a command away from the repo — overwrite one in the routine editor and the day's lesson has no way out.
 
 ## Cost model (PRD §11)
 

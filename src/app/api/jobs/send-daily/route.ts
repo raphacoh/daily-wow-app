@@ -1,6 +1,8 @@
 import { cronGuard, forced, json, testNow } from "../_auth";
 import { hasDb } from "@/lib/db";
-import { dailySendGate, sendDaily, todaysEdition } from "@/lib/jobs";
+import { APP } from "@/lib/config";
+import { dailySendGate, reportNoEditionToday, sendDaily, todaysEdition } from "@/lib/jobs";
+import { localDate } from "@/lib/progress";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +16,8 @@ export const maxDuration = 60;
  * and the 09:05 one sends. `?force=1` bypasses the gate for the admin's "send now".
  *
  * `?n=` picks an edition explicitly; otherwise it is the released edition dated today in the editor's
- * timezone, and if there is none (a HOLD day) the job reports `no_edition_today` and sends nothing.
+ * timezone. If there is none — a HOLD day, or a nightly build that never finished — the job sends
+ * nothing, records a `no-edition` run and mails the editor once for that date (`reportNoEditionToday`).
  */
 async function run(req: Request) {
   const denied = cronGuard(req);
@@ -38,7 +41,13 @@ async function run(req: Request) {
   } else {
     n = await todaysEdition(now);
   }
-  if (n === null) return json({ sent: 0, reason: "no_edition_today", date: gate.local, timezone: gate.timezone });
+  if (n === null) {
+    // Nobody is watching the cron's JSON. A day with no lesson has to reach a human, or it looks
+    // exactly like a quiet morning until a kid asks where their lesson is.
+    const today = localDate(now, APP.timezone);
+    const { notified } = await reportNoEditionToday(now, today, gate.local);
+    return json({ sent: 0, reason: "no_edition_today", date: today, local_time: gate.local, timezone: gate.timezone, editor_notified: notified });
+  }
 
   const r = await sendDaily(n, { force, now });
   return json({ edition_n: n, ...r });
