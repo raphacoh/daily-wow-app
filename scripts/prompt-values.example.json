@@ -1,0 +1,30 @@
+{
+  "_comment": "Values for `npm run prompts`, which renders kit/prompts/*.md into prompts that can be pasted into the routines. Copy to prompt-values.json (gitignored) and edit. Keys are the {{PLACEHOLDER}} names documented in kit/prompts/README.md. Anything left out falls back to the environment variable named beside it below, then to the default. NEVER put EDITOR_API_KEY here — it is a secret and this file sits next to your working copy; the renderer takes it from the environment, and only when you ask for it.",
+
+  "APP_URL": "https://dailywow.example.com",
+  "SERIES_NAME": "שורשים וכנפיים",
+  "ASSISTANT_NAME": "ארטו",
+  "LANGUAGE": "Hebrew",
+  "SPEECH_LOCALE": "he-IL",
+  "PARENT_LANGUAGE": "Hebrew or English",
+  "PARENT_NAME": "רף",
+  "PARENT_EMAIL": "editor@example.com",
+  "CHALLENGE_WORD": "אתגר",
+  "TIMEZONE": "Asia/Jerusalem",
+  "HOME_COUNTRY": "ישראל",
+  "HOME_TOWN": "זכרון יעקב",
+  "GITHUB_USER": "your-github-user",
+  "MENU_TIME": "07:30",
+  "BUILD_TIME": "02:00",
+  "RELEASE_TIME": "11:00",
+  "HTML_LANG": "he",
+  "HTML_DIR": "rtl",
+
+  "_env_fallbacks": {
+    "APP_URL": "NEXT_PUBLIC_APP_URL",
+    "PARENT_NAME": "EDITOR_NAME",
+    "PARENT_EMAIL": "EDITOR_EMAIL",
+    "TIMEZONE": "EDITOR_TIMEZONE",
+    "GITHUB_USER": "derived from EDITIONS_REPO_URL"
+  }
+}

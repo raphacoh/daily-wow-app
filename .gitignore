@@ -15,3 +15,7 @@ kit/template/_test.html
 .pglite*
 supabase/.env
 tests/e2e/_smoke.html
+
+# rendered routine prompts (npm run prompts) and the values that feed them
+build/prompts
+scripts/prompt-values.json
