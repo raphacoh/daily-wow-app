@@ -2,12 +2,20 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/jobs/send-daily",
+      "path": "/api/jobs/release",
       "schedule": "5 8 * * *"
     },
     {
-      "path": "/api/jobs/send-daily",
+      "path": "/api/jobs/release",
       "schedule": "5 9 * * *"
+    },
+    {
+      "path": "/api/jobs/send-daily",
+      "schedule": "10 8 * * *"
+    },
+    {
+      "path": "/api/jobs/send-daily",
+      "schedule": "10 9 * * *"
     },
     {
       "path": "/api/jobs/weekly",

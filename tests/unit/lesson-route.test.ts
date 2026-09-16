@@ -49,4 +49,39 @@ describe("GET /l/[n]: only the demo edition is open to everyone", () => {
     expect((await get("/l/3")).status).toBe(404);
     expect((await get("/l/99")).status).toBe(404);
   });
+
+  describe("the editor's draft preview", () => {
+    it("renders a staged edition that /l/N refuses, through the same wrapper", async () => {
+      const { renderLesson } = await import("@/lib/lesson-page");
+      const r = await renderLesson(3, { draft: true });
+      expect(r.status).toBe(200);
+      // the same path a kid gets: runtime bootstrap and the app's gamification runtime
+      expect(r.body).toContain("window.RUNTIME");
+      expect(r.body).toContain("/wow-runtime.js");
+      // and it is clearly marked as not yet out
+      expect(r.body).toContain("טיוטה");
+      expect(r.kid).toBe(false);
+    });
+
+    it("still 404s without the draft flag, so the flag is the only way in", async () => {
+      const { renderLesson } = await import("@/lib/lesson-page");
+      expect((await renderLesson(3)).status).toBe(404);
+    });
+
+    it("shows the day's password in the banner rather than shipping it in the page", async () => {
+      const { renderLesson, encodePw } = await import("@/lib/lesson-page");
+      const secret = "מצפן בעין";
+      await seedEdition(db, 4, "2026-09-10", {
+        status: "staged",
+        password: secret,
+        html: `${html}<script>const PW_ENC = '${encodePw(secret)}';</script>`,
+      });
+      const r = await renderLesson(4, { draft: true });
+      // the editor can read it, because they need it to test the vault
+      expect(r.body).toContain(secret);
+      // but the engine's copy is still blanked, so it is not recoverable from the page source
+      expect(r.body).not.toContain(encodePw(secret));
+      expect(r.body).toContain(`const PW_ENC = '${encodePw("הדגמה")}';`);
+    });
+  });
 });

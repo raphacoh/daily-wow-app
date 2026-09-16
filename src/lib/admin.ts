@@ -16,14 +16,17 @@ import {
   extractAssistantContext,
   extractTitle,
   getEdition,
+  listEditions,
   pad3,
   type EditionFull,
   type EditionMeta,
 } from "./editions";
 import { kidLink, type KidRow } from "./kids";
 import { extractEngineVersion, extractWowMeta } from "./wow-meta";
-import { dailyMail, sendMail, type KidDaily } from "./emails";
-import { sendDaily } from "./jobs";
+import { dailyMail, isEmailAddress, queueMail, sendMail, type KidDaily } from "./emails";
+import { deleteFamily } from "./family";
+import { msg, recordRun, sendDaily } from "./jobs";
+import { localDate } from "./progress";
 
 /* ------------------------------------------------------------------ *
  * Staging
@@ -32,7 +35,8 @@ import { sendDaily } from "./jobs";
 export interface StageInput {
   n: number;
   code?: string;
-  date: string;
+  /** Omit it for a queued draft: `releaseEdition` stamps the day the lesson actually goes out. */
+  date?: string | null;
   title?: string;
   topics?: string[];
   summary?: string;
@@ -100,7 +104,10 @@ export async function stageEdition(input: StageInput): Promise<EditionFull & { w
   const html = String(input.html ?? "");
   const problems = validateFragment(html);
   if (problems.length) throw new StageError("הפראגמנט לא עבר את הבדיקות", problems);
-  if (!input.date || !/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new StageError("תאריך לא תקין (YYYY-MM-DD)");
+  // A queued draft has no date: which day it goes out is decided at release, not at build time. A date may
+  // still be given (a rebuild of something already dated, an import), and then it has to be a real one.
+  const date = input.date == null || input.date === "" ? null : String(input.date);
+  if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new StageError("תאריך לא תקין (YYYY-MM-DD)");
 
   const ctx = extractAssistantContext(html);
   const game = gamificationOf(html);
@@ -122,11 +129,11 @@ export async function stageEdition(input: StageInput): Promise<EditionFull & { w
          review_url = excluded.review_url, sources = excluded.sources, html = excluded.html,
          lesson_context = excluded.lesson_context, grading_context = excluded.grading_context,
          wow_meta = excluded.wow_meta, engine_version = excluded.engine_version,
-         staged_at = now(), held_at = null`,
+         staged_at = now(), held_at = null, approved_at = null, revision_note = null`,
       [
         n,
         input.code?.trim() || `WOW-${pad3(n)}`,
-        input.date,
+        date,
         input.language?.trim() || "he",
         title,
         input.topics ?? [],
@@ -176,9 +183,10 @@ export async function releaseEdition(n: number, opts: ReleaseOptions = {}): Prom
 
   await db().query(
     `update editions set status = 'released', released_at = coalesce(released_at, now()),
+       date = coalesce(date, (now() at time zone $4)::date),
        editor_note = coalesce($2, editor_note), edited_by_editor = edited_by_editor or $3
      where n = $1`,
-    [n, opts.editor_note ?? null, !!opts.edited_by_editor],
+    [n, opts.editor_note ?? null, !!opts.edited_by_editor, APP.timezone],
   );
 
   const edition = await getEdition(n, { includeStaged: true });
@@ -190,6 +198,67 @@ export async function releaseEdition(n: number, opts: ReleaseOptions = {}): Prom
   return { edition, send };
 }
 
+/* ------------------------------------------------------------------ *
+ * The reviewed queue
+ *
+ * The builder works ahead into `staged` drafts; the editor approves at their own pace; the release job
+ * takes the oldest `approved` edition each day. Nothing reaches a child that the editor has not seen,
+ * and a night the builder fails is absorbed by the queue instead of becoming a missed day.
+ * ------------------------------------------------------------------ */
+
+/** The editor said yes. It joins the queue and goes out on its turn, oldest first. */
+export async function approveEdition(n: number): Promise<EditionFull> {
+  const r = await db().query<{ status: string }>("select status from editions where n = $1", [n]);
+  const status = r.rows[0]?.status;
+  if (!status) throw new StageError(`אין גיליון #${n}`);
+  if (status === "released") throw new StageError(`גיליון #${n} כבר שוחרר`);
+
+  await db().query(
+    `update editions set status = 'approved', approved_at = now(), held_at = null, revision_note = null where n = $1`,
+    [n],
+  );
+  const edition = await getEdition(n, { includeStaged: true });
+  if (!edition) throw new StageError(`אין גיליון #${n}`);
+  return edition;
+}
+
+/**
+ * Sent back for changes. It leaves the queue and the note is kept on the row for the next builder run to
+ * read, so "what I asked for" survives without a mail thread to parse.
+ */
+export async function requestChanges(n: number, note: string): Promise<EditionFull> {
+  const text = String(note ?? "").trim().slice(0, 2000);
+  if (!text) throw new StageError("צריך לכתוב מה לשנות");
+  const r = await db().query(
+    `update editions set status = 'held', held_at = now(), approved_at = null, revision_note = $2
+      where n = $1 and status <> 'released' returning n`,
+    [n, text],
+  );
+  if (!r.rows.length) throw new StageError(`אין גיליון #${n} שאפשר להחזיר`);
+  const edition = await getEdition(n, { includeStaged: true });
+  if (!edition) throw new StageError(`אין גיליון #${n}`);
+  return edition;
+}
+
+export interface QueueState {
+  /** approved and waiting, oldest first */
+  ready: number[];
+  /** built and waiting for the editor */
+  drafts: number[];
+  /** the next edition the release job would send, or null when the queue is empty */
+  next: number | null;
+}
+
+/** What the release job will find, and what the queue warning is based on. */
+export async function queueState(): Promise<QueueState> {
+  const r = await db().query<{ n: number; status: string }>(
+    "select n, status from editions where status in ('approved','staged') order by n asc",
+  );
+  const ready = r.rows.filter((x) => x.status === "approved").map((x) => Number(x.n));
+  const drafts = r.rows.filter((x) => x.status === "staged").map((x) => Number(x.n));
+  return { ready, drafts, next: ready[0] ?? null };
+}
+
 /** The editor's HOLD: the edition stays out of every mail and out of `/l/N` until it is released. */
 export async function holdEdition(n: number): Promise<EditionFull> {
   const r = await db().query("update editions set status = 'held', held_at = now() where n = $1 returning n", [n]);
@@ -197,6 +266,100 @@ export async function holdEdition(n: number): Promise<EditionFull> {
   const edition = await getEdition(n, { includeStaged: true });
   if (!edition) throw new StageError(`אין גיליון #${n}`);
   return edition;
+}
+
+/* ------------------------------------------------------------------ *
+ * The daily release
+ * ------------------------------------------------------------------ */
+
+/** Warn the editor once the queue is down to this many approved editions. */
+const QUEUE_LOW = 3;
+
+export interface ReleaseRunResult {
+  released: number | null;
+  sent: number;
+  skipped: number;
+  ready: number;
+  drafts: number;
+  reason?: string;
+  errors: string[];
+}
+
+/**
+ * The 11:00 job: release the oldest approved edition, and nothing else.
+ *
+ * Only what the editor approved ever goes out, so an empty queue is a skipped day, not a lesson nobody
+ * read first — and the editor is told, which is the part that was missing when the pipeline failed
+ * silently overnight on 2026-09-11. Safe to run twice: the second run finds today's edition already
+ * released and does nothing, and the warning mail is claimed once per day through `sends`.
+ */
+export async function releaseQueued(opts: { force?: boolean; now?: Date } = {}): Promise<ReleaseRunResult> {
+  const now = opts.now ?? new Date();
+  const startedAt = now;
+  const errors: string[] = [];
+  const today = localDate(now, APP.timezone);
+
+  // already out today? then this is the second cron firing, or a manual release beat us to it
+  const recent = await listEditions({ limit: 5 });
+  const already = recent.find((e) => e.date && String(e.date).slice(0, 10) === today);
+  if (already && !opts.force) {
+    const q = await queueState();
+    const out = { released: null, sent: 0, skipped: 0, ready: q.ready.length, drafts: q.drafts.length, reason: "already_released_today", errors };
+    await recordRun("release", true, { ...out, edition_n: already.n }, startedAt);
+    return out;
+  }
+
+  const queue = await queueState();
+  if (queue.next === null) {
+    await warnAboutQueue("empty", queue, today, errors);
+    const out = { released: null, sent: 0, skipped: 0, ready: 0, drafts: queue.drafts.length, reason: "queue_empty", errors };
+    await recordRun("release", false, out, startedAt);
+    return out;
+  }
+
+  let sent = 0;
+  let skipped = 0;
+  try {
+    const r = await releaseEdition(queue.next);
+    sent = r.send?.sent ?? 0;
+    skipped = r.send?.skipped ?? 0;
+    if (r.send?.errors.length) errors.push(...r.send.errors);
+  } catch (e) {
+    errors.push(`release_${queue.next}: ${msg(e)}`);
+    const out = { released: null, sent: 0, skipped: 0, ready: queue.ready.length, drafts: queue.drafts.length, reason: "release_failed", errors };
+    await recordRun("release", false, out, startedAt);
+    return out;
+  }
+
+  const after = await queueState();
+  if (after.ready.length < QUEUE_LOW) await warnAboutQueue("low", after, today, errors);
+
+  const out = { released: queue.next, sent, skipped, ready: after.ready.length, drafts: after.drafts.length, errors };
+  await recordRun("release", errors.length === 0, out, startedAt);
+  return out;
+}
+
+/** One warning a day, claimed through `sends` the way every other mail in this file is. */
+async function warnAboutQueue(kind: "empty" | "low", queue: QueueState, today: string, errors: string[]): Promise<void> {
+  const claim = await db().query<{ id: string }>(
+    "insert into sends (kind, week_key, to_emails) values ('queue', $1, $2) on conflict do nothing returning id",
+    [today, [APP.editorEmail]],
+  );
+  if (!claim.rows.length) return;
+  try {
+    const mail = queueMail({
+      to: APP.editorEmail,
+      kind,
+      ready: queue.ready,
+      drafts: queue.drafts,
+      adminUrl: `${APP.url}/admin`,
+    });
+    const r = await sendMail(mail);
+    await db().query("update sends set resend_id = $2 where id = $1", [claim.rows[0].id, r.id]);
+  } catch (e) {
+    errors.push(`queue_warning: ${msg(e)}`);
+    await db().query("delete from sends where id = $1", [claim.rows[0].id]);
+  }
 }
 
 /** Re-run the daily send for an edition that already went out (a bad link, a bounced batch). */
@@ -256,13 +419,15 @@ export interface AdminEdition extends EditionMeta {
   staged_at: string | null;
   held_at: string | null;
   has_html: boolean;
+  /** what the editor asked to be changed, kept for the next builder run */
+  revision_note: string | null;
 }
 
 /** Every edition, every status, newest first. Never the html and never the password. */
 export async function listAdminEditions(limit = 40): Promise<AdminEdition[]> {
   const r = await db().query<Record<string, unknown>>(
     `select n, code, date, language, title, topics, summary, teaser, max_score, status, reviewer_verdict,
-            review_url, editor_note, edited_by_editor, released_at, staged_at, held_at,
+            review_url, editor_note, edited_by_editor, released_at, staged_at, held_at, revision_note,
             (html is not null and html <> '') as has_html
        from editions order by n desc limit $1`,
     [Math.max(1, Math.min(500, limit))],
@@ -281,6 +446,7 @@ export async function listAdminEditions(limit = 40): Promise<AdminEdition[]> {
     reviewer_verdict: (row.reviewer_verdict as string | null) ?? null,
     review_url: (row.review_url as string | null) ?? null,
     editor_note: (row.editor_note as string | null) ?? null,
+    revision_note: (row.revision_note as string | null) ?? null,
     edited_by_editor: !!row.edited_by_editor,
     released_at: isoOrNull(row.released_at),
     staged_at: isoOrNull(row.staged_at),
@@ -455,6 +621,36 @@ export async function grantFreeAssistant(kidId: string, untilISO: string): Promi
   if (Number.isNaN(until.getTime())) throw new StageError("תאריך לא תקין");
   const r = await db().query("update kids set free_assistant_until = $2 where id = $1 and deleted_at is null returning id", [kidId, until.toISOString()]);
   if (!r.rows.length) throw new StageError("אין ילד/ה כזה/כזאת");
+}
+
+/** Support edit: the parent's name and sign-in address. The address is what the daily mail and the magic link go to. */
+export async function updateFamilyContact(parentId: string, patch: { name?: string; email?: string }): Promise<{ email: string }> {
+  const cur = await db().query<{ id: string; email: string; name: string }>("select id, email, name from parents where id = $1 and deleted_at is null", [parentId]);
+  if (!cur.rows.length) throw new StageError("אין משפחה כזאת");
+  const name = patch.name === undefined ? cur.rows[0].name : patch.name.trim();
+  const email = patch.email === undefined ? cur.rows[0].email : patch.email.trim().toLowerCase();
+  if (!isEmailAddress(email)) throw new StageError("כתובת המייל לא תקינה");
+  if (email !== cur.rows[0].email) {
+    const taken = await db().query("select 1 from parents where email = $1 and id <> $2", [email, parentId]);
+    if (taken.rows.length) throw new StageError("המייל הזה כבר שייך למשפחה אחרת");
+  }
+  await db().query("update parents set name = $2, email = $3 where id = $1", [parentId, name, email]);
+  return { email };
+}
+
+/**
+ * Support delete: the whole family, hard (kids, completions, contacts and claims cascade — see `deleteFamily`).
+ * The editor's own account is refused. `confirmEmail` must match the family's address: the form asks the
+ * editor to type it, so a stray click cannot remove a family.
+ */
+export async function deleteFamilyByAdmin(parentId: string, confirmEmail: string): Promise<{ email: string }> {
+  const cur = await db().query<{ email: string; is_editor: boolean }>("select email, is_editor from parents where id = $1 and deleted_at is null", [parentId]);
+  if (!cur.rows.length) throw new StageError("אין משפחה כזאת");
+  const { email, is_editor } = cur.rows[0];
+  if (is_editor) throw new StageError("אי אפשר למחוק את חשבון העורך מכאן");
+  if (confirmEmail.trim().toLowerCase() !== email.toLowerCase()) throw new StageError("המייל שהוקלד לאישור לא תואם");
+  await deleteFamily(parentId);
+  return { email };
 }
 
 /* ------------------------------------------------------------------ *

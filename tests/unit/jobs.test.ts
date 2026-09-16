@@ -69,10 +69,9 @@ describe("scheduled jobs", () => {
     const r = await sendDaily(2, { now: at(TODAY, 11, 10) });
     expect(r.errors).toEqual([]);
     expect(r.sent).toBe(1);
-    expect(mails).toHaveLength(1);
-
+    // one claim for the family, delivered as one copy per recipient (each with its own unsubscribe link):
     // parent + kid email + the opted-in extra adult; the opted-out contact and the duplicate are gone
-    expect(mails[0].to).toEqual(["parent@example.com", "emma@example.com", "savta@example.com"]);
+    expect(mails.map((m) => m.to)).toEqual([["parent@example.com"], ["emma@example.com"], ["savta@example.com"]]);
     expect(mails[0].subject).toContain("#2");
     expect(mails[0].replyTo).toBeTruthy();
     // the paused-only family was never a candidate
@@ -98,12 +97,68 @@ describe("scheduled jobs", () => {
     const again = await sendDaily(2, { now: at(TODAY, 11, 20) });
     expect(again.sent).toBe(0);
     expect(again.skipped).toBe(1);
-    expect(mails).toHaveLength(1);
+    expect(mails).toHaveLength(3);
 
     const forced = await sendDaily(2, { now: at(TODAY, 11, 30), force: true });
     expect(forced.sent).toBe(1);
-    expect(mails).toHaveLength(2);
+    expect(mails).toHaveLength(6);
     expect(await sendsOf("daily")).toBe(1); // still one row: force replaced it
+  });
+
+  it("a malformed address is reported and skipped; the family's other addresses still get the mail", async () => {
+    // exactly the record that sank edition #9: the parent's own address has a doubled dot
+    const parentC = await seedParent(db, { email: "assaflehr@gmai..com", name: "אסף" });
+    const kidC = await createKid(parentC, { name: "רוני", feminine: true, age: 8, grade: "ג", level: "standard", email: "roni@example.com" });
+    await db.query("insert into kid_contacts (kid_id, name, email, notify_daily) values ($1,'סבא','grandpa@@example.com',true)", [kidC.id]);
+    const before = mails.length;
+
+    const r = await sendDaily(2, { now: at(TODAY, 11, 40) });
+    expect(r.sent).toBe(1); // family A was already sent; only family C is new
+    expect(r.errors).toEqual([`bad_address: parent ${parentC}: assaflehr@gmai..com`, `bad_address: parent ${parentC}: grandpa@@example.com`]);
+    expect(mails.slice(before).map((m) => m.to)).toEqual([["roni@example.com"]]);
+    const claim = await db.query<{ to_emails: string[]; resend_id: string | null }>("select to_emails, resend_id from sends where kind = 'daily' and parent_id = $1", [parentC]);
+    expect(claim.rows[0].to_emails).toEqual(["roni@example.com"]);
+    expect(claim.rows[0].resend_id).toBeTruthy();
+    // a bad address is a warning about one family, not a failed run
+    const run = await db.query<{ ok: boolean }>("select ok from job_runs where job = 'send-daily' order by started_at desc limit 1");
+    expect(run.rows[0].ok).toBe(true);
+    await db.query("delete from parents where id = $1", [parentC]); // leave the fixture as the later tests expect it
+  });
+
+  it("a family whose every copy Resend refuses releases only its own claim; the rest stay sent", async () => {
+    const parentD = await seedParent(db, { email: "reject@example.com", name: "דנה" });
+    await createKid(parentD, { name: "גיל", feminine: false, age: 9, grade: "ד", level: "standard" });
+    const parentE = await seedParent(db, { email: "fine@example.com", name: "עדי" });
+    await createKid(parentE, { name: "טל", feminine: false, age: 9, grade: "ד", level: "standard" });
+    setMailer(async (m) => {
+      if (m.to[0] === "reject@example.com") throw new Error("resend: The `to` address is not valid");
+      mails.push(m);
+      return { id: `re_${mails.length}` };
+    });
+    const before = mails.length;
+
+    let r: Awaited<ReturnType<typeof sendDaily>>;
+    try {
+      r = await sendDaily(2, { now: at(TODAY, 11, 50) });
+    } finally {
+      setMailer(async (m) => {
+        mails.push(m);
+        return { id: `re_${mails.length}` };
+      });
+    }
+    expect(r.sent).toBe(1);
+    expect(r.skipped).toBe(2); // family A (already sent) + family D (failed, released)
+    expect(r.errors).toEqual([`send_failed: parent ${parentD}: resend: The \`to\` address is not valid`]);
+    expect(mails.slice(before).map((m) => m.to)).toEqual([["fine@example.com"]]);
+    expect((await db.query("select 1 from sends where kind = 'daily' and parent_id = $1", [parentD])).rows).toHaveLength(0);
+    expect((await db.query("select 1 from sends where kind = 'daily' and parent_id = $1", [parentE])).rows).toHaveLength(1);
+
+    // once the transport accepts it, the next run picks the released family up — nothing else resends
+    const retry = await sendDaily(2, { now: at(TODAY, 12, 0) });
+    expect(retry.sent).toBe(1);
+    expect(retry.errors).toEqual([]);
+    expect(mails.at(-1)?.to).toEqual(["reject@example.com"]);
+    await db.query("delete from parents where id = any($1::uuid[])", [[parentD, parentE]]); // leave the fixture as the later tests expect it
   });
 
   it("refuses an edition that is not released", async () => {
@@ -234,7 +289,7 @@ describe("scheduled jobs", () => {
       const res = await sendDailyRoute(new Request(url("?now=2026-09-08T02:00:00Z&force=1&n=2"), { headers: auth }));
       const body = await res.json();
       expect(body).toMatchObject({ edition_n: 2, sent: 1 });
-      expect(mails).toHaveLength(before + 1);
+      expect(mails).toHaveLength(before + 3); // one family, three recipients, a copy each
     });
 
     it("reports no_edition_today when nothing is released for today", async () => {

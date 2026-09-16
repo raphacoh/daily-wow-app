@@ -33,8 +33,9 @@ export function nums(text: string): React.ReactNode[] {
   );
 }
 
-/** "יום שני, 7 בספטמבר 2026" — the digits isolated. `iso` is `YYYY-MM-DD`. */
-export function heDate(iso: string): React.ReactNode {
+/** "יום שני, 7 בספטמבר 2026" — the digits isolated. `iso` is `YYYY-MM-DD`, or null for a queued draft. */
+export function heDate(iso: string | null): React.ReactNode {
+  if (!iso) return null;
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
   if (!y || !m || !d) return iso;
   const weekday = new Intl.DateTimeFormat("he-IL", { weekday: "long", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, d)));

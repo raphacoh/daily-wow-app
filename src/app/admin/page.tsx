@@ -13,7 +13,21 @@ import {
   type AdminEdition,
   gamificationReadout,
 } from "@/lib/admin";
-import { aliasTopicAction, grantAssistantAction, holdAction, rebuildProgressAction, releaseAction, republishAction, saveConfigAction, saveSkillAction, testMailAction } from "./actions";
+import {
+  aliasTopicAction,
+  approveAction,
+  deleteFamilyAction,
+  editFamilyAction,
+  grantAssistantAction,
+  holdAction,
+  rebuildProgressAction,
+  releaseAction,
+  republishAction,
+  requestChangesAction,
+  saveConfigAction,
+  saveSkillAction,
+  testMailAction,
+} from "./actions";
 import { ROOTS, ROOT_IDS } from "@/lib/roots";
 
 export const runtime = "nodejs";
@@ -31,7 +45,8 @@ const CONFIG_FIELDS: { key: string; label: string; hint?: string }[] = [
 
 const STATUS_UI: Record<string, { label: string; cls: string }> = {
   released: { label: "שוחרר", cls: "pill ok" },
-  staged: { label: "ממתין", cls: "pill sun" },
+  approved: { label: "בתור", cls: "pill nile" },
+  staged: { label: "ממתין לאישור", cls: "pill sun" },
   held: { label: "מוחזק", cls: "pill bad" },
 };
 
@@ -210,7 +225,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <form method="get" className="controls">
           <div className="field" style={{ flex: "1 1 260px", margin: 0 }}>
             <label htmlFor="q">חיפוש לפי מייל</label>
-            <input id="q" name="q" type="email" defaultValue={q} placeholder="parent@example.com" dir="ltr" />
+            <input id="q" name="q" type="text" inputMode="email" autoComplete="off" defaultValue={q} placeholder="parent@example.com" dir="ltr" />
           </div>
           <button className="btn small" type="submit">
             חיפוש
@@ -265,6 +280,41 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 </tbody>
               </table>
             </div>
+
+            <details className="sheet">
+              <summary>עריכה ומחיקה</summary>
+              <form action={editFamilyAction} className="controls">
+                <input type="hidden" name="parent_id" value={found.id} />
+                <input type="hidden" name="q" value={q} />
+                <div className="field" style={{ flex: "1 1 160px", margin: 0 }}>
+                  <label htmlFor="fam-name">שם ההורה</label>
+                  <input id="fam-name" name="name" type="text" defaultValue={found.name} />
+                </div>
+                <div className="field" style={{ flex: "1 1 260px", margin: 0 }}>
+                  <label htmlFor="fam-email">מייל (כניסה ומיילים יומיים)</label>
+                  <input id="fam-email" name="email" type="text" inputMode="email" autoComplete="off" defaultValue={found.email} dir="ltr" required />
+                </div>
+                <button className="btn small" type="submit">
+                  שמירת פרטים
+                </button>
+              </form>
+              {found.is_editor ? (
+                <p className="small">את חשבון העורך אי אפשר למחוק מכאן.</p>
+              ) : (
+                <form action={deleteFamilyAction} className="controls">
+                  <input type="hidden" name="parent_id" value={found.id} />
+                  <input type="hidden" name="q" value={q} />
+                  <div className="field" style={{ flex: "1 1 260px", margin: 0 }}>
+                    <label htmlFor="fam-confirm">למחיקה לצמיתות — הקלידו את המייל של המשפחה</label>
+                    <input id="fam-confirm" name="confirm_email" type="text" inputMode="email" autoComplete="off" placeholder={found.email} dir="ltr" required />
+                  </div>
+                  <button className="btn small ghost" type="submit">
+                    מחיקת המשפחה
+                  </button>
+                </form>
+              )}
+              <p className="small">המחיקה מוחקת גם את הילדים, ההשלמות והמיילים שנשלחו. אין דרך חזרה.</p>
+            </details>
           </div>
         ) : null}
 
@@ -287,7 +337,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       {f.name || "—"}
                       {f.is_editor ? <span className="pill sun"> עורך</span> : null}
                     </td>
-                    <td className="ltr">{f.email}</td>
+                    <td className="ltr">
+                      <a href={`/admin?q=${encodeURIComponent(f.email)}#q`}>{f.email}</a>
+                    </td>
                     <td className="num">{f.kids}</td>
                     <td className="num">{shortDate(f.created_at)}</td>
                   </tr>
@@ -575,10 +627,18 @@ function EditionRow({ e }: { e: AdminEdition }) {
           </a>
         ) : null}
         {e.review_url ? " · " : null}
-        <a href={`/l/${e.n}`}>השיעור</a>
+        {released ? <a href={`/l/${e.n}`}>השיעור</a> : <a href={`/admin/preview/${e.n}`}>תצוגה מקדימה</a>}
       </td>
       <td>
         <div className="controls" style={{ margin: 0 }}>
+          {!released ? (
+            <form action={approveAction}>
+              <input type="hidden" name="n" value={e.n} />
+              <button className="btn small" type="submit" disabled={e.status === "approved"}>
+                אישור
+              </button>
+            </form>
+          ) : null}
           {!released ? (
             <form action={holdAction}>
               <input type="hidden" name="n" value={e.n} />
@@ -603,7 +663,22 @@ function EditionRow({ e }: { e: AdminEdition }) {
         </div>
         {!released ? (
           <details className="sheet">
-            <summary>שחרור</summary>
+            <summary>לתקן</summary>
+            <form action={requestChangesAction}>
+              <input type="hidden" name="n" value={e.n} />
+              <div className="field">
+                <label htmlFor={`rev-${e.n}`}>מה לשנות (נשמר לבנייה הבאה)</label>
+                <textarea id={`rev-${e.n}`} name="revision_note" rows={2} defaultValue={e.revision_note ?? ""} />
+              </div>
+              <button className="btn small ghost" type="submit">
+                להחזיר לתיקון
+              </button>
+            </form>
+          </details>
+        ) : null}
+        {!released ? (
+          <details className="sheet">
+            <summary>שחרור עכשיו</summary>
             <form action={releaseAction}>
               <input type="hidden" name="n" value={e.n} />
               <div className="field">

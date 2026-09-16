@@ -9,6 +9,7 @@ import { getNumber } from "./config";
 import { listEditions, type EditionMeta } from "./editions";
 import { isEntitled } from "./arto";
 import { track } from "./analytics";
+import { isEmailAddress } from "./emails";
 
 export interface KidInput {
   name: string;
@@ -53,7 +54,7 @@ export function validateKid(k: KidInput, prefix = "kid"): FieldError[] {
 }
 
 export function isEmail(s: unknown): s is string {
-  return typeof s === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim());
+  return isEmailAddress(s);
 }
 
 /** Grade pre-filled from age (Israeli system: age 6 → א). */
@@ -166,7 +167,11 @@ export async function dashboardFor(parent: ParentRow, appUrl: string, now = new 
     : { rows: [] as never[] };
   const sent = todayEd ? await q.query("select 1 from sends where edition_n = $1 and parent_id = $2 and kind = 'daily'", [todayEd.n, parent.id]) : { rows: [] };
 
-  const last14 = editions.filter((e) => e.date <= today).slice(0, 14).reverse();
+  // dated and already out: a queued draft has no date and must never surface on a family's dashboard
+  const last14 = editions
+    .filter((e): e is typeof e & { date: string } => !!e.date && e.date <= today)
+    .slice(0, 14)
+    .reverse();
   const kids: DashboardKid[] = [];
   for (const kid of kidsRows.rows) {
     const stats = await statsFor(kid.id);

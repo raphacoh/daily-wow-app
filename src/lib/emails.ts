@@ -1,9 +1,9 @@
 /**
  * Email templates + sending for "שורשים וכנפיים" (Roots and Wings).
  *
- * Self-contained on purpose: the only imports are `./config` and the `resend`
- * package. Every template returns a `Mail` (html + a plain-text alternative),
- * so templates can be unit-tested without touching the network.
+ * Templates are pure: every one returns a `Mail` (html + a plain-text
+ * alternative), so they can be unit-tested without touching the network. Only
+ * sending reads the database — the unsubscribe list (`./unsubscribe`).
  *
  * House rules baked in here:
  *  - Warm, plain, first-person parent voice (the editor talking to parents).
@@ -14,6 +14,7 @@
  */
 import { Resend } from "resend";
 import { APP } from "./config";
+import { unsubscribePageUrl, unsubscribePostUrl, withoutUnsubscribed } from "./unsubscribe";
 
 /* ------------------------------------------------------------------ *
  * Types
@@ -25,6 +26,10 @@ export interface Mail {
   html: string;
   text: string;
   replyTo?: string;
+  /** a receipt nobody opts out of (billing, sign-in, the editor's own alerts): no unsubscribe link, never suppressed */
+  transactional?: boolean;
+  /** extra MIME headers; sending adds List-Unsubscribe per recipient */
+  headers?: Record<string, string>;
 }
 
 /** Templates accept either a single address or a list. */
@@ -76,6 +81,18 @@ export function esc(s: string | number | null | undefined): string {
 /** Latin digits / URLs inside Hebrew text need an explicit LTR run. */
 function ltr(s: string | number): string {
   return `<span dir="ltr">${esc(s)}</span>`;
+}
+
+/**
+ * Is this something Resend will accept as an address? Stricter than "has an @": the domain must be
+ * dot-separated labels ending in a letters-only TLD, and neither side may carry a doubled dot.
+ * `assaflehr@gmai..com` slipped past the old check and Resend refused the whole batch it sat in.
+ */
+export function isEmailAddress(s: unknown): s is string {
+  if (typeof s !== "string") return false;
+  const v = s.trim();
+  if (v.length > 254 || v.includes("..")) return false;
+  return /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/.test(v);
 }
 
 function normaliseTo(to: Recipients): string[] {
@@ -193,6 +210,7 @@ export function layout({ title, bodyHtml, footerNote }: LayoutArgs): string {
               &nbsp;·&nbsp;<a href="${esc(OPEN_BOOKS_URL)}" style="${A}">הספרים הפתוחים</a>
               &nbsp;·&nbsp;<a href="${esc(APP.kitRepo)}" style="${A}">GitHub</a>
             </p>
+            ${UNSUB_SLOT}
           </td>
         </tr>
       </table>
@@ -239,6 +257,9 @@ function small(html: string): string {
 
 const NOT_CONFIGURED = "resend_not_configured";
 
+/** Where each copy's own unsubscribe line goes in the HTML footer — an invisible comment until sending. */
+const UNSUB_SLOT = "<!--unsubscribe-->";
+
 export type Mailer = (mail: Mail) => Promise<{ id: string | null }>;
 
 let mailer: Mailer | null = null;
@@ -260,76 +281,167 @@ function warnNotConfigured(what: string): void {
   console.warn(`[emails] RESEND_API_KEY is not set — skipping ${what}`);
 }
 
-/**
- * Send one mail. Never throws when Resend isn't configured (local dev, CI):
- * it logs a single line and reports back that it skipped.
- */
-export async function sendMail(mail: Mail): Promise<{ id: string | null; skipped?: string }> {
-  const to = normaliseTo(mail.to);
-  if (mailer) {
-    if (to.length === 0) return { id: null, skipped: "no_recipients" };
-    return mailer({ ...mail, to });
+/** Recipients we will actually address: deduped, and minus anything Resend would refuse. */
+function validRecipients(mail: Mail): string[] {
+  const out: string[] = [];
+  for (const addr of normaliseTo(mail.to)) {
+    if (isEmailAddress(addr)) out.push(addr);
+    else console.warn(`[emails] dropping invalid address "${addr}" from "${mail.subject}"`);
   }
-  const key = apiKey();
-  if (!key) {
-    warnNotConfigured(`"${mail.subject}"`);
-    return { id: null, skipped: NOT_CONFIGURED };
-  }
-  if (to.length === 0) return { id: null, skipped: "no_recipients" };
-
-  const resend = new Resend(key);
-  const { data, error } = await resend.emails.send({
-    from: APP.fromEmail,
-    to,
-    subject: mail.subject,
-    html: mail.html,
-    text: mail.text,
-    ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
-  });
-  if (error) throw new Error(`resend: ${error.message ?? String(error)}`);
-  return { id: data?.id ?? null };
+  return out;
 }
 
 /**
- * Send many mails through Resend's batch endpoint, 100 at a time.
+ * What actually leaves: one copy per recipient. A shared mail can't say whom its unsubscribe link removes,
+ * so each copy carries that person's own link and List-Unsubscribe header (and nobody sees the other
+ * addresses). Invalid addresses are dropped here (Resend rejects a whole batch over one of them), and so
+ * are unsubscribed ones, for every mail that isn't transactional.
+ */
+async function copies(mail: Mail): Promise<Mail[]> {
+  const all = validRecipients(mail);
+  if (mail.transactional) return all.map((addr) => ({ ...mail, to: [addr], html: mail.html.replace(UNSUB_SLOT, "") }));
+  return (await withoutUnsubscribed(all)).map((addr) => {
+    const page = unsubscribePageUrl(addr);
+    return {
+      ...mail,
+      to: [addr],
+      html: mail.html.replace(UNSUB_SLOT, `<p style="${SMALL}">לא רוצים לקבל יותר את המיילים האלה? <a href="${esc(page)}" style="${A}">להסרה</a></p>`),
+      text: `${mail.text.trimEnd()}\nלהסרה מרשימת התפוצה: ${page}\n`,
+      headers: { ...mail.headers, "List-Unsubscribe": `<${unsubscribePostUrl(addr)}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+    };
+  });
+}
+
+function payload(m: Mail) {
+  return {
+    from: APP.fromEmail,
+    to: m.to,
+    subject: m.subject,
+    html: m.html,
+    text: m.text,
+    ...(m.replyTo ? { replyTo: m.replyTo } : {}),
+    ...(m.headers ? { headers: m.headers } : {}),
+  };
+}
+
+/** What became of one copy: its Resend id, or why it did not go. */
+export interface CopyResult {
+  id: string | null;
+  error?: string;
+}
+
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
+/** One copy through the transport; never throws. */
+async function deliverOne(resend: Resend | null, m: Mail): Promise<CopyResult> {
+  try {
+    if (mailer) return { id: (await mailer(m)).id };
+    const { data, error } = await resend!.emails.send(payload(m));
+    if (error) return { id: null, error: `resend: ${error.message ?? String(error)}` };
+    return { id: data?.id ?? null };
+  } catch (e) {
+    return { id: null, error: errMsg(e) };
+  }
+}
+
+/**
+ * Hand ready copies to the transport in order; one result back per copy, in that order. Several copies go
+ * as one batch call, but a rejected batch is not the end of it: Resend validates the batch as a whole, so
+ * one refused copy would take the other 99 down with it. When a batch is rejected, every copy in it is
+ * retried on its own and only the copies Resend actually refuses come back with an error.
+ */
+async function deliver(key: string | undefined, out: Mail[]): Promise<CopyResult[]> {
+  const resend = mailer ? null : new Resend(key);
+  if (mailer || out.length === 1) {
+    const results: CopyResult[] = [];
+    for (const m of out) results.push(await deliverOne(resend, m));
+    return results;
+  }
+  const results: CopyResult[] = [];
+  for (let i = 0; i < out.length; i += 100) {
+    const chunk = out.slice(i, i + 100);
+    let rows: { id?: string }[] | null = null;
+    try {
+      const { data, error } = await resend!.batch.send(chunk.map(payload));
+      if (!error) rows = data?.data ?? [];
+      else console.warn(`[emails] resend batch of ${chunk.length} rejected (${error.message ?? String(error)}) — retrying one by one`);
+    } catch (e) {
+      console.warn(`[emails] resend batch of ${chunk.length} failed (${errMsg(e)}) — retrying one by one`);
+    }
+    if (rows) {
+      chunk.forEach((_, j) => results.push({ id: rows![j]?.id ?? null }));
+      continue;
+    }
+    for (const m of chunk) results.push(await deliverOne(resend, m));
+  }
+  return results;
+}
+
+/**
+ * Send one mail (one copy per recipient). Never throws when Resend isn't configured (local dev, CI):
+ * it logs a single line and reports back that it skipped. Throws only when no copy at all could be sent.
+ */
+export async function sendMail(mail: Mail): Promise<{ id: string | null; skipped?: string }> {
+  const key = apiKey();
+  if (!mailer && !key) {
+    warnNotConfigured(`"${mail.subject}"`);
+    return { id: null, skipped: NOT_CONFIGURED };
+  }
+  if (validRecipients(mail).length === 0) return { id: null, skipped: "no_recipients" };
+  const out = await copies(mail);
+  if (!out.length) return { id: null, skipped: "unsubscribed" };
+  const results = await deliver(key, out);
+  const ok = results.find((r) => !r.error);
+  if (!ok) throw new Error(results[0]?.error ?? "send_failed");
+  return { id: ok.id };
+}
+
+/** One entry per mail handed to `sendBatch`, in the order given. */
+export interface BatchResult {
+  /** the first delivered copy's id */
+  id: string | null;
+  /** set when not one copy of this mail could be sent (the first copy's reason) */
+  error?: string;
+  /** set when nothing was attempted: no valid recipient, all unsubscribed, or Resend not configured */
+  skipped?: string;
+}
+
+/**
+ * Send many mails through Resend's batch endpoint, 100 copies at a time. `results` has one entry per mail,
+ * in the order given; `ids` lists the ids of the mails that went out and `sent` counts them. A mail
+ * counts as sent when at least one of its copies was delivered; copies fail individually (see `deliver`).
  * Same "not configured" behaviour as `sendMail`.
  */
-export async function sendBatch(mails: Mail[]): Promise<{ ids: string[]; sent: number; skipped?: string }> {
-  const prepared = mails
-    .map((m) => ({ ...m, to: normaliseTo(m.to) }))
-    .filter((m) => m.to.length > 0);
-
-  if (mailer) {
-    const ids: string[] = [];
-    for (const m of prepared) {
-      const r = await mailer(m);
-      if (r.id) ids.push(r.id);
-    }
-    return { ids, sent: prepared.length };
-  }
+export async function sendBatch(mails: Mail[]): Promise<{ results: BatchResult[]; ids: string[]; sent: number; skipped?: string }> {
   const key = apiKey();
-  if (!key) {
-    warnNotConfigured(`a batch of ${prepared.length} mails`);
-    return { ids: [], sent: 0, skipped: NOT_CONFIGURED };
+  if (!mailer && !key) {
+    warnNotConfigured(`a batch of ${mails.length} mails`);
+    return { results: mails.map(() => ({ id: null, skipped: NOT_CONFIGURED })), ids: [], sent: 0, skipped: NOT_CONFIGURED };
   }
-  if (prepared.length === 0) return { ids: [], sent: 0 };
-
-  const resend = new Resend(key);
-  const ids: string[] = [];
-  for (let i = 0; i < prepared.length; i += 100) {
-    const chunk = prepared.slice(i, i + 100).map((m) => ({
-      from: APP.fromEmail,
-      to: m.to,
-      subject: m.subject,
-      html: m.html,
-      text: m.text,
-      ...(m.replyTo ? { replyTo: m.replyTo } : {}),
-    }));
-    const { data, error } = await resend.batch.send(chunk);
-    if (error) throw new Error(`resend batch: ${error.message ?? String(error)}`);
-    for (const row of data?.data ?? []) if (row?.id) ids.push(row.id);
+  const out: Mail[] = [];
+  const owner: number[] = [];
+  for (const [i, m] of mails.entries()) {
+    for (const c of await copies(m)) {
+      out.push(c);
+      owner.push(i);
+    }
   }
-  return { ids, sent: prepared.length };
+  const results: BatchResult[] = mails.map(() => ({ id: null, skipped: "no_recipients" }));
+  if (out.length) {
+    (await deliver(key, out)).forEach((r, j) => {
+      const cur = results[owner[j]];
+      if (!r.error) {
+        // first delivered copy wins; a later failure of another copy does not un-send the mail
+        if (cur.skipped || cur.error) results[owner[j]] = { id: r.id };
+      } else if (cur.skipped) {
+        results[owner[j]] = { id: null, error: r.error };
+      }
+    });
+  }
+  const ids = results.map((r) => r.id).filter((x): x is string => !!x);
+  return { results, ids, sent: results.filter((r) => !r.error && !r.skipped).length };
 }
 
 /* ------------------------------------------------------------------ *
@@ -418,7 +530,8 @@ export interface DailyArgs {
   to: Recipients;
   editionN: number;
   editionTitle: string;
-  editionDate: string;
+  /** null while an edition is still queued: a test mail on a draft has no date to show */
+  editionDate: string | null;
   teaser: string;
   editorNote?: string;
   kids: KidDaily[];
@@ -453,7 +566,7 @@ export function dailyMail({
     .join("\n");
 
   const bodyHtml = [
-    small(`גיליון #${ltr(editionN)} · ${esc(editionDate)}`),
+    small(`גיליון #${ltr(editionN)}${editionDate ? ` · ${esc(editionDate)}` : ""}`),
     p(esc(teaser)),
     editorNote
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;">
@@ -473,7 +586,7 @@ export function dailyMail({
     .join("\n");
 
   const text = textBody(title, [
-    `גיליון #${editionN} · ${editionDate}`,
+    `גיליון #${editionN}${editionDate ? ` · ${editionDate}` : ""}`,
     teaser,
     editorNote ? `הערה מרף: ${editorNote}` : "",
     kids
@@ -690,6 +803,49 @@ export function capNoticeMail({ to, kidName, feminine, cap, billingUrl, askedByK
 }
 
 /* ------------------------------------------------------------------ *
+ * 5c. The queue (editor only)
+ * ------------------------------------------------------------------ */
+
+export interface QueueArgs {
+  to: Recipients;
+  /** 'empty' — a release morning with nothing approved. 'low' — still sending, but running out. */
+  kind: "empty" | "low";
+  ready: number[];
+  drafts: number[];
+  adminUrl: string;
+}
+
+/**
+ * The mail that turns a silent pipeline failure into several days of notice. 'empty' means no family got
+ * a lesson this morning, so it says that first and plainly.
+ */
+export function queueMail({ to, kind, ready, drafts, adminUrl }: QueueArgs): Mail {
+  const empty = kind === "empty";
+  const title = empty ? "אין גיליון מאושר להיום" : "התור מתקצר";
+  const lead = empty
+    ? "התור ריק, אז הבוקר לא יצא שיעור לאף משפחה. אף ילד לא קיבל מייל."
+    : `בתור נשארו ${ready.length} גיליונות מאושרים. עוד כמה ימים ונגמר.`;
+  const leadHtml = empty
+    ? "התור ריק, אז הבוקר לא יצא שיעור לאף משפחה. אף ילד לא קיבל מייל."
+    : `בתור נשארו ${ltr(ready.length)} גיליונות מאושרים. עוד כמה ימים ונגמר.`;
+  const waiting = drafts.length
+    ? `יש ${drafts.length} טיוטות שממתינות לאישור: ${drafts.map((n) => `#${n}`).join(", ")}.`
+    : "אין טיוטות שממתינות לאישור — גם הבנייה צריכה לרוץ.";
+  const waitingHtml = drafts.length
+    ? `יש ${ltr(drafts.length)} טיוטות שממתינות לאישור: ${drafts.map((n) => ltr("#" + n)).join(", ")}.`
+    : "אין טיוטות שממתינות לאישור — גם הבנייה צריכה לרוץ.";
+  const bodyHtml = [p(leadHtml), p(waitingHtml), button(adminUrl, "ללוח העורך")].join("\n");
+  return {
+    to: normaliseTo(to),
+    subject: `[${APP.name}] ${title}`,
+    html: layout({ title, bodyHtml }),
+    text: textBody(title, [lead, waiting, `לוח העורך: ${adminUrl}`]),
+    replyTo: APP.editorEmail,
+    transactional: true,
+  };
+}
+
+/* ------------------------------------------------------------------ *
  * 6. Billing
  * ------------------------------------------------------------------ */
 
@@ -761,6 +917,7 @@ export function billingMail({ to, kind, kidName, portalUrl, periodEnd }: Billing
     html: layout({ title, bodyHtml: paras.join("\n") }),
     text: textBody(title, textParas),
     replyTo: APP.editorEmail,
+    transactional: true,
   };
 }
 
@@ -793,5 +950,6 @@ export function magicLinkMail({ to, link }: MagicLinkArgs): Mail {
     html: layout({ title, bodyHtml }),
     text,
     replyTo: APP.editorEmail,
+    transactional: true,
   };
 }

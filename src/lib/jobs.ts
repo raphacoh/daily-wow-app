@@ -25,9 +25,10 @@ import { APP, getConfig, getNumber } from "./config";
 import { getEdition, listEditions } from "./editions";
 import { kidLink, liveStreak, statsFor, type KidRow, type ParentRow } from "./kids";
 import { localDate } from "./progress";
-import { dailyMail, sendBatch, sendMail, streakRiskMail, weeklyMail, type Mail, type WeekDay } from "./emails";
+import { dailyMail, isEmailAddress, sendBatch, sendMail, streakRiskMail, weeklyMail, type Mail, type WeekDay } from "./emails";
 import { MEDAL_NAMES, progressFor } from "./gamification";
 import { purgeOffPrompts } from "./arto";
+import { withoutUnsubscribed } from "./unsubscribe";
 
 export interface JobResult {
   sent: number;
@@ -176,7 +177,7 @@ export function dailyRecipients(f: Family): string[] {
  * job_runs
  * ------------------------------------------------------------------ */
 
-async function recordRun(job: string, ok: boolean, detail: unknown, startedAt: Date): Promise<void> {
+export async function recordRun(job: string, ok: boolean, detail: unknown, startedAt: Date): Promise<void> {
   try {
     await db().query("insert into job_runs (job, started_at, finished_at, ok, detail) values ($1,$2,now(),$3,$4)", [
       job,
@@ -189,7 +190,7 @@ async function recordRun(job: string, ok: boolean, detail: unknown, startedAt: D
   }
 }
 
-function msg(e: unknown): string {
+export function msg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
@@ -258,34 +259,45 @@ export async function sendDaily(editionN: number, opts: { force?: boolean; now?:
   const editorNote = edition.editor_note ?? undefined;
 
   // ---- claim, build, send, in chunks ----
-  type Claim = { sendId: string; mail: Mail };
+  type Claim = { sendId: string; parentId: string; mail: Mail };
   let pending: Claim[] = [];
 
   const flush = async () => {
     if (!pending.length) return;
     const chunk = pending;
     pending = [];
+    let results: Awaited<ReturnType<typeof sendBatch>>["results"];
     try {
-      const r = await sendBatch(chunk.map((c) => c.mail));
-      sent += chunk.length;
-      // Resend returns ids in request order; only trust them when the counts line up.
-      if (r.ids.length === chunk.length) {
-        for (let i = 0; i < chunk.length; i++) {
-          await db().query("update sends set resend_id = $2 where id = $1", [chunk[i].sendId, r.ids[i]]);
-        }
-      }
+      results = (await sendBatch(chunk.map((c) => c.mail))).results;
     } catch (e) {
-      // Release the claims so the next cron run (or a manual retry) can try again.
+      // The transport itself fell over. Release every claim so the next cron run (or a manual retry) can try again.
       errors.push(`batch_failed: ${msg(e)}`);
       for (const c of chunk) {
         await db().query("delete from sends where id = $1", [c.sendId]).catch(() => {});
         skipped++;
       }
+      return;
+    }
+    // One verdict per family: a mail that failed releases only its own claim; the rest stay sent.
+    for (const [i, c] of chunk.entries()) {
+      const r = results[i];
+      if (r?.error) {
+        errors.push(`send_failed: parent ${c.parentId}: ${r.error}`);
+        await db().query("delete from sends where id = $1", [c.sendId]).catch(() => {});
+        skipped++;
+        continue;
+      }
+      sent++;
+      if (r?.id) await db().query("update sends set resend_id = $2 where id = $1", [c.sendId, r.id]);
     }
   };
 
   for (const f of target) {
-    const to = dailyRecipients(f);
+    // A malformed address is reported and left out; the family's other addresses still get the mail.
+    // (Resend refuses a whole batch over one bad address — edition #9 went 0/36 that way.)
+    const wanted = dailyRecipients(f);
+    for (const a of wanted) if (!isEmailAddress(a)) errors.push(`bad_address: parent ${f.parent.id}: ${a}`);
+    const to = await withoutUnsubscribed(wanted.filter(isEmailAddress));
     if (!to.length) {
       skipped++;
       continue;
@@ -322,6 +334,7 @@ export async function sendDaily(editionN: number, opts: { force?: boolean; now?:
 
     pending.push({
       sendId: String(ins.rows[0].id),
+      parentId: String(f.parent.id),
       mail: dailyMail({
         to,
         editionN,
@@ -337,7 +350,9 @@ export async function sendDaily(editionN: number, opts: { force?: boolean; now?:
   }
   await flush();
 
-  await recordRun("send-daily", errors.every((e) => e.startsWith("resend_daily_limit_warning")), { edition_n: editionN, sent, skipped, errors, force: !!opts.force }, startedAt);
+  // A bad address is a warning about one family, not a failed run; the limit warning likewise.
+  const ok = errors.every((e) => e.startsWith("resend_daily_limit_warning") || e.startsWith("bad_address"));
+  await recordRun("send-daily", ok, { edition_n: editionN, sent, skipped, errors, force: !!opts.force }, startedAt);
   return { sent, skipped, errors };
 }
 

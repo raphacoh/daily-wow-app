@@ -149,6 +149,12 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     if (demo.scrollW > demo.vw) errors.push("demo: horizontal overflow");
     if (!demo.wowLoaded) errors.push("demo: wow-runtime not loaded");
     if (!/קישור אישי/.test(demo.wow)) errors.push("demo: progress note missing: " + demo.wow);
+    // an anonymous visitor who closes the tab comes back to the lesson too (no token, same journal)
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#wow-resumed", { timeout: 25000 }).catch(() => errors.push("demo: the lesson was not restored after a reload"));
+    const demoBack = await page.evaluate(() => ({ steps: document.querySelectorAll(".step.shown").length, vault: document.getElementById("vault").classList.contains("open"), pw: document.querySelector(".vault .pw")?.textContent || null }));
+    console.log("demo after reload:", JSON.stringify(demoBack));
+    if (demoBack.steps < 8 || !demoBack.vault || demoBack.pw !== "הדגמה") errors.push("demo: reload did not restore the finished lesson " + JSON.stringify(demoBack));
     await page.close();
 
     // 2. a real kid via personal link (on_track → older track, push=ontrack)
@@ -214,6 +220,86 @@ async function playLesson(page, { pickId, expectNoPicker, url }) {
     // 4b. the library scoped by the kid's token links every edition as that kid
     const lib = await fetch(BASE + "/library?k=" + encodeURIComponent(links["אמה"].split("k=")[1])).then((r) => r.text());
     if (!/\/l\/1\?k=/.test(lib) || !/הגיליונות של אמה/.test(lib)) errors.push("library: not scoped to the kid's token");
+
+    // 5b. autosave: a kid who closes the tab mid-lesson comes back to the lesson they were in, not a blank one
+    page = await newPage();
+    const resumeUrl = BASE + "/l/1?k=" + links["אדם"].split("k=")[1];
+    const snap = () =>
+      page.evaluate(() => ({
+        steps: document.querySelectorAll(".step.shown").length,
+        answered: document.querySelectorAll("#mcqs .q.locked").length,
+        right: document.querySelectorAll("#mcqs .opt.right").length,
+        orderChecked: document.getElementById("orderFb").classList.contains("show"),
+        orderPicked: document.querySelectorAll("#order .card.picked").length,
+        curve: document.getElementById("curve").value,
+        round: document.getElementById("roundBtn").classList.contains("on"),
+        mathMsg: document.getElementById("olderMathMsg").innerText.replace(/\s+/g, " ").slice(0, 24),
+        numFb: document.getElementById("numFbAdv").classList.contains("show"),
+        explain: document.getElementById("explain").value.length,
+        graded: document.getElementById("explainBtn").textContent.trim(),
+        stars: document.getElementById("rubStars")?.textContent || "",
+      }));
+
+    await page.goto(resumeUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.getElementById("startBtn") && !document.getElementById("startBtn").disabled, null, { timeout: 8000 });
+    await page.click("#startBtn");
+    await page.click("#roundBtn");
+    await page.click("text=שלחו את הספינה");
+    await page.waitForTimeout(2200);
+    await page.click('.step[data-step="1"] .next .btn');
+    await page.fill("#curve", "70");
+    await page.$eval("#curve", (e) => e.dispatchEvent(new Event("input")));
+    await page.click('#qc2 .opt[data-i="1"]');
+    await page.click("#next2");
+    await page.click("text=קבעו 7.2°");
+    await page.fill("#olderDiv", "50");
+    await page.click("#olderDivBtn");
+    await page.fill("#olderMul", "40000");
+    await page.click("#olderStep2 .btn");
+    await page.click('.step[data-step="3"] .next .btn');
+    await page.click('.step[data-step="4"] .next .btn');
+    await page.click('.step[data-step="5"] .next .btn');
+    await page.click("text=למבחן!");
+    const resumeAnswers = [1, 1, 1, 1];
+    for (let i = 0; i < 4; i++) await page.click(`#mcqs .q:nth-child(${i + 1}) .opt[data-i="${resumeAnswers[i]}"]`);
+    for (const id of ["a", "b", "c", "d", "e"]) await page.click(`#order .card[data-id="${id}"]`);
+    await page.click("#orderCheck");
+    await page.fill("#numAdv", "90000");
+    await page.fill("#numAdvR", "14300");
+    await page.click(".q[data-level=advanced] .btn");
+    await page.fill("#explain", "ארטוסתנס ראה שבסיינה אין צל ובאלכסנדריה יש צל בזווית 7.2 מעלות. זה בגלל שכדור הארץ עגול. הוא חילק 360 ב-7.2 וקיבל 50, ואז הכפיל ב-800 קילומטר וקיבל 40,000.");
+    await page.click("#explainBtn");
+    await page.waitForTimeout(1500);
+    for (const b of await page.$$("#explainFb input[type=checkbox]")) await b.check();
+    const beforeClose = await snap();
+    console.log("before reload:", JSON.stringify(beforeClose));
+    if (beforeClose.steps < 7 || beforeClose.answered !== 4 || !beforeClose.orderChecked) errors.push("resume: the walk itself did not get far enough " + JSON.stringify(beforeClose));
+
+    // the tab closes and comes back
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#wow-resumed", { timeout: 25000 }).catch(() => errors.push("resume: the lesson was never restored"));
+    const afterReload = await snap();
+    console.log("after reload:", JSON.stringify(afterReload));
+    for (const k of Object.keys(beforeClose)) {
+      if (JSON.stringify(beforeClose[k]) !== JSON.stringify(afterReload[k])) errors.push(`resume: ${k} was ${JSON.stringify(beforeClose[k])} before the reload, ${JSON.stringify(afterReload[k])} after`);
+    }
+    // the engine's own state came back too, not just the pixels: finishing now scores the restored answers
+    await page.click("#finishBtn");
+    await page.waitForTimeout(2500);
+    const finished = await page.evaluate(() => ({
+      open: document.getElementById("vault").classList.contains("open"),
+      line: document.getElementById("resDetail").innerText.replace(/\s+/g, " "),
+      status: document.getElementById("rtStatus")?.textContent || "",
+    }));
+    console.log("after resume finish:", JSON.stringify(finished));
+    if (!finished.open) errors.push("resume: the vault stayed locked — the restored answers did not reach the engine's state");
+    if (!/4\/4/.test(finished.line) || !/2\/2/.test(finished.line)) errors.push("resume: restored score " + finished.line);
+    // starting over really starts over: the engine's own button clears the draft as well as its state
+    await page.click('.step[data-step="8"] button[onclick="restart()"]');
+    await page.waitForTimeout(3000);
+    const fresh = await page.evaluate(() => ({ shown: document.querySelectorAll(".step.shown").length, banner: !!document.getElementById("wow-resumed") }));
+    if (fresh.shown > 1 || fresh.banner) errors.push("resume: 'start over' did not clear the draft " + JSON.stringify(fresh));
+    await page.close();
 
     // 5. the completion is in the database with the right stats (via the dev inspect route)
     const r = await fetch(BASE + "/api/dev/inspect", { method: "POST" }).then((x) => x.json());

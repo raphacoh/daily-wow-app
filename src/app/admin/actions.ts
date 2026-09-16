@@ -7,7 +7,21 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { NotSignedIn, requireEditor } from "@/lib/auth";
-import { grantFreeAssistant, holdEdition, releaseEdition, republish, saveSkill, sendTestDaily, setConfig, setRootAlias, StageError } from "@/lib/admin";
+import {
+  approveEdition,
+  deleteFamilyByAdmin,
+  grantFreeAssistant,
+  holdEdition,
+  releaseEdition,
+  republish,
+  requestChanges,
+  saveSkill,
+  sendTestDaily,
+  setConfig,
+  setRootAlias,
+  StageError,
+  updateFamilyContact,
+} from "@/lib/admin";
 import { rebuildAllProgress } from "@/lib/gamification";
 
 /** The settings the /admin form may write. Anything else needs a code change — on purpose. */
@@ -22,10 +36,10 @@ async function editor() {
   }
 }
 
-/** Every action lands back on /admin with one Hebrew line in `?msg=` (or `?err=`). */
-function back(msg: string, ok = true): never {
+/** Every action lands back on /admin with one Hebrew line in `?msg=` (or `?err=`); `q` keeps a family panel open. */
+function back(msg: string, ok = true, q?: string): never {
   revalidatePath("/admin");
-  redirect(`/admin?${ok ? "msg" : "err"}=${encodeURIComponent(msg)}`);
+  redirect(`/admin?${ok ? "msg" : "err"}=${encodeURIComponent(msg)}${q ? `&q=${encodeURIComponent(q)}` : ""}`);
 }
 
 function num(fd: FormData, key: string): number {
@@ -41,6 +55,31 @@ export async function holdAction(fd: FormData): Promise<void> {
     back(e instanceof StageError ? e.message : "משהו נכשל", false);
   }
   back(`גיליון #${n} מוחזק — לא נשלח לאף אחד.`);
+}
+
+/** The editor said yes. It joins the queue and goes out on its turn — not necessarily today. */
+export async function approveAction(fd: FormData): Promise<void> {
+  await editor();
+  const n = num(fd, "n");
+  try {
+    await approveEdition(n);
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "האישור נכשל", false);
+  }
+  back(`גיליון #${n} אושר ונכנס לתור.`);
+}
+
+/** Sent back to the builder with a note. It leaves the queue until it is rebuilt and approved. */
+export async function requestChangesAction(fd: FormData): Promise<void> {
+  await editor();
+  const n = num(fd, "n");
+  const note = String(fd.get("revision_note") ?? "").trim();
+  try {
+    await requestChanges(n, note);
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "לא הצלחתי לשמור את ההערה", false);
+  }
+  back(`גיליון #${n} הוחזר לתיקון. ההערה נשמרה לבנייה הבאה.`);
 }
 
 export async function releaseAction(fd: FormData): Promise<void> {
@@ -105,6 +144,32 @@ export async function grantAssistantAction(fd: FormData): Promise<void> {
     back(e instanceof StageError ? e.message : "לא הצלחתי", false);
   }
   back(`ארטו פתוח לילד/ה הזה/הזאת עד ${until}.`);
+}
+
+export async function editFamilyAction(fd: FormData): Promise<void> {
+  await editor();
+  const parentId = String(fd.get("parent_id") ?? "").trim();
+  const q = String(fd.get("q") ?? "").trim();
+  let r: { email: string };
+  try {
+    r = await updateFamilyContact(parentId, { name: String(fd.get("name") ?? ""), email: String(fd.get("email") ?? "") });
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "לא הצלחתי לשמור", false, q);
+  }
+  back("פרטי המשפחה נשמרו.", true, r.email);
+}
+
+export async function deleteFamilyAction(fd: FormData): Promise<void> {
+  await editor();
+  const parentId = String(fd.get("parent_id") ?? "").trim();
+  const q = String(fd.get("q") ?? "").trim();
+  let r: { email: string };
+  try {
+    r = await deleteFamilyByAdmin(parentId, String(fd.get("confirm_email") ?? ""));
+  } catch (e) {
+    back(e instanceof StageError ? e.message : "המחיקה נכשלה", false, q);
+  }
+  back(`המשפחה ${r.email} נמחקה לגמרי.`);
 }
 
 /* ---------- gamification registries (spec §9) ---------- */

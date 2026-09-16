@@ -25,13 +25,17 @@ const SEND_TIME = "11:00";
 
 /* ---------- formatting helpers (server-side, deterministic) ---------- */
 
-/** A YYYY-MM-DD edition date in Hebrew. Noon UTC + an explicit timezone keeps it stable everywhere. */
-function heDate(iso: string, opts: Intl.DateTimeFormatOptions): string {
+/**
+ * A YYYY-MM-DD edition date in Hebrew. Noon UTC + an explicit timezone keeps it stable everywhere.
+ * A queued draft has no date yet, and renders as nothing rather than as "Invalid Date".
+ */
+function heDate(iso: string | null, opts: Intl.DateTimeFormatOptions): string {
+  if (!iso) return "";
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString("he-IL", { timeZone: "UTC", ...opts });
 }
-const longDate = (iso: string) => heDate(iso, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-const shortDate = (iso: string) => heDate(iso, { day: "numeric", month: "numeric" });
-const dayOfMonth = (iso: string) => heDate(iso, { day: "numeric" });
+const longDate = (iso: string | null) => heDate(iso, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const shortDate = (iso: string | null) => heDate(iso, { day: "numeric", month: "numeric" });
+const dayOfMonth = (iso: string | null) => heDate(iso, { day: "numeric" });
 const num = (n: number | string) => <span className="num">{n}</span>;
 
 function Flame() {

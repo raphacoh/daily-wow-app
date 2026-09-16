@@ -10,20 +10,29 @@ import { APP } from "./config";
 export interface EditionMeta {
   n: number;
   code: string;
-  date: string;
+  /** The day the lesson went out. Null while it is still in the queue: that day is not known until release. */
+  date: string | null;
   language: string;
   title: string;
   topics: string[];
   summary: string;
   teaser: string;
   max_score: number;
-  status: "staged" | "released" | "held";
+  status: EditionStatus;
   editor_note: string | null;
   released_at: string | null;
   reviewer_verdict?: string | null;
   review_url?: string | null;
   edited_by_editor?: boolean;
 }
+
+/**
+ * staged — a draft the builder produced, waiting for the editor.
+ * approved — the editor said yes; it sits in the queue until its turn.
+ * released — families got it. Never changes again.
+ * held — stopped on purpose, or sent back with a revision note.
+ */
+export type EditionStatus = "staged" | "approved" | "released" | "held";
 
 export interface EditionFull extends EditionMeta {
   html: string;
@@ -50,7 +59,7 @@ function fromRow(r: Record<string, unknown>): EditionFull {
   return {
     n: Number(r.n),
     code: String(r.code),
-    date: String(r.date instanceof Date ? (r.date as Date).toISOString().slice(0, 10) : r.date),
+    date: r.date == null ? null : String(r.date instanceof Date ? (r.date as Date).toISOString().slice(0, 10) : r.date),
     language: String(r.language ?? "he"),
     title: String(r.title),
     topics: (r.topics as string[]) ?? [],

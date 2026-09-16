@@ -5,6 +5,8 @@ import {
   layout,
   sendMail,
   sendBatch,
+  setMailer,
+  isEmailAddress,
   welcomeMail,
   dailyMail,
   completionMail,
@@ -437,6 +439,60 @@ describe("recipient handling", () => {
   });
 });
 
+describe("isEmailAddress", () => {
+  it("accepts ordinary addresses and refuses what Resend refuses", () => {
+    for (const ok of ["a@b.co", "first.last+tag@sub.example.org", "  padded@example.com ", "x_y@my-host.io"]) expect(isEmailAddress(ok)).toBe(true);
+    for (const bad of ["assaflehr@gmai..com", "a..b@example.com", "no-at.example.com", "a@b", "a@b.", "a@-b.com", "a b@c.com", "a@b.c0m", "", null, undefined, 5]) {
+      expect(isEmailAddress(bad)).toBe(false);
+    }
+  });
+});
+
+describe("sendBatch isolates failures per copy", () => {
+  const sent: Mail[] = [];
+  const daily = (to: string[]) =>
+    dailyMail({ to, editionN: 9, editionTitle: "כותרת", editionDate: "2026-09-15", teaser: "טיזר", kids: [{ name: "אמה", feminine: true, streak: 0, link: "https://app.test/l/9?k=abc" }] });
+
+  beforeEach(() => {
+    sent.length = 0;
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    setMailer(async (m) => {
+      if (m.to[0].startsWith("reject")) throw new Error("resend: invalid `to`");
+      sent.push(m);
+      return { id: `re_${sent.length}` };
+    });
+  });
+
+  afterEach(() => {
+    setMailer(null);
+    vi.restoreAllMocks();
+  });
+
+  it("drops a malformed address and still sends the mail to the rest", async () => {
+    const r = await sendBatch([daily(["good@example.com", "assaflehr@gmai..com"]), daily(["assaflehr@gmai..com"])]);
+    expect(sent.map((m) => m.to)).toEqual([["good@example.com"]]);
+    expect(r.results).toEqual([{ id: "re_1" }, { id: null, skipped: "no_recipients" }]);
+    expect(r.sent).toBe(1);
+    expect(r.ids).toEqual(["re_1"]);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("assaflehr@gmai..com"));
+  });
+
+  it("one refused copy fails only its own mail, and a mail with another delivered copy still counts as sent", async () => {
+    const r = await sendBatch([daily(["reject@example.com"]), daily(["a@example.com"]), daily(["reject2@example.com", "b@example.com"])]);
+    expect(r.results[0]).toEqual({ id: null, error: "resend: invalid `to`" });
+    expect(r.results[1]).toEqual({ id: "re_1" });
+    expect(r.results[2]).toEqual({ id: "re_2" });
+    expect(r.sent).toBe(2);
+    expect(sent.map((m) => m.to)).toEqual([["a@example.com"], ["b@example.com"]]);
+  });
+
+  it("sendMail throws only when no copy went out", async () => {
+    await expect(sendMail(daily(["reject@example.com"]))).rejects.toThrow(/invalid `to`/);
+    expect(await sendMail(daily(["reject@example.com", "c@example.com"]))).toEqual({ id: "re_1" });
+    expect(await sendMail(daily(["assaflehr@gmai..com"]))).toEqual({ id: null, skipped: "no_recipients" });
+  });
+});
+
 describe("sendMail / sendBatch without RESEND_API_KEY", () => {
   const saved = process.env.RESEND_API_KEY;
 
@@ -464,6 +520,7 @@ describe("sendMail / sendBatch without RESEND_API_KEY", () => {
     expect(res.skipped).toBe("resend_not_configured");
     expect(res.ids).toEqual([]);
     expect(res.sent).toBe(0);
+    expect(res.results).toEqual([{ id: null, skipped: "resend_not_configured" }, { id: null, skipped: "resend_not_configured" }, { id: null, skipped: "resend_not_configured" }]);
     expect(console.warn).toHaveBeenCalledTimes(1);
   });
 });

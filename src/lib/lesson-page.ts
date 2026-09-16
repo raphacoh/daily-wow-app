@@ -16,6 +16,8 @@ export interface LessonRenderOptions {
   banner?: boolean;
   index?: boolean;
   parent?: { name: string } | null;
+  /** editor preview: render an edition that has not been released yet, with a draft banner on top */
+  draft?: boolean;
 }
 
 export interface LessonRender {
@@ -26,12 +28,12 @@ export interface LessonRender {
 }
 
 export async function renderLesson(n: number, opts: LessonRenderOptions = {}): Promise<LessonRender> {
-  const edition = await getEdition(n);
+  const edition = await getEdition(n, { includeStaged: !!opts.draft });
   if (!edition) return { status: 404, body: notFoundPage("הגיליון הזה עוד לא יצא."), kid: false };
   const rt: RuntimeBootstrap = {
     api: "/api",
     kidToken: "",
-    edition: { n: edition.n, code: edition.code, date: edition.date, title: edition.title },
+    edition: { n: edition.n, code: edition.code, date: edition.date ?? "", title: edition.title },
     library: "/library",
   };
   let kidName = "";
@@ -55,6 +57,7 @@ export async function renderLesson(n: number, opts: LessonRenderOptions = {}): P
     // the gamification runtime is the app's, not the edition's: it evolves on deploy and works on old editions too
     prepend:
       `<script src="/wow-runtime.js?v=${WOW_RUNTIME_VERSION}"></script>` +
+      (opts.draft ? draftBanner(edition.n, edition.status, edition.password || "") : "") +
       (rt.kidToken ? kidMenu(kidName) : opts.banner ? visitorStrip(opts.parent ?? null) : ""),
   });
   return { status: 200, body, kid: !!rt.kidToken };
@@ -187,6 +190,27 @@ export function kidMenu(name: string): string {
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', place); else place();
 })();</script>
 `;
+}
+
+/**
+ * The bar above an editor preview of an unreleased edition. Deliberately not fixed: the lesson has its
+ * own sticky topbar, a floating chat button and a toast, and a preview must not shift any of them — what
+ * the editor judges has to be exactly what the kid gets.
+ */
+export function draftBanner(n: number, status: string, password = ""): string {
+  const label =
+    { staged: "טיוטה — עוד לא שוחררה", held: "מוחזק — לא יישלח", approved: "מאושר — ממתין בתור", released: "שוחרר" }[status] ??
+    status;
+  const pw = password ? `<span class="pw">הסיסמה של היום: <b>${esc(password)}</b></span>` : "";
+  return `<style>
+#rw-draft{background:#1B1B1B;color:#FAF8F3;font-family:Rubik,"Noto Sans Hebrew",Arial,sans-serif;direction:rtl;font-size:14px;line-height:1.5}
+#rw-draft .in{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+#rw-draft b{font-weight:500}
+#rw-draft .tag{background:#FAF8F3;color:#1B1B1B;border-radius:999px;padding:2px 10px;font-weight:500}
+#rw-draft .pw{opacity:.85}
+#rw-draft a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+</style>
+<div id="rw-draft"><div class="in"><span class="tag">גיליון ${n}</span><span>${esc(label)}</span>${pw}<a href="/admin">לוח העורך</a></div></div>`;
 }
 
 function esc(s: string): string {

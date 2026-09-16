@@ -12,6 +12,7 @@ import { getConfig, invalidateConfigCache } from "@/lib/config";
 import { isEditorApiKey } from "@/lib/auth";
 import {
   adminStats,
+  deleteFamilyByAdmin,
   editionHistory,
   findParentByEmail,
   holdEdition,
@@ -25,6 +26,7 @@ import {
   stageEdition,
   StageError,
   stripTitlePrefix,
+  updateFamilyContact,
   validateFragment,
 } from "@/lib/admin";
 import { setMailer } from "@/lib/emails";
@@ -255,6 +257,32 @@ describe("families, menus, ideas, stats", () => {
     const recent = await recentFamilies(5);
     expect(recent.length).toBe(1);
     expect(recent[0].kids).toBe(1);
+  });
+
+  it("edits a family's name and address, refusing a bad or taken address", async () => {
+    const id = await seedParent(db, { email: "assaflehr@gmai..com", name: "אסף" });
+    const other = await seedParent(db, { email: "taken@example.com" });
+    await expect(updateFamilyContact(id, { email: "still@@bad" })).rejects.toThrow(StageError);
+    await expect(updateFamilyContact(id, { email: "TAKEN@example.com" })).rejects.toThrow(/משפחה אחרת/);
+    await expect(updateFamilyContact("00000000-0000-0000-0000-000000000000", { name: "x" })).rejects.toThrow(StageError);
+    expect(await updateFamilyContact(id, { name: " אסף לר ", email: " Assaflehr@Gmail.com " })).toEqual({ email: "assaflehr@gmail.com" });
+    const found = await findParentByEmail("assaflehr@gmail.com");
+    expect(found?.id).toBe(id);
+    expect(found?.name).toBe("אסף לר");
+    expect(await findParentByEmail("assaflehr@gmai..com")).toBeNull();
+    await updateFamilyContact(other, { email: "taken@example.com" }); // own address again: fine
+  });
+
+  it("deletes a family only with its address typed back, never the editor", async () => {
+    const id = await seedParent(db, { email: "gone@example.com", name: "לילך" });
+    await db.query("insert into kids (parent_id, name, age, grade, link_token_hash) values ($1,'שי',9,'ד',$2)", [id, "hash-gone"]);
+    const editor = await seedParent(db, { email: "editor@example.com", is_editor: true });
+    await expect(deleteFamilyByAdmin(id, "wrong@example.com")).rejects.toThrow(/לא תואם/);
+    await expect(deleteFamilyByAdmin(editor, "editor@example.com")).rejects.toThrow(/העורך/);
+    expect(await deleteFamilyByAdmin(id, " GONE@example.com ")).toEqual({ email: "gone@example.com" });
+    expect(await findParentByEmail("gone@example.com")).toBeNull();
+    expect((await db.query("select 1 from kids where parent_id = $1", [id])).rows).toHaveLength(0);
+    await expect(deleteFamilyByAdmin(id, "gone@example.com")).rejects.toThrow(StageError);
   });
 
   it("saves and lists topic menus", async () => {

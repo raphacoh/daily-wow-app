@@ -10,6 +10,7 @@ import { latestReleased } from "@/lib/editions";
 import { sendMail, welcomeMail } from "@/lib/emails";
 import { magicLinkRedirect, sendMagicLink, supabaseConfigured, supabaseServer } from "@/lib/auth";
 import { registerFamily, validateRegistration } from "@/lib/family";
+import { resubscribe } from "@/lib/unsubscribe";
 import { parseJoinForm } from "./parse";
 import { t } from "@/i18n";
 
@@ -65,6 +66,8 @@ export async function register(_prevState: JoinState, formData: FormData): Promi
     }
 
     const linkError = await sendMagicLink(email, redirectTo);
+    // signing up is a fresh yes: an address that once unsubscribed gets its mail again
+    await resubscribe(email).catch(() => {});
     const edition = await latestReleased();
     const kids = res.kids.map((k) => ({
       ...k,

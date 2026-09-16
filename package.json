@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:e2e": "node tests/e2e/lesson.mjs",
     "test:e2e:resume": "node tests/e2e/resume.mjs",
-    "lint:editions": "node kit/template/lint.js editions/e/001/edition.html"
+    "lint:editions": "node kit/template/lint.js editions/e/001/edition.html",
+    "smoke:edition": "node tests/e2e/smoke-edition.mjs",
+    "gate:edition": "node scripts/gate-edition.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
