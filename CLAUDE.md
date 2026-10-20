@@ -2,7 +2,7 @@
 
 # Roots and Wings: brief for agents
 
-Since October 2026 the owner and editor is an education specialist who drives Claude Code. He is not a developer. When he writes in French, answer in French. Explain in plain words what you will change and why before you change it, and say what to check afterwards. Raphael, who built the app, stays involved and reviews PRs.
+Since October 2026 the service has two editors. One is an education specialist who drives Claude Code. He is not a developer. The other is Raphael, who built the app, reviews PRs, and keeps the lesson-building agents on his own account. When the education specialist writes in French, answer in French. Explain in plain words what you will change and why before you change it, and say what to check afterwards.
 
 Start with `docs/handoff/README.md`. It has the state of the project, the open issues ranked, and the reading order.
 

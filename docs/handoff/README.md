@@ -1,6 +1,6 @@
 # Handoff: start here
 
-Roots and Wings (שורשים וכנפיים) changes hands in October 2026. Raphael built it and stays involved. The new owner is an education specialist who runs the service as its editor and makes changes through Claude Code. His roadmap: keep the Hebrew service running, build a French service, then an English one, then optimize all of them.
+Roots and Wings (שורשים וכנפיים) gets a second editor in October 2026. He is an education specialist who makes changes through Claude Code. Raphael, who built the app, stays co-editor. Raphael also keeps the three scheduled agents that build the lessons on his own Claude account, and pays for them. The new editor's roadmap: keep the Hebrew service running, build a French service, then an English one, then optimize all of them.
 
 This folder is for him and for the agents he drives. It sits on top of the existing docs and does not replace them.
 
@@ -39,23 +39,23 @@ The public page does not show these numbers. Read them on `/admin/analytics` (ed
 | Assistant: kids who used it, off-topic % | `/admin` → Arto panel | |
 | "Ask my parents" mails sent, checkouts started | `/admin/analytics` | |
 
-## What changes in the app when the editor changes
+## Adding the second editor
 
-None of this needs code. Do it in this order, on one day, with Raphael.
+None of this needs code. Do it in this order, on one day, with Raphael. Nothing moves away from Raphael: the new editor gets access next to him.
 
 1. **Admin rights.** The new editor signs in once at `/signin` with his own email. Then, in the Supabase SQL editor (a human runs this, never an agent): `update parents set is_editor = true where email = '<his email>';`
-2. **Editor identity.** In Vercel → Environment Variables, set `EDITOR_NAME` and `EDITOR_EMAIL` to his, then redeploy. Every family mail's reply-to, the alerts, and the forwarding of mail sent to hello@ follow `EDITOR_EMAIL` (`src/lib/config.ts:62-63`).
-3. **The three scheduled agents.** Re-create them on his Claude account, then turn off Raphael's copies **the same day**: two builders build two editions.
-   - First compare the prompts that are actually running with the ones in `kit/prompts/`. They have drifted (issue 4).
-   - Then fill in the placeholders with his name and email (`{{PARENT_NAME}}`, `{{PARENT_EMAIL}}`; see the [placeholder table](../../kit/prompts/README.md#placeholders)).
-   - Attach `daily-wow-editions` to the release routine. He needs write access to that repo.
-   - Give the routine's cloud environment network access to `rootsandwings-edu.com`, `raw.githubusercontent.com` and `api.github.com` (see [operations.md](operations.md#when-something-breaks)).
+2. **One editor address.** `EDITOR_NAME` and `EDITOR_EMAIL` take a single value (`src/lib/config.ts:62-63`). Every family mail's reply-to, the alerts, and the forwarding of mail sent to hello@ follow `EDITOR_EMAIL`. Keep Raphael's, or switch both editors to a shared address. To set it: Vercel → Environment Variables, then redeploy.
+3. **The three scheduled agents stay on Raphael's Claude account.** Raphael pays for the nightly build, and there is still exactly one copy of each agent. Two changes:
+   - Add the second editor to the menu and review emails, in the `Gmail` steps of `topic-menu.md` and `nightly-builder.md`.
+   - Let the builder accept a topic pick from either address. Today it reads only messages from `{{PARENT_EMAIL}}` (`kit/prompts/nightly-builder.md:27`).
+   - Make each change in the repo copy and in the running copy, the same way.
+   - Approve in `/admin`, not by email reply. The release routine reads only replies sent by `{{PARENT_EMAIL}}` (`kit/prompts/release-routine.md`), so a reply from the second editor is ignored. The approval queue in `/admin` works for both editors. That is one more reason to make it the only release path ([issue 4](#fix-first-ranked), [operations.md](operations.md#two-release-paths)).
 4. **Tell the families.** On his first release, put a short `editor_note` introducing him. It appears in the daily email.
 5. **Keys.**
-   - `EDITOR_API_KEY` is inside the prompts. It travels by password manager only, never by email, chat or document. It can be rotated once the handover is done: generate a new one, update Vercel, re-paste the prompts.
+   - `EDITOR_API_KEY` is inside the prompts. It travels by password manager only, never by email, chat or document. The second editor's own Claude Code sessions never need it. It can be rotated at any time: generate a new one, update Vercel, re-paste the prompts.
    - **Never rotate `LINK_KEY`**: every kid's personal link dies, and so does every unsubscribe link.
    - Rotating `SESSION_SECRET` signs every parent out.
-6. **Admin copy.** One admin label still names Raphael: `src/app/admin/page.tsx:685`. Make it read `APP.editorName`.
+6. **Admin copy.** One admin label still names Raphael: `src/app/admin/page.tsx:685`. With two editors, make it a neutral "editor's note" label.
 
 ## Fix first (ranked)
 

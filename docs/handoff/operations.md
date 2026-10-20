@@ -44,7 +44,7 @@ Which one is really in charge depends on the prompts actually running in claude.
 - If editions are approved in `/admin` **and** the routine also releases, two lessons go out the same day. `releaseEdition` has no same-day guard (`src/lib/admin.ts:178-199`).
 - If the routine runs late, the cron sends a false "no lesson went out" alarm.
 
-**Decision for the new editor.** The app-side approval queue is the safer design: nothing reaches children without an explicit yes, and editions can be built days ahead. Choosing it means:
+**Decision for the editors.** The app-side approval queue is the safer design: nothing reaches children without an explicit yes, and editions can be built days ahead. With two editors it is also the only path that works for both. The release routine reads only replies from `{{PARENT_EMAIL}}`, while `/admin` approvals count for both editors. Choosing it means:
 
 1. The release routine stops calling `release` and only mirrors released editions to the content repo.
 2. The builder stops assuming "today" and reads `revision_note` (the API has to return it first).
